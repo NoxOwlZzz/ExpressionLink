@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="false" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4D1F63B1-C215-4B58-91CA-F11E35F92A9B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>NightOwlZzz.Koikatsu.EyeMotion</RootNamespace>
+    <AssemblyName>KK_EyeMotion</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>7.3</LangVersion>
+    <NoStdLib>true</NoStdLib>
+    <_EnableDefaultWindowsPlatform>false</_EnableDefaultWindowsPlatform>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib">
+      <HintPath>lib\mscorlib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>lib\System.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>lib\System.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>lib\BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="KKAPI">
+      <HintPath>lib\KKAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ExtensibleSaveFormat">
+      <HintPath>lib\ExtensibleSaveFormat.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>lib\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>lib\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>lib\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="src\AssemblyInfo.cs" />
+    <Compile Include="src\BlendshapeBinding.cs" />
+    <Compile Include="src\ConfigChangeClassifier.cs" />
+    <Compile Include="src\Diagnostics.cs" />
+    <Compile Include="src\DirectionalMapper.cs" />
+    <Compile Include="src\Enums.cs" />
+    <Compile Include="src\EyeCustomizationCatalog.cs" />
+    <Compile Include="src\EyeCustomizationMapper.cs" />
+    <Compile Include="src\ExpressionControlEyeSource.cs" />
+    <Compile Include="src\EyeMotionCharacterController.cs" />
+    <Compile Include="src\EyeState.cs" />
+    <Compile Include="src\EyeStateSampler.cs" />
+    <Compile Include="src\ExpressionTriggerController.cs" />
+    <Compile Include="src\ExpressionTriggerSyntax.cs" />
+    <Compile Include="src\HeadmodTargetResolver.cs" />
+    <Compile Include="src\ManualVisibilityBinding.cs" />
+    <Compile Include="src\ManualVisibilityCatalog.cs" />
+    <Compile Include="src\ManualVisibilityStateMachine.cs" />
+    <Compile Include="src\ManagedWeightState.cs" />
+    <Compile Include="src\Plugin.cs" />
+    <Compile Include="src\PluginConfig.cs" />
+    <Compile Include="src\QuickSettingsWindow.cs" />
+    <Compile Include="src\VisibilityCardData.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

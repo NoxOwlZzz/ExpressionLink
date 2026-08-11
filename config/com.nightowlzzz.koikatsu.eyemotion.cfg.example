@@ -1,0 +1,120 @@
+## EyeMotion 0.4.1 example
+## BepInEx creates the live file automatically at:
+## BepInEx/config/com.nightowlzzz.koikatsu.eyemotion.cfg
+
+[General]
+Enabled = true
+RestoreMode = InitialValues
+
+[Target Headmod]
+TargetRendererPath =
+TargetRendererName =
+SearchScope = HeadFirst
+RequireAllDirectionalBlendshapes = true
+RequireBlinkWhenEnabled = true
+BindingRetryFrames = 60
+
+[Blendshape Names]
+PositiveXBlendshape = eye_motion.f00_eye_posx
+NegativeXBlendshape = eye_motion.f00_eye_negx
+PositiveYBlendshape = eye_motion.f00_eye_posy
+NegativeYBlendshape = eye_motion.f00_eye_negy
+BlinkBlendshape = eye_motion.f00_eye_blink
+
+[Horizontal Movement]
+InvertX = false
+SourceEyeMode = Average
+ClampInputToUnitCircle = true
+HorizontalCenterOffset = 0
+PositiveXInputLimit = 1
+NegativeXInputLimit = 1
+PositiveXMaxWeight = 100
+NegativeXMaxWeight = 100
+PositiveXDeadZone = 0
+NegativeXDeadZone = 0
+PositiveXGamma = 1
+NegativeXGamma = 1
+
+[Vertical Movement]
+InvertY = false
+VerticalCenterOffset = 0
+PositiveYInputLimit = 1
+NegativeYInputLimit = 1
+PositiveYMaxWeight = 100
+NegativeYMaxWeight = 100
+PositiveYDeadZone = 0
+NegativeYDeadZone = 0
+PositiveYGamma = 1
+NegativeYGamma = 1
+
+[Blink]
+BlinkEnabled = true
+BlinkMaxWeight = 100
+BlinkDeadZone = 0
+BlinkGamma = 1
+BlinkSmoothingSpeed = 0
+
+[Smoothing]
+SmoothingEnabled = false
+SmoothingSpeed = 12
+UseUnscaledTime = false
+
+[ExpressionControl Eye Adjustments]
+Enabled = true
+IrisYMaxWeight = 100
+IrisSizeMaxWeight = 100
+
+[ExpressionControl Eye Adjustment Blendshapes]
+## Optional channels that are authored must share the selected renderer with
+## the required gaze/blink shapes.
+IrisYBlendshape = eye_motion.f00_iris_y
+IrisSizeBlendshape = eye_motion.f00_iris_size
+
+## IrisY maps 0..0.5 to 0..IrisYMaxWeight.
+## Size maps 0..1 to 0..IrisSizeMaxWeight and represents iris shrink.
+## KK_ExpressionControl.dll is optional. Without it these shapes are not
+## controlled; gaze, blink, visibility, highlights, and expressions still work.
+
+[Automatic Expressions]
+Enabled = true
+ActivationThreshold = 0.001
+
+## ExpressionMesh 01-04 trigger strings are per-character card data, not
+## global configuration values. Assign them in Quick Settings by entering an
+## exact FBS blendshape name, brow:N, eyes:N, or mouth:N, or by capturing the
+## selected character's current Brow/Eyes/Mouth pattern.
+
+[Manual Visibility]
+HideBlendshapeWeight = 100
+FollowBaseGameHighlightVisibility = true
+
+[Manual Visibility Blendshapes]
+Highlight01Blendshape = eye_motion.f00_hide_highlight01
+Highlight02Blendshape = eye_motion.f00_hide_highlight02
+IrisInnerBlendshape = eye_motion.f00_hide_irisinner
+IrisOuterBlendshape = eye_motion.f00_hide_irisouter
+PupilBlendshape = eye_motion.f00_hide_pupil
+ScleraBlendshape = eye_motion.f00_hide_sclera
+NormalEyesBlendshape = eye_motion.f00_hide_normaleyes
+Expression01Blendshape = eye_motion.f00_hide_expression01
+Expression02Blendshape = eye_motion.f00_hide_expression02
+Expression03Blendshape = eye_motion.f00_hide_expression03
+
+[Manual Visibility Renderers]
+ExpressionMesh01Target = ExpressionMesh_01
+ExpressionMesh02Target = ExpressionMesh_02
+ExpressionMesh03Target = ExpressionMesh_03
+ExpressionMesh04Target = ExpressionMesh_04
+
+[Persistence]
+CardPersistenceEnabled = true
+
+## Schema 2 saves the 14 manual modes plus four expression-trigger strings and
+## remains compatible with schema 1 cards.
+
+[Diagnostics]
+DebugLogging = false
+LogEyeValues = false
+LogIntervalSeconds = 2
+QuickSettingsShortcut = M + LeftControl + LeftShift
+DumpDiagnosticsShortcut = F10 + LeftShift

@@ -1,0 +1,17 @@
+.vs/
+bin/
+obj/
+lib/
+dist/
+tests/bin/
+tests/obj/
+
+*.dll
+*.pdb
+*.zip
+*.sha256
+*.user
+*.suo
+
+com.nightowlzzz.koikatsu.eyemotion.cfg
+diagnostics/
