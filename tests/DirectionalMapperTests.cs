@@ -23,10 +23,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             TestConfigChangeClassification();
             TestVisibilityCardData();
 
+            int smokeChecks;
+            int smokeFailures = LocalApiSmokeTests.Run(out smokeChecks);
+
             Console.WriteLine(
                 "DirectionalMapper checks: " + _checks +
                 ", failures: " + _failures);
-            return _failures == 0 ? 0 : 1;
+            Console.WriteLine(
+                "Local API smoke checks: " + smokeChecks +
+                ", failures: " + smokeFailures);
+            return _failures == 0 && smokeFailures == 0 ? 0 : 1;
         }
 
         private static void TestDirectionalMapping()

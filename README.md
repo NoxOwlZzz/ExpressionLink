@@ -46,7 +46,7 @@ supported.
    BepInEx\config\com.nightowlzzz.koikatsu.eyemotion.cfg
    ```
 
-The public ZIP contains only the plugin DLL and its English README/changelog.
+The public ZIP contains only the plugin DLL and its English README.
 It deliberately excludes configuration files, PDB files, source files, and
 dependency DLLs. Installing an update therefore preserves the user's existing
 configuration and does not replace shared dependencies.
@@ -301,8 +301,8 @@ run-tests.bat
 
 After a successful Release build, create the clean public archive:
 
-```powershell
-.\package-release.ps1
+```bat
+package-release.bat
 ```
 
 The packager validates the assembly version and every ZIP entry, excludes

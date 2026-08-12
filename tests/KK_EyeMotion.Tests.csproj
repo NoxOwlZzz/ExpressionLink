@@ -39,6 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DirectionalMapperTests.cs" />
+    <Compile Include="LocalApiSmokeTests.cs" />
     <Compile Include="..\src\ConfigChangeClassifier.cs">
       <Link>ConfigChangeClassifier.cs</Link>
     </Compile>
