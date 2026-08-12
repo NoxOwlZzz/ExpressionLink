@@ -32,7 +32,7 @@ supported.
 ## Clean ZIP installation
 
 1. Close Koikatsu and CharaStudio.
-2. Open `KK_EyeMotion-v0.4.1-MEGA.zip` and merge its `BepInEx` folder into the game
+2. Open `KK_EyeMotion-v0.4.1.zip` and merge its `BepInEx` folder into the game
    directory.
 3. Confirm that the final DLL path is:
 
@@ -309,8 +309,8 @@ The packager validates the assembly version and every ZIP entry, excludes
 configuration/dependency/PDB files, and creates:
 
 ```text
-dist\KK_EyeMotion-v0.4.1-MEGA.zip
-dist\KK_EyeMotion-v0.4.1-MEGA.zip.sha256
+dist\KK_EyeMotion-v0.4.1.zip
+dist\KK_EyeMotion-v0.4.1.zip.sha256
 ```
 
 For local deployment, `deploy-release.bat` backs up the previous DLL before
