@@ -22,6 +22,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             TestScreen("800x600", 800f, 600f);
             TestTinyScreen();
             TestInvalidAndSmallInputs();
+            TestDraggedCoordinates();
 
             checks = _checks;
             return _failures;
@@ -208,6 +209,38 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     640f,
                     696f,
                     -10f));
+        }
+
+        private static void TestDraggedCoordinates()
+        {
+            Equal(
+                "drag follows the pointer to the right",
+                34f,
+                QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
+                    24f,
+                    110f,
+                    100f));
+            Equal(
+                "successive drag events accumulate",
+                44f,
+                QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
+                    34f,
+                    110f,
+                    100f));
+            Equal(
+                "drag follows the pointer to the left",
+                14f,
+                QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
+                    24f,
+                    90f,
+                    100f));
+            Equal(
+                "overflow preserves the current coordinate",
+                float.MaxValue,
+                QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
+                    float.MaxValue,
+                    float.MaxValue,
+                    -float.MaxValue));
         }
 
         private static float ClampHorizontal(

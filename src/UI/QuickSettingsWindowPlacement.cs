@@ -33,6 +33,20 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 screenMargin);
         }
 
+        internal static float CalculateDraggedCoordinate(
+            float windowPosition,
+            float pointerPosition,
+            float pointerOffset)
+        {
+            windowPosition = SanitizePosition(windowPosition);
+            pointerPosition = SanitizePosition(pointerPosition);
+            pointerOffset = SanitizePosition(pointerOffset);
+            float result = windowPosition + pointerPosition - pointerOffset;
+            return float.IsNaN(result) || float.IsInfinity(result)
+                ? windowPosition
+                : result;
+        }
+
         private static float ClampVisibleSpan(
             float position,
             float spanLength,

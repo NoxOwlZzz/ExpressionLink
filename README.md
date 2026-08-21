@@ -408,9 +408,9 @@ dist\KK_ExpressionLink-v0.5.0.zip
 dist\KK_ExpressionLink-v0.5.0.zip.sha256
 ```
 
-For local deployment, `deploy-release.bat` backs up the previous DLL before
-copying the new one. The PDB is copied only with its explicit development
-option.
+For local deployment, `deploy-release.bat` backs up the previous DLL outside
+the scanned `BepInEx\plugins` tree before copying the new one. The PDB is copied
+only with its explicit development option.
 
 ## Current limitations
 
