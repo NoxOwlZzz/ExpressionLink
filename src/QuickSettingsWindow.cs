@@ -7,12 +7,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     internal sealed class QuickSettingsWindow
     {
         private const int WindowId = 1162694995;
-        private const float PreferredWindowWidth = 590f;
-        private const float PreferredWindowHeight = 700f;
+        private const float PreferredWindowWidth = 500f;
+        private const float PreferredWindowHeight = 520f;
         private const float MinimumWindowWidth = 360f;
         private const float MinimumWindowHeight = 300f;
         private const float ScreenMargin = 8f;
-        private const float FixedVerticalContentHeight = 118f;
+        private const float FixedVerticalContentHeight = 126f;
+        private const float HeaderHeight = 24f;
+        private const float MinimumVisibleHeaderWidth = 120f;
         private const int MotionTab = 0;
         private const int IrisTab = 1;
         private const int ExpressionsTab = 2;
@@ -235,7 +237,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
 
-            GUI.DragWindow(new Rect(0f, 0f, 10000f, 24f));
+            GUI.DragWindow(new Rect(0f, 0f, 10000f, HeaderHeight));
         }
 
         private void DrawTabs()
@@ -1057,10 +1059,24 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void ClampToScreen()
         {
-            float availableWidth = Mathf.Max(1f, Screen.width - (ScreenMargin * 2f));
-            float availableHeight = Mathf.Max(1f, Screen.height - (ScreenMargin * 2f));
-            float minimumWidth = Mathf.Min(MinimumWindowWidth, availableWidth);
-            float minimumHeight = Mathf.Min(MinimumWindowHeight, availableHeight);
+            ClampWindowSize();
+            ClampHeaderToScreen();
+        }
+
+        private void ClampWindowSize()
+        {
+            float availableWidth = Mathf.Max(
+                1f,
+                Screen.width - (ScreenMargin * 2f));
+            float availableHeight = Mathf.Max(
+                1f,
+                Screen.height - (ScreenMargin * 2f));
+            float minimumWidth = Mathf.Min(
+                MinimumWindowWidth,
+                availableWidth);
+            float minimumHeight = Mathf.Min(
+                MinimumWindowHeight,
+                availableHeight);
 
             _windowRect.width = Mathf.Clamp(
                 PreferredWindowWidth,
@@ -1070,21 +1086,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 PreferredWindowHeight,
                 minimumHeight,
                 availableHeight);
+        }
 
-            float minimumX = Screen.width > (ScreenMargin * 2f)
-                ? ScreenMargin
-                : 0f;
-            float minimumY = Screen.height > (ScreenMargin * 2f)
-                ? ScreenMargin
-                : 0f;
-            float maximumX = Mathf.Max(
-                minimumX,
-                Screen.width - minimumX - _windowRect.width);
-            float maximumY = Mathf.Max(
-                minimumY,
-                Screen.height - minimumY - _windowRect.height);
-            _windowRect.x = Mathf.Clamp(_windowRect.x, minimumX, maximumX);
-            _windowRect.y = Mathf.Clamp(_windowRect.y, minimumY, maximumY);
+        private void ClampHeaderToScreen()
+        {
+            _windowRect.x = QuickSettingsWindowPlacement.ClampHorizontal(
+                _windowRect.x,
+                _windowRect.width,
+                Screen.width,
+                ScreenMargin,
+                MinimumVisibleHeaderWidth);
+            _windowRect.y = QuickSettingsWindowPlacement.ClampVertical(
+                _windowRect.y,
+                Screen.height,
+                ScreenMargin,
+                HeaderHeight);
         }
 
         private float GetScrollViewHeight()

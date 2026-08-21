@@ -26,6 +26,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             int expressionLinkFailures =
                 ExpressionLinkCoreTests.Run(out expressionLinkChecks);
 
+            int windowPlacementChecks;
+            int windowPlacementFailures =
+                QuickSettingsWindowPlacementTests.Run(
+                    out windowPlacementChecks);
+
             int smokeChecks;
             int smokeFailures = LocalApiSmokeTests.Run(out smokeChecks);
 
@@ -36,10 +41,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "Expression Link core checks: " + expressionLinkChecks +
                 ", failures: " + expressionLinkFailures);
             Console.WriteLine(
+                "Window placement checks: " + windowPlacementChecks +
+                ", failures: " + windowPlacementFailures);
+            Console.WriteLine(
                 "Local API smoke checks: " + smokeChecks +
                 ", failures: " + smokeFailures);
             return _failures == 0 && expressionLinkFailures == 0 &&
-                smokeFailures == 0 ? 0 : 1;
+                windowPlacementFailures == 0 && smokeFailures == 0
+                    ? 0
+                    : 1;
         }
 
         private static void TestDirectionalMapping()

@@ -113,8 +113,10 @@ control these two shapes and restores any values it previously owned.
 ## Quick Settings
 
 Press `Left Ctrl + Left Shift + M` to open or close the runtime panel in the
-game, Maker, or Studio. The panel is clamped to the current screen and its main
-content scrolls so the bottom action buttons remain accessible.
+game, Maker, or Studio. The compact panel uses internal scrolling so its bottom
+actions remain accessible. Drag the title bar to move it: the body may leave the
+screen, but the complete header stays visible vertically and at least 120 pixels
+remain available horizontally to recover it.
 
 Version 0.5.0 provides Motion, Iris, Expressions, Visibility, and Links tabs.
 Only the selected group is displayed.
