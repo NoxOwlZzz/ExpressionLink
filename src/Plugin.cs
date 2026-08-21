@@ -65,6 +65,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 Diagnostics.WriteReport();
             }
+
+            if (_quickSettingsWindow != null)
+            {
+                _quickSettingsWindow.UpdateInput();
+            }
         }
 
         private void OnGUI()

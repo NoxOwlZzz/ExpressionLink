@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace NightOwlZzz.Koikatsu.EyeMotion
 {
-    internal sealed class QuickSettingsWindow
+    internal sealed partial class QuickSettingsWindow
     {
         private const int WindowId = 1162694995;
         private const float PreferredWindowWidth = 500f;
@@ -15,7 +15,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private const float FixedVerticalContentHeight = 126f;
         private const float HeaderHeight = 24f;
         private const float MinimumVisibleHeaderWidth = 120f;
-        private const int HeaderDragControlHint = 1162694996;
         private const int MotionTab = 0;
         private const int IrisTab = 1;
         private const int ExpressionsTab = 2;
@@ -129,10 +128,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private readonly GUILayoutOption[] _scrollViewOptions =
             new GUILayoutOption[1];
         private float _scrollViewOptionHeight = float.NaN;
-        private Vector2 _headerDragPointerOffset;
-        private Vector2 _pendingWindowPosition;
-        private bool _hasPendingWindowPosition;
-        private int _headerDragControlId;
         private EyeMotionCharacterController _selectedController;
         private int _liveStatusFrame = -1;
         private int _liveStatusControllerInstanceId;
@@ -163,7 +158,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _visible = !_visible;
             if (!_visible)
             {
-                ReleaseHeaderDrag();
+                StopHeaderDrag();
                 return;
             }
 
@@ -178,27 +173,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return;
             }
 
-            ClampWindowSize();
-            ClampHeaderToScreen();
-            _hasPendingWindowPosition = false;
-            Rect drawnRect = GUI.Window(
+            ClampToScreen();
+            _windowRect = GUI.Window(
                 WindowId,
                 _windowRect,
                 _drawWindowFunction,
                 _windowTitle);
-            _windowRect = drawnRect;
-            if (_hasPendingWindowPosition)
-            {
-                _windowRect.x = _pendingWindowPosition.x;
-                _windowRect.y = _pendingWindowPosition.y;
-            }
-
             ClampHeaderToScreen();
         }
 
         private void DrawWindow(int id)
         {
-            HandleHeaderDrag();
             BeginVertical();
             EyeMotionCharacterController selected = DrawControllerSelector();
             DrawTabs();
@@ -250,90 +235,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (DrawButton("Close"))
             {
                 _visible = false;
-                ReleaseHeaderDrag();
+                StopHeaderDrag();
             }
 
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
-        }
-
-        private void HandleHeaderDrag()
-        {
-            Event current = Event.current;
-            if (current == null)
-            {
-                return;
-            }
-
-            int controlId = GUIUtility.GetControlID(
-                HeaderDragControlHint,
-                FocusType.Passive);
-            EventType eventType = current.GetTypeForControl(controlId);
-            if (eventType == EventType.MouseDown &&
-                current.button == 0 &&
-                new Rect(0f, 0f, _windowRect.width, HeaderHeight).Contains(
-                    current.mousePosition))
-            {
-                _headerDragPointerOffset = current.mousePosition;
-                GUIUtility.hotControl = controlId;
-                _headerDragControlId = controlId;
-                current.Use();
-                return;
-            }
-
-            if (GUIUtility.hotControl != controlId)
-            {
-                if (_headerDragControlId == controlId)
-                {
-                    _headerDragControlId = 0;
-                }
-
-                return;
-            }
-
-            if (eventType == EventType.Ignore)
-            {
-                ReleaseHeaderDrag();
-                return;
-            }
-
-            if (eventType == EventType.MouseDrag ||
-                eventType == EventType.MouseUp)
-            {
-                _pendingWindowPosition.x =
-                    QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
-                        _windowRect.x,
-                        current.mousePosition.x,
-                        _headerDragPointerOffset.x);
-                _pendingWindowPosition.y =
-                    QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
-                        _windowRect.y,
-                        current.mousePosition.y,
-                        _headerDragPointerOffset.y);
-                _hasPendingWindowPosition = true;
-            }
-
-            if (eventType == EventType.MouseUp)
-            {
-                ReleaseHeaderDrag();
-            }
-
-            if (eventType == EventType.MouseDrag ||
-                eventType == EventType.MouseUp)
-            {
-                current.Use();
-            }
-        }
-
-        private void ReleaseHeaderDrag()
-        {
-            if (_headerDragControlId != 0 &&
-                GUIUtility.hotControl == _headerDragControlId)
-            {
-                GUIUtility.hotControl = 0;
-            }
-
-            _headerDragControlId = 0;
         }
 
         private void DrawTabs()
