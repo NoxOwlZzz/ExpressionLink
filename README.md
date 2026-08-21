@@ -28,8 +28,8 @@ not calculate an independent look-at target, use vertex colors, replace
   optional IrisY/Size blendshapes.
 
 The development installation used BetterRepack RX22, BepInEx 5.4.23.2, and
-KKAPI 1.42.2. Other installations should be tested before being advertised as
-supported.
+KKAPI 1.42.2. Other installations should be verified before being advertised
+as supported.
 
 This build targets Koikatsu/Koikatu only. Its core is organized for a future
 Koikatsu Sunshine adapter, but **KKS is not currently compatible or supported**.
@@ -216,7 +216,7 @@ BepInEx\config\KK_ExpressionLink\Profiles
 Loading a profile copies its links to the selected character with fresh IDs.
 Profiles are separate from character-card data and are intended for reuse
 across compatible headmods or characters. Version 0.5.0 profiles declare
-Koikatsu support only; a future KKS build will require its own tested adapter.
+Koikatsu support only; a future KKS build will require its own validated adapter.
 
 ## Automatic ExpressionMesh triggers
 
@@ -333,7 +333,7 @@ BepInEx configuration.
 KKAPI keeps per-character data attached to characters stored in Studio scenes.
 KK_ExpressionLink does not create a separate global scene payload. JSON
 profiles are separate reusable files, not additional Studio scene data. Back
-up valuable cards before compatibility testing.
+up valuable cards before checking compatibility.
 
 ## Renderer selection
 
@@ -347,8 +347,8 @@ to the configured retry limit:
 5. Membership in the same character's head hierarchy.
 
 The two KK_ExpressionControl eye-adjustment shapes are optional and do not
-participate in the required compatibility test. If multiple candidates remain, binding is
-reported as ambiguous until an exact path is configured. Vertex colors are not
+participate in the required compatibility check. If multiple candidates remain,
+binding is reported as ambiguous until an exact path is configured. Vertex colors are not
 used as a tie-breaker.
 
 ## Performance behavior
@@ -386,11 +386,10 @@ Expression Link source and target resolution, conflict status, resolved
 expression selectors and weights, highlight synchronization, and card
 persistence status.
 
-## Building, testing, and packaging
+## Building and packaging
 
 ```bat
 build-release.bat
-run-tests.bat
 ```
 
 After a successful Release build, create the clean public archive:
@@ -428,5 +427,3 @@ option.
   convert incompatible VRChat blendshape deltas.
 - KoikatuVR and Koikatsu Sunshine are outside the declared compatibility
   scope. KKS support must not be assumed from the shared-core architecture.
-
-See [MANUAL_TESTS_0.5.0.md](MANUAL_TESTS_0.5.0.md) for the current release test plan.
