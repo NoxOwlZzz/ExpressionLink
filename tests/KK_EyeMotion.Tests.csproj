@@ -40,6 +40,22 @@
   <ItemGroup>
     <Compile Include="DirectionalMapperTests.cs" />
     <Compile Include="LocalApiSmokeTests.cs" />
+    <Compile Include="ExpressionLinkCoreTests.cs" />
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkBinaryCodec.cs">
+      <Link>ExpressionLinkBinaryCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkConflictResolver.cs">
+      <Link>ExpressionLinkConflictResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkDefinition.cs">
+      <Link>ExpressionLinkDefinition.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkEvaluator.cs">
+      <Link>ExpressionLinkEvaluator.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkValidator.cs">
+      <Link>ExpressionLinkValidator.cs</Link>
+    </Compile>
     <Compile Include="..\src\ConfigChangeClassifier.cs">
       <Link>ConfigChangeClassifier.cs</Link>
     </Compile>

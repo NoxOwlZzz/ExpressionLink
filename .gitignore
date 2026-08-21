@@ -14,4 +14,4 @@ tests/obj/
 *.suo
 
 com.nightowlzzz.koikatsu.eyemotion.cfg
-diagnostics/
+/diagnostics/

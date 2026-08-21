@@ -1,27 +1,29 @@
-# EyeMotion
+# KK_ExpressionLink
 
-**Eye Mesh and Expression Controller for Koikatsu**  
-Author: NightOwlZzz / Owl  
-Current version: 0.4.1
+**Blendshape and Expression Controller for Koikatsu**
+Author: NightOwlZzz / Owl
+Current version: 0.5.0
 
-EyeMotion reuses the eye direction and effective eye opening already calculated
-by Koikatsu to drive a custom head. It can also mirror KK_ExpressionControl's
-real `IrisY` and `Size` values through two optional blendshapes, manages fused
-eye-part and separate expression-mesh visibility, and can activate expression
-meshes from the character's current brow, eye, or mouth expression.
+KK_ExpressionLink preserves the optimized custom-eye movement, blink, iris
+adjustment, visibility, and highlight features introduced as EyeMotion. It now
+also links Koikatsu facial expressions to blendshapes on any character
+`SkinnedMeshRenderer`, including head, hair, body, clothes, accessories, and
+other character-owned meshes.
 
-EyeMotion does not use vertex colors. It does not replace `sharedMesh`, create
-material instances, move eye bones or transforms, or calculate an independent
-look-at target.
+The plugin uses Koikatsu's existing eye and facial-expression state. It does
+not calculate an independent look-at target, use vertex colors, replace
+`sharedMesh`, create material instances, or move eye bones.
 
 ## Requirements
 
 - Koikatsu / Koikatu with BepInEx 5.
 - Modding API / KKAPI 1.42.2 or a compatible newer version.
 - ExtensibleSaveFormat (`com.bepis.bepinex.extendedsave`).
-- A compatible headmod containing the five required movement/blink shapes.
-- Any desired IrisY/Size, Hide, and expression meshes or shapes.
-  Those additional channels are optional.
+- The eye-motion feature requires a compatible headmod containing its five
+  movement/blink shapes. Expression Links can be used independently on other
+  character-owned meshes.
+- Any desired IrisY/Size, Hide, expression, hair, clothing, or accessory
+  blendshapes. These additional channels are optional.
 - KK_ExpressionControl is optional. It is required only to drive the two
   optional IrisY/Size blendshapes.
 
@@ -29,11 +31,14 @@ The development installation used BetterRepack RX22, BepInEx 5.4.23.2, and
 KKAPI 1.42.2. Other installations should be tested before being advertised as
 supported.
 
+This build targets Koikatsu/Koikatu only. Its core is organized for a future
+Koikatsu Sunshine adapter, but **KKS is not currently compatible or supported**.
+
 ## Clean ZIP installation
 
 1. Close Koikatsu and CharaStudio.
-2. Open `KK_EyeMotion-v0.4.1.zip` and merge its `BepInEx` folder into the game
-   directory.
+2. Open `KK_ExpressionLink-v0.5.0.zip` and merge its `BepInEx` folder into
+   the game directory.
 3. Confirm that the final DLL path is:
 
    ```text
@@ -45,6 +50,11 @@ supported.
    ```text
    BepInEx\config\com.nightowlzzz.koikatsu.eyemotion.cfg
    ```
+The outer ZIP and visible plugin name are new. The physical
+`KK_EyeMotion.dll`, internal plugin folder, BepInEx GUID, configuration file,
+namespace, card-data identity, and `eye_motion.*` names deliberately remain
+unchanged. An update therefore replaces the old plugin instead of loading a
+duplicate.
 
 The public ZIP contains only the plugin DLL and its English README.
 It deliberately excludes configuration files, PDB files, source files, and
@@ -64,7 +74,7 @@ eye_motion.f00_eye_blink
 ```
 
 Names must match the runtime mesh exactly. Some import pipelines preserve a
-final `_0`; EyeMotion never adds or removes suffixes while resolving a mesh. If
+final `_0`; KK_ExpressionLink never adds or removes suffixes while resolving a mesh. If
 the game shows `eye_motion.f00_eye_posx_0`, enter that exact name in Quick
 Settings or BepInEx Configuration Manager.
 
@@ -97,7 +107,7 @@ other feature.
 
 KK_ExpressionControl.dll is an optional integration, not a hard plugin
 dependency. Without it, gaze, blink, visibility, highlights, expression
-automation, and card persistence continue to work normally; EyeMotion does not
+automation, and card persistence continue to work normally; KK_ExpressionLink does not
 control these two shapes and restores any values it previously owned.
 
 ## Quick Settings
@@ -106,13 +116,13 @@ Press `Left Ctrl + Left Shift + M` to open or close the runtime panel in the
 game, Maker, or Studio. The panel is clamped to the current screen and its main
 content scrolls so the bottom action buttons remain accessible.
 
-Version 0.4.1 separates the panel into Motion, Iris, Expressions, and
-Visibility tabs. Only the selected group is displayed.
+Version 0.5.0 provides Motion, Iris, Expressions, Visibility, and Links tabs.
+Only the selected group is displayed.
 
 The same panel can also be opened from:
 
-- Maker: **Face > EyeMotion > Open Quick Settings**.
-- Studio: the **EyeMotion** button in the left toolbar.
+- Maker: **Face > Expression Link > Open Expression Link Quick Settings**.
+- Studio: the **KK_ExpressionLink** button in the left toolbar.
 
 The Studio button now uses the same neutral square background and bevel as the
 surrounding toolbar buttons while retaining the monochrome eye glyph.
@@ -120,8 +130,8 @@ surrounding toolbar buttons while retaining the monochrome eye glyph.
 Use the arrows at the top to select a character. Global settings such as
 movement calibration, maximum weights, blendshape names, renderer targets, and
 the automation threshold take effect after pressing **Apply**. Manual
-visibility and per-character expression-trigger controls act on the selected
-character.
+visibility, legacy ExpressionMesh triggers, and Expression Links act on the
+selected character.
 
 Recommended X/Y gaze calibration:
 
@@ -132,11 +142,87 @@ Recommended X/Y gaze calibration:
    input limit means higher sensitivity.
 4. Press **Apply**.
 
+## Expression Links
+
+An Expression Link reads one live Koikatsu brow, eye, or mouth expression and
+writes a blendshape on a selected character renderer. Links are stored per
+character, so a VRChat-derived headmod can drive facial details as well as
+hair ears, horns, accessories, clothing parts, or other authored shapes.
+
+Use the **Links** tab for the selected character:
+
+1. Add a link and give it a descriptive name.
+2. Set its source to an exact Koikatsu FBS Close/Open blendshape name or an
+   explicit `brow:N`, `eyes:N`, or `mouth:N` selector.
+3. Enter the exact destination blendshape name.
+4. Choose the target scope and optional slot. Leave the renderer path empty
+   only when that blendshape is unique within the selected scope and slot.
+5. Use an exact renderer path and component index when status reports an
+   ambiguous destination.
+6. Choose **Binary** or **Follow Source**, tune the output, and apply the link.
+
+A source name is matched against Koikatsu's current brow, eyes, and mouth
+Close/Open patterns. Names under `eye_motion.*` are output destinations and
+are deliberately rejected as sources. If an exact source name is ambiguous,
+use the explicit selector reported by the status or diagnostics.
+
+### Multi-renderer targets
+
+Supported target scopes are `Any`, `Head`, `Hair`, `Body`, `Clothes`,
+`Accessory`, and `Other`. Hair, clothes, and accessory slots use zero-based
+indices; `-1` means any slot. Renderer paths are relative to the character's
+`ChaControl` transform, and component indices are zero-based when one
+GameObject contains multiple `SkinnedMeshRenderer` components.
+
+Resolution is conservative:
+
+- With an exact path, scope, slot, and optional component index must match.
+- Renderer-name and mesh-name hints can disambiguate renderers at that exact
+  path, but both hints are exact and case-sensitive.
+- Without a path, the destination blendshape must be unique after applying
+  scope, slot, and optional component filters.
+- Missing or ambiguous targets are reported instead of selecting an arbitrary
+  mesh.
+- The five eye-motion channels and legacy manual-visibility channels are
+  reserved; an Expression Link cannot take ownership of those destinations.
+
+### Output modes
+
+- **Binary:** outputs `OutputMax` while the source is greater than `Threshold`;
+  otherwise it outputs `OutputMin`.
+- **Follow Source:** clamps and maps `InputMin..InputMax` to
+  `OutputMin..OutputMax`.
+- **Smoothing Speed:** limits movement in blendshape-weight units per second.
+  Zero applies the result immediately.
+
+Source ranges are 0 to 1 and destination weights are 0 to 100. Up to 128
+links can be stored for one character.
+
+If multiple enabled links resolve to the same renderer, mesh, and blendshape,
+the highest priority wins. At equal priority, the greatest evaluated weight
+wins. KK_ExpressionLink captures the original target weight before its first
+write and restores it only if the channel still contains the last value it
+wrote. A later external writer is therefore not overwritten by a stale
+restore.
+
+### Reusable profiles
+
+The Profiles panel saves and loads validated JSON link sets under:
+
+```text
+BepInEx\config\KK_ExpressionLink\Profiles
+```
+
+Loading a profile copies its links to the selected character with fresh IDs.
+Profiles are separate from character-card data and are intended for reuse
+across compatible headmods or characters. Version 0.5.0 profiles declare
+Koikatsu support only; a future KKS build will require its own tested adapter.
+
 ## Automatic ExpressionMesh triggers
 
 Each selected character has one trigger field for `ExpressionMesh_01` through
 `ExpressionMesh_04`. When a configured facial pattern exceeds the global
-activation threshold, EyeMotion shows that slot; otherwise it hides it. A slot
+activation threshold, KK_ExpressionLink shows that slot; otherwise it hides it. A slot
 controls its corresponding separate renderer and, when present, the matching
 fused Hide destination (`hide_expression01` through `hide_expression03`).
 
@@ -148,7 +234,7 @@ A trigger accepts either:
   a non-negative pattern index, for example `eyes:5`.
 
 Name matching is case-insensitive but otherwise exact. If the same name maps to
-more than one facial pattern, EyeMotion reports it as ambiguous; use the
+more than one facial pattern, KK_ExpressionLink reports it as ambiguous; use the
 explicit selector shown by diagnostics/status. `eye_motion.*` names are
 destinations and are deliberately rejected as triggers.
 
@@ -171,7 +257,7 @@ assignments.
 
 ## Manual visibility
 
-EyeMotion exposes ten optional fused-part slots and four optional renderer
+KK_ExpressionLink exposes ten optional fused-part slots and four optional renderer
 slots. Each row has three modes:
 
 - `Original`: relinquish manual control and restore the captured runtime value,
@@ -207,9 +293,9 @@ Every visibility slot is optional. Renderer targets can be exact GameObject
 names or paths relative to `ChaControl`. Ambiguous names are rejected instead
 of selecting an arbitrary renderer.
 
-EyeMotion captures the original value immediately before its first write. When
+KK_ExpressionLink captures the original value immediately before its first write. When
 returning to an uncontrolled `Original` state, reloading a character, or
-unloading the plugin, it restores only values still owned by EyeMotion. This
+unloading the plugin, it restores only values still owned by KK_ExpressionLink. This
 prevents a stale restore from overwriting a later change made by another plugin.
 
 ## Erase Highlight synchronization
@@ -220,31 +306,34 @@ Highlight 02. Compatible Erase Highlight controls, including
 KK_ExpressionControl, therefore also hide the configured custom-head highlight
 blendshapes.
 
-When the base highlight state becomes visible again, EyeMotion returns each
+When the base highlight state becomes visible again, KK_ExpressionLink returns each
 highlight slot to its previous `Original`, `Visible`, or `Hidden` mode.
 
 ## Character-card persistence
 
-`CardPersistenceEnabled` is enabled by default. Schema 2 stores, per character:
+`CardPersistenceEnabled` is enabled by default. Schema 3 stores, per character:
 
 - The ten fused-part manual modes.
 - The four renderer manual modes.
-- The four ExpressionMesh trigger strings.
+- The four legacy ExpressionMesh trigger strings.
+- The validated Expression Link definitions.
 
-Schema 2 remains backward-compatible with schema 1 cards. A schema 1 card loads
-its 14 manual modes and receives empty expression triggers; it can then be saved
-as schema 2. Unsupported newer schemas are preserved conservatively instead of
-being silently overwritten.
+Schema 1 and schema 2 cards remain compatible. Schema 1 loads its 14 manual
+modes with empty legacy trigger fields and no links. Schema 2 also loads its
+four trigger strings and starts with no links. Saving new links upgrades that
+character payload to schema 3. The four legacy trigger slots are preserved
+and are not silently converted into Expression Links.
 
-The automatic active/inactive state and Erase Highlight override are runtime
-state and are not saved. Global movement calibration, channel names, renderer
-targets, enable switches, maximum weights, and activation threshold remain in
-the BepInEx configuration.
+Invalid or unsupported newer payloads are preserved conservatively instead of
+being silently overwritten. Live source activity, smoothing state, and the
+Erase Highlight override are runtime state and are not saved. Global eye
+calibration, default channel names, and global feature switches remain in the
+BepInEx configuration.
 
 KKAPI keeps per-character data attached to characters stored in Studio scenes.
-EyeMotion does not create a separate global scene payload. If all 14 modes are
-`Original` and all four triggers are empty, EyeMotion removes the unnecessary
-card payload. Back up valuable cards before compatibility testing.
+KK_ExpressionLink does not create a separate global scene payload. JSON
+profiles are separate reusable files, not additional Studio scene data. Back
+up valuable cards before compatibility testing.
 
 ## Renderer selection
 
@@ -272,6 +361,10 @@ features conservatively:
 - Managed eye-adjustment weights are written only when needed and verified on a
   staggered 64-frame cadence to recover from external writers without a
   constant write war.
+- The character renderer catalog and Expression Link destinations are scanned
+  only during bind/rebuild, never by traversing the hierarchy every frame.
+- All configured expression sources share one live FBS sample per character and
+  frame.
 - Expression FBS controllers and trigger selectors are resolved once per bind.
 - The three live FBS dictionaries are sampled without reflection or managed
   allocations in the frame loop.
@@ -284,13 +377,14 @@ Press the configured diagnostics shortcut (default `Left Shift + F10`) or use
 the **Diagnostics** button. Reports are written under:
 
 ```text
-BepInEx\config\KK_EyeMotion\diagnostics
+BepInEx\config\KK_ExpressionLink\diagnostics
 ```
 
 Reports include sampled gaze/IrisY/Size values, applied weights, renderer
 binding details, optional-channel status, manual/automatic visibility state,
-resolved expression selectors and weights, highlight synchronization, and
-card-persistence status.
+Expression Link source and target resolution, conflict status, resolved
+expression selectors and weights, highlight synchronization, and card
+persistence status.
 
 ## Building, testing, and packaging
 
@@ -309,8 +403,8 @@ The packager validates the assembly version and every ZIP entry, excludes
 configuration/dependency/PDB files, and creates:
 
 ```text
-dist\KK_EyeMotion-v0.4.1.zip
-dist\KK_EyeMotion-v0.4.1.zip.sha256
+dist\KK_ExpressionLink-v0.5.0.zip
+dist\KK_ExpressionLink-v0.5.0.zip.sha256
 ```
 
 For local deployment, `deploy-release.bat` backs up the previous DLL before
@@ -319,17 +413,20 @@ option.
 
 ## Current limitations
 
-- Headmods must author the five required movement/blink shapes and whichever
-  optional IrisY/Size or visibility shapes they want to support.
+- Eye-motion headmods must author the five movement/blink shapes and whichever
+  optional IrisY/Size or visibility shapes they want to support. General
+  Expression Links require only their configured destination blendshape.
 - Blink is joint; asymmetric wink channels are not implemented.
 - IrisY/Size shapes must be authored to combine acceptably with gaze
-  and blink; EyeMotion cannot repair incompatible vertex deltas.
+  and blink; KK_ExpressionLink cannot repair incompatible vertex deltas.
 - Expression triggers follow Koikatsu FBS pattern weights. An arbitrary shape
   that is not referenced by a brow/eyes/mouth Close/Open pattern cannot be a
   source trigger.
 - `Renderer.enabled = true` cannot reveal an inactive GameObject or inactive
-  parent. EyeMotion deliberately does not call `GameObject.SetActive`.
-- There is no global Studio scene payload or headmod-profile system.
-- KoikatuVR is outside the declared compatibility scope.
+  parent. KK_ExpressionLink deliberately does not call `GameObject.SetActive`.
+- JSON profiles store Expression Links only; they do not package meshes or
+  convert incompatible VRChat blendshape deltas.
+- KoikatuVR and Koikatsu Sunshine are outside the declared compatibility
+  scope. KKS support must not be assumed from the shared-core architecture.
 
-See [MANUAL_TESTS_0.4.0.md](MANUAL_TESTS_0.4.0.md) for the release test plan.
+See [MANUAL_TESTS_0.5.0.md](MANUAL_TESTS_0.5.0.md) for the current release test plan.

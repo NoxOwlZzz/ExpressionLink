@@ -26,18 +26,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             new FBSBase[PartArrayLength];
         private readonly Dictionary<int, float>[] _currentDictionaries =
             new Dictionary<int, float>[PartArrayLength];
-        private readonly string[] _configuredTriggers =
-            new string[ExpressionTriggerSyntax.SlotCount];
-        private readonly ExpressionTriggerResolutionStatus[] _statuses =
-            new ExpressionTriggerResolutionStatus[ExpressionTriggerSyntax.SlotCount];
-        private readonly string[] _messages =
-            new string[ExpressionTriggerSyntax.SlotCount];
-        private readonly ExpressionTriggerSelector[] _selectors =
-            new ExpressionTriggerSelector[ExpressionTriggerSyntax.SlotCount];
-        private readonly bool[] _activeSlots =
-            new bool[ExpressionTriggerSyntax.SlotCount];
-        private readonly float[] _slotWeights =
-            new float[ExpressionTriggerSyntax.SlotCount];
+        private readonly string[] _configuredTriggers;
+        private readonly ExpressionTriggerResolutionStatus[] _statuses;
+        private readonly string[] _messages;
+        private readonly ExpressionTriggerSelector[] _selectors;
+        private readonly bool[] _activeSlots;
+        private readonly float[] _slotWeights;
 
         private readonly bool _faceControllersAvailable;
         private bool _hasSampled;
@@ -46,6 +40,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ChaControl chaControl,
             string[] configuredTriggers)
         {
+            int slotCount = configuredTriggers == null
+                ? ExpressionTriggerSyntax.SlotCount
+                : configuredTriggers.Length;
+            _configuredTriggers = new string[slotCount];
+            _statuses = new ExpressionTriggerResolutionStatus[slotCount];
+            _messages = new string[slotCount];
+            _selectors = new ExpressionTriggerSelector[slotCount];
+            _activeSlots = new bool[slotCount];
+            _slotWeights = new float[slotCount];
+
             FaceBlendShape faceBlendShape = chaControl == null
                 ? null
                 : chaControl.fbsCtrl;
@@ -65,7 +69,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                  _partControllers[(int)ExpressionTriggerPart.Eyes] != null ||
                  _partControllers[(int)ExpressionTriggerPart.Mouth] != null);
 
-            for (int i = 0; i < ExpressionTriggerSyntax.SlotCount; i++)
+            for (int i = 0; i < _configuredTriggers.Length; i++)
             {
                 string configured = configuredTriggers != null &&
                                     i < configuredTriggers.Length
@@ -87,6 +91,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             get { return _faceControllersAvailable; }
         }
+        internal int SlotCount
+        {
+            get { return _configuredTriggers.Length; }
+        }
+
 
         internal bool HasReadySlot
         {
@@ -178,7 +187,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             bool changed = !_hasSampled;
             for (int slotIndex = 0;
-                 slotIndex < ExpressionTriggerSyntax.SlotCount;
+                 slotIndex < _statuses.Length;
                  slotIndex++)
             {
                 float weight = 0f;
@@ -627,10 +636,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 : null;
         }
 
-        private static bool IsValidSlot(int slotIndex)
+        private bool IsValidSlot(int slotIndex)
         {
             return slotIndex >= 0 &&
-                   slotIndex < ExpressionTriggerSyntax.SlotCount;
+                   slotIndex < _configuredTriggers.Length;
         }
 
         private static bool IsValidPartIndex(int partIndex)

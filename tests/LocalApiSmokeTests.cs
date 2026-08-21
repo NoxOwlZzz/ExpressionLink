@@ -63,7 +63,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             Check("assembly name", pluginAssembly.GetName().Name == "KK_EyeMotion");
             Check(
                 "assembly version",
-                pluginAssembly.GetName().Version.ToString() == "0.4.1.0");
+                pluginAssembly.GetName().Version.ToString() == "0.5.0.0");
 
             Type pluginType = GetPluginType(pluginAssembly, "Plugin");
             CustomAttributeData pluginAttribute = FindAttribute(
@@ -76,10 +76,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     "com.nightowlzzz.koikatsu.eyemotion");
             Check(
                 "plugin name",
-                GetConstructorArgument(pluginAttribute, 1) == "EyeMotion");
+                GetConstructorArgument(pluginAttribute, 1) == "KK_ExpressionLink");
             Check(
                 "plugin semantic version",
-                GetConstructorArgument(pluginAttribute, 2) == "0.4.1");
+                GetConstructorArgument(pluginAttribute, 2) == "0.5.0");
             Check(
                 "Extended Save dependency attribute",
                 CountAttributesWithFirstArgument(
@@ -110,6 +110,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 quickSettingsType.GetField(
                     "_drawWindowFunction",
                     instanceNonPublic) != null);
+            Type linkEditorType = GetPluginType(
+                pluginAssembly,
+                "ExpressionLinkEditorView");
+            Check("expression-link editor type", linkEditorType != null);
+            Check(
+                "quick-settings expression-link editor",
+                quickSettingsType.GetField(
+                    "_expressionLinkEditor",
+                    instanceNonPublic) != null);
             Check(
                 "Maker quick-settings launcher",
                 pluginType.GetMethod(
@@ -132,9 +141,57 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "execution order 32000",
                 Convert.ToInt32(
                     executionAttribute.ConstructorArguments[0].Value) == 32000);
+            Type linkDefinitionType = GetPluginType(
+                pluginAssembly,
+                "ExpressionLinkDefinition");
+            Type linkRuntimeType = GetPluginType(
+                pluginAssembly,
+                "ExpressionLinkRuntime");
+            Type targetResolverType = GetPluginType(
+                pluginAssembly,
+                "ExpressionLinkTargetResolver");
+            Type rendererCatalogType = GetPluginType(
+                pluginAssembly,
+                "CharacterRendererCatalog");
+            Type profileStoreType = GetPluginType(
+                pluginAssembly,
+                "ExpressionLinkProfileStore");
+            Check("expression-link definition type", linkDefinitionType != null);
+            Check("expression-link runtime type", linkRuntimeType != null);
+            Check("expression-link target resolver type", targetResolverType != null);
+            Check("multi-renderer catalog type", rendererCatalogType != null);
+            Check("expression-link profile store type", profileStoreType != null);
+            Check(
+                "controller expression-link count",
+                controllerType.GetProperty(
+                    "ExpressionLinkCount",
+                    instanceNonPublic) != null);
+            CheckMethod(
+                controllerType,
+                "AddExpressionLink",
+                "controller add-expression-link API",
+                instanceNonPublic);
 
             BindingFlags staticNonPublic =
                 BindingFlags.Static | BindingFlags.NonPublic;
+            Type cardDataType = GetPluginType(
+                pluginAssembly,
+                "VisibilityCardData");
+            FieldInfo schemaVersionField = cardDataType.GetField(
+                "SchemaVersion",
+                staticNonPublic);
+            FieldInfo linksKeyField = cardDataType.GetField(
+                "LinksKey",
+                staticNonPublic);
+            Check(
+                "card schema 3",
+                schemaVersionField != null &&
+                Convert.ToInt32(schemaVersionField.GetRawConstantValue()) == 3);
+            Check(
+                "expression-links card key",
+                linksKeyField != null &&
+                (string)linksKeyField.GetRawConstantValue() ==
+                    "expressionLinksBinary");
             PropertyInfo activeControllersProperty = controllerType.GetProperty(
                 "ActiveControllers",
                 staticNonPublic);

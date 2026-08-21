@@ -20,8 +20,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     public sealed class Plugin : BaseUnityPlugin
     {
         internal const string PluginGuid = "com.nightowlzzz.koikatsu.eyemotion";
-        internal const string PluginName = "EyeMotion";
-        internal const string PluginVersion = "0.4.1";
+        internal const string PluginName = "KK_ExpressionLink";
+        internal const string PluginVersion = "0.5.0";
 
         internal static ManualLogSource Log;
 
@@ -47,9 +47,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             CharacterApi.RegisterExtraBehaviour<EyeMotionCharacterController>(PluginGuid);
             Logger.LogInfo(
-                "EyeMotion 0.4.1 loaded. Eye movement, blink, optional " +
-                "ExpressionControl IrisY/Size shapes, and per-character expression " +
-                "triggers are active. " +
+                "KK_ExpressionLink 0.5.0 loaded. Eye motion, blink, optional " +
+                "ExpressionControl iris adjustments, and multi-renderer expression links are active. " +
                 "Manual visibility and base-game highlight synchronization remain available.");
         }
 
@@ -105,11 +104,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 "00_FaceTop",
                 "tglEyeMotion",
                 130,
-                "EyeMotion");
+                "Expression Link");
             registration.AddSubCategory(category);
             MakerButton button = registration.AddControl(
                 new MakerButton(
-                    "Open EyeMotion Quick Settings",
+                    "Open Expression Link Quick Settings",
                     category,
                     this));
             button.OnClick.AddListener(new UnityAction(ToggleQuickSettings));
@@ -138,7 +137,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             catch (Exception exception)
             {
                 Logger.LogWarning(
-                    "EyeMotion could not add its Studio toolbar button: " +
+                    "KK_ExpressionLink could not add its Studio toolbar button: " +
                     exception.GetType().Name + ": " + exception.Message);
             }
         }
@@ -160,7 +159,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 size,
                 TextureFormat.ARGB32,
                 false);
-            texture.name = "EyeMotion Studio Toolbar Icon";
+            texture.name = "KK_ExpressionLink Studio Toolbar Icon";
             texture.hideFlags = HideFlags.HideAndDontSave;
             texture.wrapMode = TextureWrapMode.Clamp;
             Color[] pixels = new Color[size * size];

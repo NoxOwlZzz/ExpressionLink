@@ -17,6 +17,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private const int IrisTab = 1;
         private const int ExpressionsTab = 2;
         private const int VisibilityTab = 3;
+        private const int LinksTab = 4;
 
         private static readonly string[] BlendshapeDisplayNames =
         {
@@ -119,6 +120,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private string _visibilityFeedback = string.Empty;
         private bool _showVisibilityTargetConfiguration;
         private readonly GUI.WindowFunction _drawWindowFunction;
+        private readonly ExpressionLinkEditorView _expressionLinkEditor;
         private readonly Action _applyConfigurationValuesAction;
         private readonly string _windowTitle;
         private readonly GUILayoutOption[] _scrollViewOptions =
@@ -139,8 +141,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             _drawWindowFunction = DrawWindow;
             _applyConfigurationValuesAction = ApplyConfigurationValues;
+            _expressionLinkEditor = new ExpressionLinkEditorView();
             _windowTitle =
-                "EyeMotion " + Plugin.PluginVersion + " - Quick Settings";
+                Plugin.PluginName + " " + Plugin.PluginVersion + " - Quick Settings";
         }
 
         internal bool Visible
@@ -192,6 +195,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 case ExpressionsTab:
                     DrawExpressionSettings(selected);
                     break;
+                case LinksTab:
+                    _expressionLinkEditor.Draw(selected);
+                    break;
                 case VisibilityTab:
                     DrawVisibilitySettings(selected);
                     break;
@@ -203,14 +209,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             GUILayout.EndScrollView();
 
             BeginHorizontal();
-            if (DrawButton("Apply"))
+            if (_selectedTab != LinksTab)
             {
-                ApplyConfiguration();
-            }
+                if (DrawButton("Apply"))
+                {
+                    ApplyConfiguration();
+                }
 
-            if (DrawButton("Reload"))
-            {
-                ReadConfiguration();
+                if (DrawButton("Reload"))
+                {
+                    ReadConfiguration();
+                }
             }
 
             if (DrawButton("Diagnostics"))
@@ -236,6 +245,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             DrawTabButton(IrisTab, "Iris");
             DrawTabButton(ExpressionsTab, "Expressions");
             DrawTabButton(VisibilityTab, "Visibility");
+            DrawTabButton(LinksTab, "Links");
             GUILayout.EndHorizontal();
         }
 
@@ -261,7 +271,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 DrawLabel(_liveStatusLine2);
             }
 
-            _enabled = DrawToggle(_enabled, "EyeMotion enabled");
+            _enabled = DrawToggle(_enabled, "Plugin enabled");
 
             GUILayout.Space(6f);
             DrawLabel("Horizontal");
@@ -443,6 +453,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void SelectController(int direction)
         {
+            if (_expressionLinkEditor.HasUnsavedChanges)
+            {
+                _expressionLinkEditor.RejectControllerChange();
+                _selectedTab = LinksTab;
+                _scrollPosition = Vector2.zero;
+                return;
+            }
+
             IList<EyeMotionCharacterController> controllers =
                 EyeMotionCharacterController.ActiveControllers;
             int count = controllers.Count;

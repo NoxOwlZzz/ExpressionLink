@@ -4,9 +4,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 {
     internal static class VisibilityCardData
     {
-        internal const int SchemaVersion = 2;
+        internal const int SchemaVersion = 3;
+        internal const int PreviousSchemaVersion = 2;
         internal const int LegacySchemaVersion = 1;
         internal const string ModesKey = "manualVisibilityModes";
+        internal const string LinksKey = "expressionLinksBinary";
         internal const int ExpressionTriggerCount = 4;
         internal const int ModeCount =
             ManualVisibilityCatalog.BlendshapeCount +
@@ -55,16 +57,18 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             out string error)
         {
             error = string.Empty;
-            if (version != LegacySchemaVersion && version != SchemaVersion)
+            if (version != LegacySchemaVersion &&
+                version != PreviousSchemaVersion &&
+                version != SchemaVersion)
             {
-                error = "Unsupported EyeMotion card-data version " + version + ".";
+                error = "Unsupported ExpressionLink card-data version " + version + ".";
                 return false;
             }
 
             byte[] values = encoded as byte[];
             if (values == null || values.Length != ModeCount)
             {
-                error = "EyeMotion card data has an invalid visibility payload.";
+                error = "ExpressionLink card data has an invalid visibility payload.";
                 return false;
             }
 
@@ -73,7 +77,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 rendererModes == null ||
                 rendererModes.Length != ManualVisibilityCatalog.RendererCount)
             {
-                error = "EyeMotion visibility destination has an invalid size.";
+                error = "ExpressionLink visibility destination has an invalid size.";
                 return false;
             }
 
@@ -81,7 +85,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 if (values[i] > (byte)ManualVisibilityMode.Hidden)
                 {
-                    error = "EyeMotion card data contains an invalid visibility mode.";
+                    error = "ExpressionLink card data contains an invalid visibility mode.";
                     return false;
                 }
             }

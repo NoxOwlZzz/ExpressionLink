@@ -9,7 +9,7 @@ using UnityEngine;
 namespace NightOwlZzz.Koikatsu.EyeMotion
 {
     [DefaultExecutionOrder(32000)]
-    public sealed class EyeMotionCharacterController : CharaCustomFunctionController
+    public sealed partial class EyeMotionCharacterController : CharaCustomFunctionController
     {
         private static readonly List<EyeMotionCharacterController> Controllers =
             new List<EyeMotionCharacterController>();
@@ -173,15 +173,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             if (!PluginConfig.CardPersistenceEnabled.Value)
             {
-                SetExtendedData(null);
-                _cardPersistenceStatus = "Card persistence is disabled.";
+                _cardPersistenceStatus =
+                    "Card persistence is disabled; existing card data was left unchanged.";
                 return;
             }
 
-            if (_preserveUnsupportedCardData && !_visibilityIntentChanged)
+            if (_preserveUnsupportedCardData &&
+                !_expressionLinksIntentChanged)
             {
-                _cardPersistenceStatus =
-                    "A newer card-data version was preserved unchanged.";
+                _cardPersistenceStatus = _visibilityIntentChanged
+                    ? "Legacy edits were not saved because newer or invalid ExpressionLink card data was preserved."
+                    : "Existing ExpressionLink card data was preserved unchanged.";
                 return;
             }
 
@@ -193,19 +195,29 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 bool hasExpressionTriggers =
                     VisibilityCardData.HasExpressionTriggers(
                         _savedExpressionTriggers);
+                bool hasExpressionLinks = _savedExpressionLinks.Count > 0;
                 if (VisibilityCardData.IsDefault(modes) &&
-                    !hasExpressionTriggers)
+                    !hasExpressionTriggers &&
+                    !hasExpressionLinks)
                 {
                     SetExtendedData(null);
+                    _loadedCardDataVersion = 0;
                     _cardPersistenceStatus =
-                        "Manual modes and expression triggers are empty; no card payload was needed.";
+                        "ExpressionLink settings are empty; no card payload was needed.";
                     _preserveUnsupportedCardData = false;
                     _visibilityIntentChanged = false;
+                    _expressionLinksIntentChanged = false;
                     return;
                 }
 
+                bool useSchemaThree = hasExpressionLinks ||
+                    _loadedCardDataVersion >= VisibilityCardData.SchemaVersion;
+                int version = useSchemaThree
+                    ? VisibilityCardData.SchemaVersion
+                    : VisibilityCardData.PreviousSchemaVersion;
+
                 PluginData data = new PluginData();
-                data.version = VisibilityCardData.SchemaVersion;
+                data.version = version;
                 data.data[VisibilityCardData.ModesKey] = modes;
                 for (int i = 0;
                     i < _savedExpressionTriggers.Length;
@@ -219,11 +231,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                             trigger;
                     }
                 }
+                if (useSchemaThree)
+                {
+                    data.data[VisibilityCardData.LinksKey] =
+                        ExpressionLinkBinaryCodec.Encode(
+                            _savedExpressionLinks);
+                }
+
                 SetExtendedData(data);
-                _cardPersistenceStatus =
-                    "Manual visibility and expression triggers saved to the character card.";
+                _loadedCardDataVersion = version;
+                _cardPersistenceStatus = useSchemaThree
+                    ? "ExpressionLink settings saved to the character card."
+                    : "Legacy visibility and expression settings saved to the character card.";
                 _preserveUnsupportedCardData = false;
                 _visibilityIntentChanged = false;
+                _expressionLinksIntentChanged = false;
             }
             catch (Exception exception)
             {
@@ -231,7 +253,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     "Card save failed: " + exception.GetType().Name + ": " +
                     exception.Message;
                 Plugin.Log.LogWarning(
-                    "EyeMotion could not save card data for " +
+                    "ExpressionLink could not save card data for " +
                     GetCharacterName() + ": " + _cardPersistenceStatus);
             }
         }
@@ -280,6 +302,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 StartBinding("Re-enabled by configuration.");
                 return;
             }
+            RetryExpressionResolutionIfNeeded();
+            SynchronizeAutomaticExpressions();
 
             if (_binding == null)
             {
@@ -321,9 +345,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 }
             }
 
-            RetryExpressionResolutionIfNeeded();
             SynchronizeBaseGameHighlightVisibility();
-            SynchronizeAutomaticExpressions();
 
             int frame = Time.frameCount;
             if (_lastAppliedFrame == frame)
@@ -394,6 +416,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             int generation = _bindingGeneration;
             _bindingState = BindingState.Searching;
             _statusMessage = reason;
+            RebuildExpressionTriggers();
             StartCoroutine(BindRoutine(generation));
         }
 
@@ -436,6 +459,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                             "EyeMotion manual visibility is unavailable for " +
                             GetCharacterName() + ": " +
                             exception.GetType().Name + ": " + exception.Message);
+                        RebuildExpressionTriggers();
+                        SynchronizeAutomaticExpressions();
                     }
 
                     _bindingState = BindingState.Bound;
@@ -482,6 +507,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void RestoreAndClear(string reason)
         {
+            RestoreExpressionLinks();
             if (_manualVisibility != null)
             {
                 string visibilityError;
@@ -502,6 +528,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             _manualVisibility = null;
+            _expressionLinkRuntime = null;
             _expressionTriggers = null;
             _binding = null;
             _lastResolve = null;
@@ -680,18 +707,28 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void RebuildExpressionTriggers(bool resetRetryWindow)
         {
+            string[] configuredTriggers =
+                BuildExpressionTriggerConfiguration();
+
             try
             {
                 _expressionTriggers = ExpressionTriggerController.Resolve(
                     ChaControl,
-                    _savedExpressionTriggers);
+                    configuredTriggers);
+                RebuildExpressionLinkRuntime();
             }
             catch (Exception exception)
             {
                 _expressionTriggers = null;
+                if (_expressionLinkRuntime != null)
+                {
+                    string ignored;
+                    _expressionLinkRuntime.RestoreAll(out ignored);
+                }
+
                 DebugLog(
                     GetCharacterName() +
-                    ": expression trigger resolution failed: " +
+                    ": expression system resolution failed: " +
                     exception.GetType().Name + ": " + exception.Message);
             }
 
@@ -706,24 +743,29 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private void RetryExpressionResolutionIfNeeded()
         {
             if (_expressionRetryAttemptsRemaining <= 0 ||
-                Time.frameCount < _nextExpressionRetryFrame ||
-                _expressionTriggers == null)
+                Time.frameCount < _nextExpressionRetryFrame)
             {
                 return;
             }
 
-            bool unresolved = false;
-            for (int i = 0; i < _savedExpressionTriggers.Length; i++)
+            bool unresolved = _expressionTriggers == null;
+            if (!unresolved)
             {
-                if (!string.IsNullOrEmpty(_savedExpressionTriggers[i]) &&
-                    _expressionTriggers.GetStatus(i) !=
-                        ExpressionTriggerResolutionStatus.Ready)
+                for (int i = 0; i < _expressionTriggers.SlotCount; i++)
                 {
-                    unresolved = true;
-                    break;
+                    if (!string.IsNullOrEmpty(
+                            _expressionTriggers.GetConfiguredTrigger(i)) &&
+                        _expressionTriggers.GetStatus(i) !=
+                            ExpressionTriggerResolutionStatus.Ready)
+                    {
+                        unresolved = true;
+                        break;
+                    }
                 }
             }
 
+            unresolved = unresolved ||
+                ExpressionLinksNeedResolutionRetry();
             if (!unresolved)
             {
                 _expressionRetryAttemptsRemaining = 0;
@@ -737,51 +779,61 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void SynchronizeAutomaticExpressions()
         {
-            if (_manualVisibility == null || _expressionTriggers == null)
+            if (_expressionTriggers == null)
             {
                 return;
             }
 
-            bool enabled = PluginConfig.ExpressionAutomationEnabled.Value;
-            bool sampledChange = enabled &&
-                _expressionTriggers.HasReadySlot &&
+            bool legacyEnabled =
+                PluginConfig.ExpressionAutomationEnabled.Value;
+            bool shouldSample =
+                (legacyEnabled || _hasEnabledExpressionLinks) &&
+                _expressionTriggers.HasReadySlot;
+            bool sampledChange = shouldSample &&
                 _expressionTriggers.Sample(
                     PluginConfig.ExpressionActivationThreshold.Value);
             bool force = !_hasAppliedExpressionAutomation ||
-                         enabled != _appliedExpressionAutomationEnabled;
+                legacyEnabled != _appliedExpressionAutomationEnabled;
 
-            for (int i = 0; i < ExpressionTriggerSyntax.SlotCount; i++)
+            if (_manualVisibility != null)
             {
-                bool configured = enabled &&
-                    _expressionTriggers.GetStatus(i) ==
-                        ExpressionTriggerResolutionStatus.Ready;
-                bool active = configured && _expressionTriggers.IsActive(i);
-                if (!force && !sampledChange &&
-                    configured == _appliedExpressionConfigured[i] &&
-                    active == _appliedExpressionActive[i])
+                for (int i = 0; i < ExpressionTriggerSyntax.SlotCount; i++)
                 {
-                    continue;
-                }
+                    bool configured = legacyEnabled &&
+                        _expressionTriggers.GetStatus(i) ==
+                            ExpressionTriggerResolutionStatus.Ready;
+                    bool active =
+                        configured && _expressionTriggers.IsActive(i);
+                    if (!force && !sampledChange &&
+                        configured == _appliedExpressionConfigured[i] &&
+                        active == _appliedExpressionActive[i])
+                    {
+                        continue;
+                    }
 
-                string message;
-                if (!_manualVisibility.SetAutomaticExpressionState(
-                    i,
-                    configured,
-                    active,
-                    out message) &&
-                    !string.IsNullOrEmpty(message))
-                {
-                    DebugLog(
-                        GetCharacterName() +
-                        ": expression slot " + (i + 1) + ": " + message);
-                }
+                    string message;
+                    if (!_manualVisibility.SetAutomaticExpressionState(
+                        i,
+                        configured,
+                        active,
+                        out message) &&
+                        !string.IsNullOrEmpty(message))
+                    {
+                        DebugLog(
+                            GetCharacterName() +
+                            ": expression slot " + (i + 1) + ": " +
+                            message);
+                    }
 
-                _appliedExpressionConfigured[i] = configured;
-                _appliedExpressionActive[i] = active;
+                    _appliedExpressionConfigured[i] = configured;
+                    _appliedExpressionActive[i] = active;
+                }
             }
 
+            SynchronizeExpressionLinks();
+
             _hasAppliedExpressionAutomation = true;
-            _appliedExpressionAutomationEnabled = enabled;
+            _appliedExpressionAutomationEnabled = legacyEnabled;
         }
 
         internal string GetExpressionTrigger(int slotIndex)
@@ -810,7 +862,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _savedExpressionTriggers[slotIndex] = normalized;
             _expressionTriggerRevision++;
             _visibilityIntentChanged = true;
-            _preserveUnsupportedCardData = false;
             RebuildExpressionTriggers();
             SynchronizeAutomaticExpressions();
 
@@ -847,7 +898,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             _expressionTriggerRevision++;
             _visibilityIntentChanged = true;
-            _preserveUnsupportedCardData = false;
             RebuildExpressionTriggers();
             SynchronizeAutomaticExpressions();
             if (_expressionTriggers == null)
@@ -932,9 +982,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             ResetSavedVisibilityModes();
             ResetSavedExpressionTriggers();
+            _savedExpressionLinks.Clear();
             _expressionTriggerRevision++;
+            _expressionLinkRevision++;
+            _loadedCardDataVersion = 0;
             _preserveUnsupportedCardData = false;
             _visibilityIntentChanged = false;
+            _expressionLinksIntentChanged = false;
             if (!PluginConfig.CardPersistenceEnabled.Value)
             {
                 _cardPersistenceStatus = "Card persistence is disabled.";
@@ -946,17 +1000,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 PluginData data = GetExtendedData();
                 if (data == null || data.data == null)
                 {
-                    _cardPersistenceStatus = "No EyeMotion data on this card.";
+                    _cardPersistenceStatus =
+                        "No ExpressionLink data on this card.";
                     return;
                 }
 
+                _loadedCardDataVersion = data.version;
                 if (data.version != VisibilityCardData.LegacySchemaVersion &&
+                    data.version != VisibilityCardData.PreviousSchemaVersion &&
                     data.version != VisibilityCardData.SchemaVersion)
                 {
-                    _preserveUnsupportedCardData =
-                        data.version > VisibilityCardData.SchemaVersion;
+                    _preserveUnsupportedCardData = true;
                     _cardPersistenceStatus =
-                        "Unsupported EyeMotion card-data version " +
+                        "Unsupported ExpressionLink card-data version " +
                         data.version + ".";
                     return;
                 }
@@ -976,15 +1032,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     {
                         ResetSavedVisibilityModes();
                         ResetSavedExpressionTriggers();
+                        _preserveUnsupportedCardData = true;
                         _cardPersistenceStatus = error;
                         Plugin.Log.LogWarning(
-                            "EyeMotion ignored invalid card data for " +
+                            "ExpressionLink ignored invalid card data for " +
                             GetCharacterName() + ": " + error);
                         return;
                     }
                 }
 
-                if (data.version >= VisibilityCardData.SchemaVersion)
+                if (data.version >=
+                    VisibilityCardData.PreviousSchemaVersion)
                 {
                     for (int i = 0;
                         i < _savedExpressionTriggers.Length;
@@ -1002,18 +1060,61 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     }
                 }
 
+                if (data.version == VisibilityCardData.SchemaVersion)
+                {
+                    object linkValue;
+                    if (data.data.TryGetValue(
+                        VisibilityCardData.LinksKey,
+                        out linkValue))
+                    {
+                        byte[] payload = linkValue as byte[];
+                        ExpressionLinkDefinition[] decodedLinks =
+                            new ExpressionLinkDefinition[0];
+                        string linksError = string.Empty;
+                        bool decoded = payload != null &&
+                            ExpressionLinkBinaryCodec.TryDecode(
+                                payload,
+                                out decodedLinks,
+                                out linksError);
+                        if (!decoded)
+                        {
+                            if (payload == null)
+                            {
+                                linksError =
+                                    "The expression-link payload is not a byte array.";
+                            }
+
+                            _preserveUnsupportedCardData = true;
+                            _cardPersistenceStatus =
+                                "Legacy settings loaded; expression links were ignored: " +
+                                linksError;
+                            Plugin.Log.LogWarning(
+                                "ExpressionLink ignored invalid expression links for " +
+                                GetCharacterName() + ": " + linksError);
+                            return;
+                        }
+
+                        _savedExpressionLinks.AddRange(decodedLinks);
+                    }
+                }
+
                 _cardPersistenceStatus =
-                    "Manual visibility and expression triggers loaded from the character card.";
+                    data.version == VisibilityCardData.SchemaVersion
+                        ? "ExpressionLink settings loaded from the character card."
+                        : "Legacy visibility and expression settings loaded from the character card.";
             }
             catch (Exception exception)
             {
                 ResetSavedVisibilityModes();
                 ResetSavedExpressionTriggers();
+                _savedExpressionLinks.Clear();
+                _expressionLinkRevision++;
+                _preserveUnsupportedCardData = true;
                 _cardPersistenceStatus =
                     "Card load failed: " + exception.GetType().Name + ": " +
                     exception.Message;
                 Plugin.Log.LogWarning(
-                    "EyeMotion could not load card data for " +
+                    "ExpressionLink could not load card data for " +
                     GetCharacterName() + ": " + _cardPersistenceStatus);
             }
         }

@@ -127,7 +127,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _configFile = config;
 
             Enabled = config.Bind(GeneralSection, "Enabled", true,
-                "Enable EyeMotion globally.");
+                "Enable KK_ExpressionLink globally.");
             RestoreMode = config.Bind(GeneralSection, "RestoreMode", WeightRestoreMode.InitialValues,
                 "Restore the captured initial values or zero the managed blendshapes when control ends.");
 
@@ -306,8 +306,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 PersistenceSection,
                 "CardPersistenceEnabled",
                 true,
-                "Save per-character manual visibility modes in character cards " +
-                "through ExtensibleSaveFormat.");
+                "Save per-character visibility, expression triggers, and Expression Links " +
+                "in character cards through ExtensibleSaveFormat.");
 
             DebugLogging = config.Bind(DiagnosticsSection, "DebugLogging", false,
                 "Log binding decisions and state transitions.");
@@ -317,10 +317,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 "Minimum interval between eye-value log messages per character.");
             QuickSettingsShortcut = config.Bind(DiagnosticsSection, "QuickSettingsShortcut",
                 new KeyboardShortcut(KeyCode.M, KeyCode.LeftControl, KeyCode.LeftShift),
-                "Toggle the compact EyeMotion runtime settings window.");
+                "Toggle the compact KK_ExpressionLink runtime settings window.");
             DumpDiagnosticsShortcut = config.Bind(DiagnosticsSection, "DumpDiagnosticsShortcut",
                 new KeyboardShortcut(KeyCode.F10, KeyCode.LeftShift),
-                "Write a detailed report under BepInEx/config/KK_EyeMotion/diagnostics.");
+                "Write a detailed report under BepInEx/config/KK_ExpressionLink/diagnostics.");
 
             MigrateLegacyBlendshapeDefaults();
             config.SettingChanged += OnSettingChanged;

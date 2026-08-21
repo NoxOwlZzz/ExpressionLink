@@ -22,6 +22,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             TestManualVisibilityStateMachines();
             TestConfigChangeClassification();
             TestVisibilityCardData();
+            int expressionLinkChecks;
+            int expressionLinkFailures =
+                ExpressionLinkCoreTests.Run(out expressionLinkChecks);
 
             int smokeChecks;
             int smokeFailures = LocalApiSmokeTests.Run(out smokeChecks);
@@ -30,9 +33,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "DirectionalMapper checks: " + _checks +
                 ", failures: " + _failures);
             Console.WriteLine(
+                "Expression Link core checks: " + expressionLinkChecks +
+                ", failures: " + expressionLinkFailures);
+            Console.WriteLine(
                 "Local API smoke checks: " + smokeChecks +
                 ", failures: " + smokeFailures);
-            return _failures == 0 && smokeFailures == 0 ? 0 : 1;
+            return _failures == 0 && expressionLinkFailures == 0 &&
+                smokeFailures == 0 ? 0 : 1;
         }
 
         private static void TestDirectionalMapping()
@@ -738,6 +745,23 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     decodedBlendshapes,
                     decodedRenderers,
                     out error));
+            Check(
+                "schema 2 card payload remains readable",
+                VisibilityCardData.TryDecode(
+                    VisibilityCardData.PreviousSchemaVersion,
+                    encoded,
+                    decodedBlendshapes,
+                    decodedRenderers,
+                    out error));
+            Check(
+                "expression-link card schema is version 3",
+                VisibilityCardData.SchemaVersion == 3);
+            Check(
+                "previous card schema remains version 2",
+                VisibilityCardData.PreviousSchemaVersion == 2);
+            Check(
+                "expression-link payload key is stable",
+                VisibilityCardData.LinksKey == "expressionLinksBinary");
             Check(
                 "expression trigger key 01 is stable",
                 VisibilityCardData.GetExpressionTriggerKey(0) ==

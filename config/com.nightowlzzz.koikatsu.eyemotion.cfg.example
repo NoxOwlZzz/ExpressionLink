@@ -1,4 +1,4 @@
-## EyeMotion 0.4.1 example
+## KK_ExpressionLink 0.5.0 example
 ## BepInEx creates the live file automatically at:
 ## BepInEx/config/com.nightowlzzz.koikatsu.eyemotion.cfg
 
@@ -83,6 +83,11 @@ ActivationThreshold = 0.001
 ## global configuration values. Assign them in Quick Settings by entering an
 ## exact FBS blendshape name, brow:N, eyes:N, or mouth:N, or by capturing the
 ## selected character's current Brow/Eyes/Mouth pattern.
+## General-purpose Expression Links are also per-character card data. Create
+## and edit them in the Links tab. They can target blendshapes on head, hair,
+## body, clothes, accessory, or other character-owned renderers. Reusable
+## profiles are not global configuration entries.
+
 
 [Manual Visibility]
 HideBlendshapeWeight = 100
@@ -109,8 +114,11 @@ ExpressionMesh04Target = ExpressionMesh_04
 [Persistence]
 CardPersistenceEnabled = true
 
-## Schema 2 saves the 14 manual modes plus four expression-trigger strings and
-## remains compatible with schema 1 cards.
+## Schema 3 saves the 14 manual modes, four legacy expression-trigger strings,
+## and per-character Expression Links. Schema 1 and schema 2 cards remain
+## compatible. Reusable JSON profiles are stored separately under:
+## BepInEx/config/KK_ExpressionLink/Profiles
+## KKS is not supported by this build.
 
 [Diagnostics]
 DebugLogging = false

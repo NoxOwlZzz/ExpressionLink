@@ -16,13 +16,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 string directory = Path.Combine(
                     Paths.ConfigPath,
-                    Path.Combine("KK_EyeMotion", "diagnostics"));
+                    Path.Combine("KK_ExpressionLink", "diagnostics"));
                 Directory.CreateDirectory(directory);
 
                 DateTime now = DateTime.Now;
                 string path = Path.Combine(
                     directory,
-                    "EyeMotion_" + now.ToString("yyyyMMdd_HHmmss_fff") + ".txt");
+                    "ExpressionLink_" + now.ToString("yyyyMMdd_HHmmss_fff") + ".txt");
 
                 StringBuilder builder = new StringBuilder(32768);
                 AppendHeader(builder, now);
@@ -38,20 +38,20 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 }
 
                 File.WriteAllText(path, builder.ToString(), new UTF8Encoding(false));
-                Plugin.Log.LogInfo("EyeMotion diagnostics written to " + path);
+                Plugin.Log.LogInfo("KK_ExpressionLink diagnostics written to " + path);
             }
             catch (Exception exception)
             {
                 Plugin.Log.LogError(
-                    "EyeMotion diagnostic report failed: " +
+                    "KK_ExpressionLink diagnostic report failed: " +
                     exception.GetType().Name + ": " + exception.Message);
             }
         }
 
         private static void AppendHeader(StringBuilder builder, DateTime now)
         {
-            builder.AppendLine("EyeMotion diagnostics");
-            builder.AppendLine("=====================");
+            builder.AppendLine("KK_ExpressionLink diagnostics");
+            builder.AppendLine("=============================");
             builder.AppendLine("Plugin: " + Plugin.PluginName + " " + Plugin.PluginVersion);
             builder.AppendLine("GUID: " + Plugin.PluginGuid);
             builder.AppendLine("Timestamp (local): " + now.ToString("O"));
@@ -116,6 +116,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     controller.ManualVisibility,
                     controller.Binding);
                 AppendExpressionTriggers(builder, controller);
+                ExpressionLinkDiagnostics.Append(builder, controller);
                 AppendResolveResult(builder, controller.LastResolve);
             }
             catch (Exception exception)
@@ -453,7 +454,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             builder.AppendLine("    Exact name match: " + candidate.ExactNameMatch);
             builder.AppendLine("    Decision: " + candidate.Decision);
             builder.AppendLine(
-                "    EyeMotion indices [PosX, NegX, PosY, NegY, Blink]: [" +
+                "    Managed eye indices [PosX, NegX, PosY, NegY, Blink]: [" +
                 candidate.PositiveXIndex + ", " +
                 candidate.NegativeXIndex + ", " +
                 candidate.PositiveYIndex + ", " +
