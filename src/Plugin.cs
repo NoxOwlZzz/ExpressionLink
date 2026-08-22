@@ -72,6 +72,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
         }
 
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (_quickSettingsWindow != null)
+            {
+                _quickSettingsWindow.HandleApplicationFocus(hasFocus);
+            }
+        }
+
         private void OnGUI()
         {
             if (_quickSettingsWindow != null)

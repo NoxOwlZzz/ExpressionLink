@@ -31,6 +31,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 QuickSettingsWindowPlacementTests.Run(
                     out windowPlacementChecks);
 
+            int headerDragChecks;
+            int headerDragFailures =
+                QuickSettingsHeaderDragStateMachineTests.Run(
+                    out headerDragChecks);
+
             int smokeChecks;
             int smokeFailures = LocalApiSmokeTests.Run(out smokeChecks);
 
@@ -44,10 +49,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "Window placement checks: " + windowPlacementChecks +
                 ", failures: " + windowPlacementFailures);
             Console.WriteLine(
+                "Header drag checks: " + headerDragChecks +
+                ", failures: " + headerDragFailures);
+            Console.WriteLine(
                 "Local API smoke checks: " + smokeChecks +
                 ", failures: " + smokeFailures);
             return _failures == 0 && expressionLinkFailures == 0 &&
-                windowPlacementFailures == 0 && smokeFailures == 0
+                windowPlacementFailures == 0 && headerDragFailures == 0 &&
+                smokeFailures == 0
                     ? 0
                     : 1;
         }

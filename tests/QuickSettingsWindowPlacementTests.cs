@@ -216,31 +216,31 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             Equal(
                 "drag follows the pointer to the right",
                 34f,
-                QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
+                QuickSettingsWindowPlacement.CalculateDraggedHorizontal(
                     24f,
-                    110f,
-                    100f));
+                    100f,
+                    110f));
             Equal(
-                "successive drag events accumulate",
+                "drag remains relative to its captured start",
                 44f,
-                QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
-                    34f,
-                    110f,
-                    100f));
+                QuickSettingsWindowPlacement.CalculateDraggedHorizontal(
+                    24f,
+                    100f,
+                    120f));
             Equal(
                 "drag follows the pointer to the left",
                 14f,
-                QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
+                QuickSettingsWindowPlacement.CalculateDraggedHorizontal(
                     24f,
-                    90f,
-                    100f));
+                    100f,
+                    90f));
             Equal(
                 "overflow preserves the current coordinate",
                 float.MaxValue,
-                QuickSettingsWindowPlacement.CalculateDraggedCoordinate(
+                QuickSettingsWindowPlacement.CalculateDraggedHorizontal(
                     float.MaxValue,
-                    float.MaxValue,
-                    -float.MaxValue));
+                    -float.MaxValue,
+                    float.MaxValue));
         }
 
         private static float ClampHorizontal(

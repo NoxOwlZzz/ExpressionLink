@@ -38,6 +38,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
         {
             string projectRoot = Path.GetFullPath(
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."));
+            string quickSettingsSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\QuickSettingsWindow.cs"));
+            Check(
+                "quick-settings GUI.Window source removed",
+                quickSettingsSource.IndexOf(
+                    "GUI.Window",
+                    StringComparison.Ordinal) < 0);
             string[] loadOrder =
             {
                 @"lib\UnityEngine.dll",
@@ -89,6 +96,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
 
             BindingFlags instanceNonPublic =
                 BindingFlags.Instance | BindingFlags.NonPublic;
+            Check(
+                "plugin focus callback",
+                pluginType.GetMethod(
+                    "OnApplicationFocus", instanceNonPublic) != null);
             Type quickSettingsType = GetPluginType(
                 pluginAssembly,
                 "QuickSettingsWindow");
@@ -100,16 +111,25 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "quick-settings draw method",
                 quickSettingsType.GetMethod("Draw", instanceNonPublic) != null);
             Check(
+                "quick-settings focus handler",
+                quickSettingsType.GetMethod(
+                    "HandleApplicationFocus", instanceNonPublic) != null);
+            Check(
                 "quick-settings tabs",
                 quickSettingsType.GetMethod("DrawTabs", instanceNonPublic) != null);
             Check(
                 "quick-settings selected tab state",
                 quickSettingsType.GetField("_selectedTab", instanceNonPublic) != null);
             Check(
-                "quick-settings cached window delegate",
+                "quick-settings cached window content",
+                quickSettingsType.GetField(
+                    "_windowContent",
+                    instanceNonPublic) != null);
+            Check(
+                "quick-settings old window delegate removed",
                 quickSettingsType.GetField(
                     "_drawWindowFunction",
-                    instanceNonPublic) != null);
+                    instanceNonPublic) == null);
             Type linkEditorType = GetPluginType(
                 pluginAssembly,
                 "ExpressionLinkEditorView");

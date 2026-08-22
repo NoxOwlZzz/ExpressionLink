@@ -111,6 +111,7 @@
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkDraftPanel.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkGUILayout.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkProfilePanel.cs" />
+    <Compile Include="src\UI\QuickSettingsHeaderDragStateMachine.cs" />
     <Compile Include="src\UI\QuickSettingsWindowInputDrag.cs" />
     <Compile Include="src\UI\QuickSettingsWindowPlacement.cs" />
     <Compile Include="src\Unity\ExpressionLinks\ExpressionLinkTargetBinding.cs" />

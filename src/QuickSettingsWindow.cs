@@ -6,7 +6,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 {
     internal sealed partial class QuickSettingsWindow
     {
-        private const int WindowId = 1162694995;
+        private const int PanelDepth = -1000;
         private const float PreferredWindowWidth = 500f;
         private const float PreferredWindowHeight = 520f;
         private const float MinimumWindowWidth = 360f;
@@ -121,10 +121,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private int _selectedControllerInstanceId;
         private string _visibilityFeedback = string.Empty;
         private bool _showVisibilityTargetConfiguration;
-        private readonly GUI.WindowFunction _drawWindowFunction;
+        private readonly GUIContent _windowContent;
         private readonly ExpressionLinkEditorView _expressionLinkEditor;
         private readonly Action _applyConfigurationValuesAction;
-        private readonly string _windowTitle;
         private readonly GUILayoutOption[] _scrollViewOptions =
             new GUILayoutOption[1];
         private float _scrollViewOptionHeight = float.NaN;
@@ -141,11 +140,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal QuickSettingsWindow()
         {
-            _drawWindowFunction = DrawWindow;
             _applyConfigurationValuesAction = ApplyConfigurationValues;
             _expressionLinkEditor = new ExpressionLinkEditorView();
-            _windowTitle =
-                Plugin.PluginName + " " + Plugin.PluginVersion + " - Quick Settings";
+            _windowContent = new GUIContent(
+                Plugin.PluginName + " " + Plugin.PluginVersion + " - Quick Settings");
         }
 
         internal bool Visible
@@ -173,16 +171,30 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return;
             }
 
-            ClampToScreen();
-            GUI.Window(
-                WindowId,
-                _windowRect,
-                _drawWindowFunction,
-                _windowTitle);
-            ClampHeaderToScreen();
+            int previousDepth = GUI.depth;
+            try
+            {
+                GUI.depth = PanelDepth;
+                GUILayout.BeginArea(
+                    _windowRect,
+                    _windowContent,
+                    GUI.skin.window);
+                try
+                {
+                    DrawWindowContent();
+                }
+                finally
+                {
+                    GUILayout.EndArea();
+                }
+            }
+            finally
+            {
+                GUI.depth = previousDepth;
+            }
         }
 
-        private void DrawWindow(int id)
+        private void DrawWindowContent()
         {
             BeginVertical();
             EyeMotionCharacterController selected = DrawControllerSelector();

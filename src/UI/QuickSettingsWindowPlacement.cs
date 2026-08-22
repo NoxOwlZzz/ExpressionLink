@@ -33,17 +33,54 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 screenMargin);
         }
 
-        internal static float CalculateDraggedCoordinate(
-            float windowPosition,
-            float pointerPosition,
-            float pointerOffset)
+        internal static float CalculateDraggedHorizontal(
+            float panelStart,
+            float pointerStart,
+            float pointerCurrent)
         {
-            windowPosition = SanitizePosition(windowPosition);
-            pointerPosition = SanitizePosition(pointerPosition);
-            pointerOffset = SanitizePosition(pointerOffset);
-            float result = windowPosition + pointerPosition - pointerOffset;
+            return CalculateDraggedCoordinate(
+                panelStart,
+                pointerCurrent,
+                pointerStart);
+        }
+
+        internal static float CalculateDraggedVerticalFromBottomOrigin(
+            float panelStart,
+            float pointerStart,
+            float pointerCurrent)
+        {
+            return CalculateDraggedCoordinate(
+                panelStart,
+                pointerStart,
+                pointerCurrent);
+        }
+
+        internal static float ConvertInputYToGui(
+            float viewportHeight,
+            float pointerInputY)
+        {
+            viewportHeight = SanitizeLength(viewportHeight);
+            pointerInputY = SanitizePosition(pointerInputY);
+            float result = viewportHeight - pointerInputY;
             return float.IsNaN(result) || float.IsInfinity(result)
-                ? windowPosition
+                ? 0f
+                : result;
+        }
+
+        private static float CalculateDraggedCoordinate(
+            float panelStart,
+            float positivePointerCoordinate,
+            float negativePointerCoordinate)
+        {
+            panelStart = SanitizePosition(panelStart);
+            positivePointerCoordinate = SanitizePosition(
+                positivePointerCoordinate);
+            negativePointerCoordinate = SanitizePosition(
+                negativePointerCoordinate);
+            float result = panelStart + positivePointerCoordinate -
+                negativePointerCoordinate;
+            return float.IsNaN(result) || float.IsInfinity(result)
+                ? panelStart
                 : result;
         }
 
