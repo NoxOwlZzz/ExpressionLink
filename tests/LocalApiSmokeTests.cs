@@ -39,11 +39,33 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             string projectRoot = Path.GetFullPath(
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."));
             string quickSettingsSource = File.ReadAllText(
-                Path.Combine(projectRoot, @"src\QuickSettingsWindow.cs"));
+                Path.Combine(projectRoot, @"src\QuickSettingsCoordinator.cs"));
+            string sourceTree = ReadSourceTree(
+                Path.Combine(projectRoot, @"src"));
             Check(
                 "quick-settings GUI.Window source removed",
                 quickSettingsSource.IndexOf(
                     "GUI.Window",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "quick-settings has no polling input",
+                sourceTree.IndexOf(
+                    "UpdateInput",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "quick-settings has no shared mutable rect",
+                sourceTree.IndexOf(
+                    "_windowRect",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "quick-settings is not partial",
+                sourceTree.IndexOf(
+                    "partial class QuickSettingsCoordinator",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "quick-settings has no mouse polling",
+                sourceTree.IndexOf(
+                    "Input.GetMouseButton",
                     StringComparison.Ordinal) < 0);
             string[] loadOrder =
             {
@@ -97,13 +119,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             BindingFlags instanceNonPublic =
                 BindingFlags.Instance | BindingFlags.NonPublic;
             Check(
-                "plugin focus callback",
+                "plugin polling focus callback removed",
                 pluginType.GetMethod(
-                    "OnApplicationFocus", instanceNonPublic) != null);
+                    "OnApplicationFocus", instanceNonPublic) == null);
             Type quickSettingsType = GetPluginType(
                 pluginAssembly,
-                "QuickSettingsWindow");
-            Check("quick-settings window type", quickSettingsType != null);
+                "QuickSettingsCoordinator");
+            Check("quick-settings coordinator type", quickSettingsType != null);
             Check(
                 "quick-settings toggle method",
                 quickSettingsType.GetMethod("Toggle", instanceNonPublic) != null);
@@ -111,32 +133,98 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "quick-settings draw method",
                 quickSettingsType.GetMethod("Draw", instanceNonPublic) != null);
             Check(
-                "quick-settings focus handler",
+                "quick-settings polling focus handler removed",
                 quickSettingsType.GetMethod(
-                    "HandleApplicationFocus", instanceNonPublic) != null);
+                    "HandleApplicationFocus", instanceNonPublic) == null);
+            Type quickSettingsSurfaceType = GetPluginType(
+                pluginAssembly,
+                "QuickSettingsSurfaceView");
+            Check(
+                "quick-settings surface type", quickSettingsSurfaceType != null);
             Check(
                 "quick-settings tabs",
-                quickSettingsType.GetMethod("DrawTabs", instanceNonPublic) != null);
+                quickSettingsSurfaceType.GetMethod(
+                    "DrawTabs", instanceNonPublic) != null);
             Check(
                 "quick-settings selected tab state",
-                quickSettingsType.GetField("_selectedTab", instanceNonPublic) != null);
+                quickSettingsSurfaceType.GetField(
+                    "_selectedTab", instanceNonPublic) != null);
             Check(
                 "quick-settings cached window content",
-                quickSettingsType.GetField(
+                quickSettingsSurfaceType.GetField(
                     "_windowContent",
                     instanceNonPublic) != null);
             Check(
                 "quick-settings old window delegate removed",
-                quickSettingsType.GetField(
+                quickSettingsSurfaceType.GetField(
                     "_drawWindowFunction",
                     instanceNonPublic) == null);
+            Check(
+                "quick-settings owns window host",
+                quickSettingsType.GetField(
+                    "_windowHost",
+                    instanceNonPublic) != null);
+            Check(
+                "quick-settings owns drag overlay",
+                quickSettingsType.GetField(
+                    "_dragOverlay",
+                    instanceNonPublic) != null);
+            Check(
+                "quick-settings owns surface view",
+                quickSettingsType.GetField(
+                    "_surfaceView",
+                    instanceNonPublic) != null);
+            Check(
+                "quick-settings config session type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsConfigSession") != null);
+            Check(
+                "quick-settings config store type",
+                GetPluginType(
+                    pluginAssembly,
+                    "PluginConfigQuickSettingsStore") != null);
+            Check(
+                "shared IMGUI primitives type",
+                GetPluginType(
+                    pluginAssembly,
+                    "ImGuiPrimitives") != null);
+            Type dragSurfaceType = GetPluginType(
+                pluginAssembly,
+                "QuickSettingsHeaderDragSurface");
+            Check(
+                "quick-settings uGUI drag surface type",
+                dragSurfaceType != null);
+            Check(
+                "drag surface focus cancellation",
+                dragSurfaceType.GetMethod(
+                    "OnApplicationFocus", instanceNonPublic) != null);
+            Check(
+                "drag surface pause cancellation",
+                dragSurfaceType.GetMethod(
+                    "OnApplicationPause", instanceNonPublic) != null);
+            Check(
+                "quick-settings visibility view type",
+                GetPluginType(
+                    pluginAssembly,
+                    "VisibilitySettingsView") != null);
+            Check(
+                "manual visibility runtime view type",
+                GetPluginType(
+                    pluginAssembly,
+                    "ManualVisibilityRuntimeView") != null);
+            Check(
+                "visibility target editor view type",
+                GetPluginType(
+                    pluginAssembly,
+                    "VisibilityTargetEditorView") != null);
             Type linkEditorType = GetPluginType(
                 pluginAssembly,
                 "ExpressionLinkEditorView");
             Check("expression-link editor type", linkEditorType != null);
             Check(
                 "quick-settings expression-link editor",
-                quickSettingsType.GetField(
+                quickSettingsSurfaceType.GetField(
                     "_expressionLinkEditor",
                     instanceNonPublic) != null);
             Check(
@@ -474,6 +562,23 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             Check(
                 "release output contains only DLL/PDB",
                 onlyExpectedFiles);
+        }
+
+        private static string ReadSourceTree(string sourceRoot)
+        {
+            string[] files = Directory.GetFiles(
+                sourceRoot,
+                "*.cs",
+                SearchOption.AllDirectories);
+            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+            System.Text.StringBuilder source =
+                new System.Text.StringBuilder();
+            for (int i = 0; i < files.Length; i++)
+            {
+                source.AppendLine(File.ReadAllText(files[i]));
+            }
+
+            return source.ToString();
         }
 
         private static Type GetPluginType(Assembly assembly, string name)

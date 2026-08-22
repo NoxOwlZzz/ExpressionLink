@@ -26,15 +26,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             int expressionLinkFailures =
                 ExpressionLinkCoreTests.Run(out expressionLinkChecks);
 
-            int windowPlacementChecks;
-            int windowPlacementFailures =
-                QuickSettingsWindowPlacementTests.Run(
-                    out windowPlacementChecks);
+            int windowHostChecks;
+            int windowHostFailures =
+                QuickSettingsWindowHostTests.Run(out windowHostChecks);
 
-            int headerDragChecks;
-            int headerDragFailures =
-                QuickSettingsHeaderDragStateMachineTests.Run(
-                    out headerDragChecks);
+            int configSessionChecks;
+            int configSessionFailures =
+                QuickSettingsConfigSessionTests.Run(
+                    out configSessionChecks);
 
             int smokeChecks;
             int smokeFailures = LocalApiSmokeTests.Run(out smokeChecks);
@@ -46,16 +45,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "Expression Link core checks: " + expressionLinkChecks +
                 ", failures: " + expressionLinkFailures);
             Console.WriteLine(
-                "Window placement checks: " + windowPlacementChecks +
-                ", failures: " + windowPlacementFailures);
+                "Quick Settings host checks: " + windowHostChecks +
+                ", failures: " + windowHostFailures);
             Console.WriteLine(
-                "Header drag checks: " + headerDragChecks +
-                ", failures: " + headerDragFailures);
+                "Quick Settings config checks: " + configSessionChecks +
+                ", failures: " + configSessionFailures);
             Console.WriteLine(
                 "Local API smoke checks: " + smokeChecks +
                 ", failures: " + smokeFailures);
             return _failures == 0 && expressionLinkFailures == 0 &&
-                windowPlacementFailures == 0 && headerDragFailures == 0 &&
+                windowHostFailures == 0 && configSessionFailures == 0 &&
                 smokeFailures == 0
                     ? 0
                     : 1;

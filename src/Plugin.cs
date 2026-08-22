@@ -25,14 +25,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal static ManualLogSource Log;
 
-        private QuickSettingsWindow _quickSettingsWindow;
+        private QuickSettingsCoordinator _quickSettings;
         private Texture2D _studioToolbarIcon;
 
         private void Awake()
         {
             Log = Logger;
             PluginConfig.Bind(Config);
-            _quickSettingsWindow = new QuickSettingsWindow();
+            _quickSettings = new QuickSettingsCoordinator(transform);
             useGUILayout = false;
             MakerAPI.RegisterCustomSubCategories += RegisterMakerControls;
             RegisterStudioToolbarButton();
@@ -55,7 +55,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private void Update()
         {
             KeyboardShortcut quickSettingsShortcut = PluginConfig.QuickSettingsShortcut.Value;
-            if (quickSettingsShortcut.IsDown() && _quickSettingsWindow != null)
+            if (quickSettingsShortcut.IsDown() && _quickSettings != null)
             {
                 ToggleQuickSettings();
             }
@@ -65,27 +65,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 Diagnostics.WriteReport();
             }
-
-            if (_quickSettingsWindow != null)
-            {
-                _quickSettingsWindow.UpdateInput();
-            }
-        }
-
-        private void OnApplicationFocus(bool hasFocus)
-        {
-            if (_quickSettingsWindow != null)
-            {
-                _quickSettingsWindow.HandleApplicationFocus(hasFocus);
-            }
         }
 
         private void OnGUI()
         {
-            if (_quickSettingsWindow != null)
+            if (_quickSettings != null)
             {
-                _quickSettingsWindow.Draw();
-                useGUILayout = _quickSettingsWindow.Visible;
+                _quickSettings.Draw();
+                useGUILayout = _quickSettings.Visible;
             }
         }
 
@@ -99,7 +86,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _studioToolbarIcon = null;
             }
 
-            _quickSettingsWindow = null;
+            if (_quickSettings != null)
+            {
+                _quickSettings.Dispose();
+                _quickSettings = null;
+            }
+
             PluginConfig.Dispose();
             Log = null;
         }
@@ -157,10 +149,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void ToggleQuickSettings()
         {
-            if (_quickSettingsWindow != null)
+            if (_quickSettings != null)
             {
-                _quickSettingsWindow.Toggle();
-                useGUILayout = _quickSettingsWindow.Visible;
+                _quickSettings.Toggle();
+                useGUILayout = _quickSettings.Visible;
             }
         }
 

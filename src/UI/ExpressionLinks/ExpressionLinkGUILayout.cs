@@ -4,8 +4,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 {
     internal static class ExpressionLinkGUILayout
     {
-        private static readonly GUILayoutOption[] NoLayoutOptions =
-            new GUILayoutOption[0];
         private static readonly GUILayoutOption[] FieldLabelOptions =
         {
             GUILayout.Width(142f)
@@ -25,54 +23,49 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal static void BeginHorizontal()
         {
-            GUILayout.BeginHorizontal(NoLayoutOptions);
+            ImGuiPrimitives.BeginHorizontal();
         }
 
         internal static void EndHorizontal()
         {
-            GUILayout.EndHorizontal();
+            ImGuiPrimitives.EndHorizontal();
         }
 
         internal static void Label(string text)
         {
-            GUILayout.Label(text ?? string.Empty, NoLayoutOptions);
+            ImGuiPrimitives.Label(text);
         }
 
         internal static void FieldLabel(string text)
         {
-            GUILayout.Label(text ?? string.Empty, FieldLabelOptions);
+            ImGuiPrimitives.Label(text, FieldLabelOptions);
         }
 
         internal static void CountLabel(string text)
         {
-            GUILayout.Label(text ?? string.Empty, CountLabelOptions);
+            ImGuiPrimitives.Label(text, CountLabelOptions);
         }
 
         internal static bool Button(string text)
         {
-            return GUILayout.Button(text ?? string.Empty, NoLayoutOptions);
+            return ImGuiPrimitives.Button(text);
         }
 
         internal static bool NarrowButton(string text)
         {
-            return GUILayout.Button(text ?? string.Empty, NarrowButtonOptions);
+            return ImGuiPrimitives.Button(text, NarrowButtonOptions);
         }
 
         internal static bool Toggle(bool value, string text)
         {
-            return GUILayout.Toggle(
-                value,
-                text ?? string.Empty,
-                NoLayoutOptions);
+            return ImGuiPrimitives.Toggle(value, text);
         }
 
         internal static string TextField(string label, string value)
         {
             BeginHorizontal();
             FieldLabel(label);
-            string next = GUILayout.TextField(
-                value ?? string.Empty,
-                NoLayoutOptions);
+            string next = ImGuiPrimitives.TextField(value);
             EndHorizontal();
             return next;
         }
@@ -83,8 +76,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             BeginHorizontal();
             FieldLabel(label);
-            string next = GUILayout.TextField(
-                value ?? string.Empty,
+            string next = ImGuiPrimitives.TextField(
+                value,
                 NumericFieldOptions);
             EndHorizontal();
             return next;
