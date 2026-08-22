@@ -174,7 +174,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             ClampToScreen();
-            _windowRect = GUI.Window(
+            GUI.Window(
                 WindowId,
                 _windowRect,
                 _drawWindowFunction,
