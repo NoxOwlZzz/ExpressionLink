@@ -13,42 +13,25 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private const float HeaderHeight = 24f;
         private const float MinimumVisibleHeaderWidth = 120f;
 
-        private readonly QuickSettingsWindowHost _windowHost;
-        private readonly QuickSettingsDragOverlay _dragOverlay;
+        private readonly Transform _owner;
+        private readonly string _windowTitle;
         private readonly QuickSettingsConfigSession _configSession;
         private readonly CharacterSelectionModel _selection;
         private readonly LiveStatusPresenter _statusPresenter;
         private readonly QuickSettingsSurfaceView _surfaceView;
+        private QuickSettingsWindowFrame _window;
         private bool _disposed;
 
         internal QuickSettingsCoordinator(Transform owner)
         {
-            QuickSettingsWindowConstraints constraints =
-                new QuickSettingsWindowConstraints(
-                    MinimumWindowWidth,
-                    MinimumWindowHeight,
-                    ScreenMargin,
-                    HeaderHeight,
-                    MinimumVisibleHeaderWidth);
-            _windowHost = new QuickSettingsWindowHost(
-                new QuickSettingsWindowBounds(
-                    24f,
-                    72f,
-                    PreferredWindowWidth,
-                    PreferredWindowHeight),
-                Screen.width,
-                Screen.height,
-                constraints);
-            _dragOverlay = new QuickSettingsDragOverlay(
-                owner,
-                _windowHost,
-                HeaderHeight);
+            _owner = owner;
+            _windowTitle = Plugin.PluginName + " " +
+                Plugin.PluginVersion + " - Quick Settings";
             _configSession = new QuickSettingsConfigSession();
             _selection = new CharacterSelectionModel();
             _statusPresenter = new LiveStatusPresenter();
             _surfaceView = new QuickSettingsSurfaceView(
-                Plugin.PluginName + " " + Plugin.PluginVersion +
-                " - Quick Settings",
+                _windowTitle,
                 _selection,
                 _statusPresenter,
                 new MotionSettingsView(_configSession.Motion),
@@ -65,31 +48,37 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal bool Visible
         {
-            get { return _windowHost.Visible; }
+            get { return _window != null && _window.Visible; }
         }
 
         internal void Toggle()
         {
-            if (_windowHost.Visible)
+            if (_disposed)
+            {
+                return;
+            }
+
+            QuickSettingsWindowFrame window = EnsureWindow();
+            if (window.Visible)
             {
                 Close();
                 return;
             }
 
             _configSession.Reload();
-            _dragOverlay.RefreshViewport();
-            _windowHost.Show();
+            window.RefreshViewport();
+            window.Show();
         }
 
         internal void Draw()
         {
-            if (!_windowHost.Visible || _disposed)
+            if (_window == null || !_window.Visible || _disposed)
             {
                 return;
             }
 
-            _dragOverlay.RefreshViewport();
-            _surfaceView.Draw(_windowHost.Bounds);
+            _window.RefreshViewport();
+            _surfaceView.Draw(_window.Bounds);
         }
 
         public void Dispose()
@@ -101,8 +90,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             _disposed = true;
             _selection.SelectionChanged -= HandleSelectionChanged;
-            _windowHost.Hide();
-            _dragOverlay.Dispose();
+            if (_window != null)
+            {
+                _window.Dispose();
+                _window = null;
+            }
         }
 
         private void ApplyConfiguration()
@@ -122,7 +114,36 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void Close()
         {
-            _windowHost.Hide();
+            if (_window != null)
+            {
+                _window.Hide();
+            }
+        }
+
+        private QuickSettingsWindowFrame EnsureWindow()
+        {
+            if (_window != null)
+            {
+                return _window;
+            }
+
+            QuickSettingsWindowConstraints constraints =
+                new QuickSettingsWindowConstraints(
+                    MinimumWindowWidth,
+                    MinimumWindowHeight,
+                    ScreenMargin,
+                    HeaderHeight,
+                    MinimumVisibleHeaderWidth);
+            _window = new QuickSettingsWindowFrame(
+                _owner,
+                new QuickSettingsWindowBounds(
+                    24f,
+                    72f,
+                    PreferredWindowWidth,
+                    PreferredWindowHeight),
+                constraints,
+                _windowTitle);
+            return _window;
         }
 
         private void HandleSelectionChanged(

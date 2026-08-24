@@ -41,7 +41,7 @@
     <Compile Include="DirectionalMapperTests.cs" />
     <Compile Include="LocalApiSmokeTests.cs" />
     <Compile Include="ExpressionLinkCoreTests.cs" />
-    <Compile Include="QuickSettingsWindowHostTests.cs" />
+    <Compile Include="QuickSettingsWindowGeometryTests.cs" />
     <Compile Include="QuickSettingsConfigSessionTests.cs" />
     <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkBinaryCodec.cs">
       <Link>ExpressionLinkBinaryCodec.cs</Link>
@@ -60,12 +60,6 @@
     </Compile>
     <Compile Include="..\src\UI\QuickSettingsWindowGeometry.cs">
       <Link>QuickSettingsWindowGeometry.cs</Link>
-    </Compile>
-    <Compile Include="..\src\UI\QuickSettingsWindowHost.cs">
-      <Link>QuickSettingsWindowHost.cs</Link>
-    </Compile>
-    <Compile Include="..\src\UI\QuickSettingsHeaderDragGesture.cs">
-      <Link>QuickSettingsHeaderDragGesture.cs</Link>
     </Compile>
     <Compile Include="..\src\UI\QuickSettings\Configuration\IQuickSettingsConfigStore.cs">
       <Link>IQuickSettingsConfigStore.cs</Link>

@@ -26,9 +26,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             int expressionLinkFailures =
                 ExpressionLinkCoreTests.Run(out expressionLinkChecks);
 
-            int windowHostChecks;
-            int windowHostFailures =
-                QuickSettingsWindowHostTests.Run(out windowHostChecks);
+            int windowGeometryChecks;
+            int windowGeometryFailures =
+                QuickSettingsWindowGeometryTests.Run(out windowGeometryChecks);
 
             int configSessionChecks;
             int configSessionFailures =
@@ -45,8 +45,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "Expression Link core checks: " + expressionLinkChecks +
                 ", failures: " + expressionLinkFailures);
             Console.WriteLine(
-                "Quick Settings host checks: " + windowHostChecks +
-                ", failures: " + windowHostFailures);
+                "Quick Settings geometry checks: " + windowGeometryChecks +
+                ", failures: " + windowGeometryFailures);
             Console.WriteLine(
                 "Quick Settings config checks: " + configSessionChecks +
                 ", failures: " + configSessionFailures);
@@ -54,7 +54,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "Local API smoke checks: " + smokeChecks +
                 ", failures: " + smokeFailures);
             return _failures == 0 && expressionLinkFailures == 0 &&
-                windowHostFailures == 0 && configSessionFailures == 0 &&
+                windowGeometryFailures == 0 && configSessionFailures == 0 &&
                 smokeFailures == 0
                     ? 0
                     : 1;

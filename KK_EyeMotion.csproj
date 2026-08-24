@@ -113,10 +113,10 @@
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkGUILayout.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkProfilePanel.cs" />
     <Compile Include="src\UI\QuickSettingsWindowGeometry.cs" />
-    <Compile Include="src\UI\QuickSettingsWindowHost.cs" />
-    <Compile Include="src\UI\QuickSettingsHeaderDragGesture.cs" />
-    <Compile Include="src\UI\QuickSettingsHeaderDragSurface.cs" />
-    <Compile Include="src\UI\QuickSettingsDragOverlay.cs" />
+    <Compile Include="src\UI\QuickSettingsMovableWindow.cs" />
+    <Compile Include="src\UI\QuickSettingsWindowVisualFactory.cs" />
+    <Compile Include="src\UI\QuickSettingsWindowRectController.cs" />
+    <Compile Include="src\UI\QuickSettingsWindowFrame.cs" />
     <Compile Include="src\UI\QuickSettings\CharacterSelectionModel.cs" />
     <Compile Include="src\UI\QuickSettings\LiveStatusPresenter.cs" />
     <Compile Include="src\UI\QuickSettings\QuickSettingsGui.cs" />

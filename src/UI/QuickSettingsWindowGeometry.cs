@@ -2,18 +2,6 @@ using System;
 
 namespace NightOwlZzz.Koikatsu.EyeMotion
 {
-    internal struct QuickSettingsPoint
-    {
-        internal QuickSettingsPoint(float x, float y)
-        {
-            X = x;
-            Y = y;
-        }
-
-        internal float X { get; private set; }
-        internal float Y { get; private set; }
-    }
-
     internal struct QuickSettingsWindowBounds
     {
         internal QuickSettingsWindowBounds(
@@ -129,19 +117,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 constraints.HeaderHeight,
                 constraints.ScreenMargin);
             return bounds.WithPosition(x, y);
-        }
-
-        internal static QuickSettingsPoint PointerToGui(
-            float pointerX,
-            float pointerInputY,
-            float viewportHeight)
-        {
-            float x = SanitizePosition(pointerX);
-            float y = SanitizeLength(viewportHeight) -
-                SanitizePosition(pointerInputY);
-            return new QuickSettingsPoint(
-                x,
-                SanitizePosition(y));
         }
 
         internal static bool AreEqual(

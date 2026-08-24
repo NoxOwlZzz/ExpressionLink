@@ -40,6 +40,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."));
             string quickSettingsSource = File.ReadAllText(
                 Path.Combine(projectRoot, @"src\QuickSettingsCoordinator.cs"));
+            string windowFrameSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\QuickSettingsWindowFrame.cs"));
+            string movableWindowSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\QuickSettingsMovableWindow.cs"));
+            string visualFactorySource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\QuickSettingsWindowVisualFactory.cs"));
             string sourceTree = ReadSourceTree(
                 Path.Combine(projectRoot, @"src"));
             Check(
@@ -67,6 +73,46 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 sourceTree.IndexOf(
                     "Input.GetMouseButton",
                     StringComparison.Ordinal) < 0);
+            Check(
+                "quick-settings window is created lazily",
+                quickSettingsSource.IndexOf(
+                    "EnsureWindow()",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "Material Editor drag samples Input.mousePosition",
+                movableWindowSource.IndexOf(
+                    "Input.mousePosition",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "Material Editor drag writes the target RectTransform",
+                movableWindowSource.IndexOf(
+                    "ToDrag.position = newPosition",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "drag does not convert PointerEventData position",
+                movableWindowSource.IndexOf(
+                    "eventData.position",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "drag does not consume PointerEventData",
+                movableWindowSource.IndexOf(
+                    "eventData.Use",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "drag does not retain pointer identity",
+                movableWindowSource.IndexOf(
+                    "pointerId",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "window frame has no per-frame position writer",
+                windowFrameSource.IndexOf(
+                    "void Update(",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "header is a real raycast graphic",
+                visualFactorySource.IndexOf(
+                    "image.raycastTarget = true",
+                    StringComparison.Ordinal) >= 0);
             string[] loadOrder =
             {
                 @"lib\UnityEngine.dll",
@@ -160,14 +206,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     "_drawWindowFunction",
                     instanceNonPublic) == null);
             Check(
-                "quick-settings owns window host",
+                "quick-settings owns one window frame",
                 quickSettingsType.GetField(
-                    "_windowHost",
-                    instanceNonPublic) != null);
-            Check(
-                "quick-settings owns drag overlay",
-                quickSettingsType.GetField(
-                    "_dragOverlay",
+                    "_window",
                     instanceNonPublic) != null);
             Check(
                 "quick-settings owns surface view",
@@ -189,20 +230,58 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 GetPluginType(
                     pluginAssembly,
                     "ImGuiPrimitives") != null);
-            Type dragSurfaceType = GetPluginType(
+            Type windowFrameType = GetPluginType(
                 pluginAssembly,
-                "QuickSettingsHeaderDragSurface");
+                "QuickSettingsWindowFrame");
+            Type movableWindowType = GetPluginType(
+                pluginAssembly,
+                "QuickSettingsMovableWindow");
+            Check("quick-settings window frame type", windowFrameType != null);
             Check(
-                "quick-settings uGUI drag surface type",
-                dragSurfaceType != null);
+                "quick-settings visual factory type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsWindowVisualFactory") != null);
             Check(
-                "drag surface focus cancellation",
-                dragSurfaceType.GetMethod(
-                    "OnApplicationFocus", instanceNonPublic) != null);
+                "quick-settings rect controller type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsWindowRectController") != null);
+            Check("Material Editor movable-window type", movableWindowType != null);
+            BindingFlags instancePublic =
+                BindingFlags.Instance | BindingFlags.Public;
             Check(
-                "drag surface pause cancellation",
-                dragSurfaceType.GetMethod(
-                    "OnApplicationPause", instanceNonPublic) != null);
+                "movable-window pointer-down handler",
+                movableWindowType.GetMethod(
+                    "OnPointerDown", instancePublic) != null);
+            Check(
+                "movable-window drag handler",
+                movableWindowType.GetMethod(
+                    "OnDrag", instancePublic) != null);
+            Check(
+                "movable-window pointer-up handler",
+                movableWindowType.GetMethod(
+                    "OnPointerUp", instancePublic) != null);
+            Check(
+                "legacy window host removed",
+                pluginAssembly.GetType(
+                    PluginNamespace + "QuickSettingsWindowHost",
+                    false) == null);
+            Check(
+                "legacy drag overlay removed",
+                pluginAssembly.GetType(
+                    PluginNamespace + "QuickSettingsDragOverlay",
+                    false) == null);
+            Check(
+                "legacy drag surface removed",
+                pluginAssembly.GetType(
+                    PluginNamespace + "QuickSettingsHeaderDragSurface",
+                    false) == null);
+            Check(
+                "monolithic window canvas removed",
+                pluginAssembly.GetType(
+                    PluginNamespace + "QuickSettingsWindowCanvas",
+                    false) == null);
             Check(
                 "quick-settings visibility view type",
                 GetPluginType(
