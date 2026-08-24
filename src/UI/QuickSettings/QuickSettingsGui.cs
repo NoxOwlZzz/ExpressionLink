@@ -35,9 +35,32 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             GUILayout.MinWidth(50f)
         };
-        private static GUISkin _cachedSkin;
-        private static GUIStyle _headingStyle;
-        private static GUIStyle _helpStyle;
+        private static readonly GUILayoutOption[] ToolbarOptions =
+        {
+            GUILayout.MinHeight(QuickSettingsTheme.Metrics.ToolbarHeight)
+        };
+        private static readonly GUILayoutOption[] PropertyRowOptions =
+        {
+            GUILayout.MinHeight(QuickSettingsTheme.Metrics.RowHeight)
+        };
+        private static readonly GUILayoutOption[] ToolbarLabelOptions =
+        {
+            GUILayout.MinWidth(0f),
+            GUILayout.ExpandWidth(true)
+        };
+        private static readonly QuickSettingsGuiResources Resources =
+            new QuickSettingsGuiResources();
+
+        internal static void BeginSurfaceArea(Rect bounds)
+        {
+            EnsureResources();
+            GUILayout.BeginArea(bounds, Resources.Surface);
+        }
+
+        internal static void EndSurfaceArea()
+        {
+            GUILayout.EndArea();
+        }
 
         internal static void BeginHorizontal()
         {
@@ -59,6 +82,41 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ImGuiPrimitives.EndVertical();
         }
 
+        internal static void BeginToolbar()
+        {
+            EnsureResources();
+            GUILayout.BeginHorizontal(Resources.Toolbar, ToolbarOptions);
+        }
+
+        internal static void EndToolbar()
+        {
+            GUILayout.EndHorizontal();
+        }
+
+        internal static void BeginFooter()
+        {
+            EnsureResources();
+            GUILayout.BeginVertical(Resources.Footer);
+        }
+
+        internal static void EndFooter()
+        {
+            GUILayout.EndVertical();
+        }
+
+        internal static void BeginPropertyRow()
+        {
+            EnsureResources();
+            GUILayout.BeginHorizontal(
+                Resources.PropertyRow,
+                PropertyRowOptions);
+        }
+
+        internal static void EndPropertyRow()
+        {
+            GUILayout.EndHorizontal();
+        }
+
         internal static void Space(float pixels)
         {
             ImGuiPrimitives.Space(pixels);
@@ -66,76 +124,197 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal static void Label(string text)
         {
-            ImGuiPrimitives.Label(text);
+            EnsureResources();
+            GUILayout.Label(text ?? string.Empty, Resources.Label);
+        }
+
+        internal static void Label(
+            string text,
+            GUILayoutOption[] options)
+        {
+            EnsureResources();
+            GUILayout.Label(
+                text ?? string.Empty,
+                Resources.Label,
+                options);
+        }
+
+        internal static void ToolbarLabel(string text)
+        {
+            EnsureResources();
+            GUILayout.Label(
+                text ?? string.Empty,
+                Resources.ToolbarLabel,
+                ToolbarLabelOptions);
         }
 
         internal static void Heading(string text)
         {
-            EnsureTextStyles();
-            GUILayout.Label(
-                text ?? string.Empty,
-                _headingStyle);
+            EnsureResources();
+            GUILayout.Label(text ?? string.Empty, Resources.Heading);
         }
 
         internal static void Help(string text)
         {
-            EnsureTextStyles();
-            GUILayout.Label(
-                text ?? string.Empty,
-                _helpStyle);
+            EnsureResources();
+            GUILayout.Label(text ?? string.Empty, Resources.Help);
+        }
+
+        internal static void Warning(string text)
+        {
+            EnsureResources();
+            GUILayout.Label(text ?? string.Empty, Resources.Warning);
+        }
+
+        internal static void StatusBadge(string text)
+        {
+            EnsureResources();
+            GUILayout.Label(text ?? string.Empty, Resources.StatusBadge);
         }
 
         internal static void VisibilityLabel(string text)
         {
-            ImGuiPrimitives.Label(text, VisibilityLabelOptions);
+            Label(text, VisibilityLabelOptions);
         }
 
         internal static void VisibilityStatus(string text)
         {
-            ImGuiPrimitives.Label(text, VisibilityStatusOptions);
+            Label(text, VisibilityStatusOptions);
         }
 
         internal static bool Button(string text)
         {
-            return ImGuiPrimitives.Button(text);
+            EnsureResources();
+            return GUILayout.Button(
+                text ?? string.Empty,
+                Resources.Button);
+        }
+
+        internal static bool Button(
+            string text,
+            GUILayoutOption[] options)
+        {
+            EnsureResources();
+            return GUILayout.Button(
+                text ?? string.Empty,
+                Resources.Button,
+                options);
+        }
+
+        internal static bool PrimaryButton(string text)
+        {
+            EnsureResources();
+            return GUILayout.Button(
+                text ?? string.Empty,
+                Resources.PrimaryButton);
+        }
+
+        internal static bool TabButton(string text, bool selected)
+        {
+            EnsureResources();
+            return GUILayout.Button(
+                text ?? string.Empty,
+                selected ? Resources.SelectedTab : Resources.Tab);
+        }
+
+        internal static bool SecondaryTabButton(
+            string text,
+            bool selected)
+        {
+            EnsureResources();
+            return GUILayout.Button(
+                text ?? string.Empty,
+                selected
+                    ? Resources.SelectedSecondaryTab
+                    : Resources.SecondaryTab);
+        }
+
+        private static bool SegmentButton(
+            string text,
+            bool selected,
+            GUILayoutOption[] options)
+        {
+            EnsureResources();
+            return GUILayout.Button(
+                text ?? string.Empty,
+                selected
+                    ? Resources.SelectedSegment
+                    : Resources.SecondaryTab,
+                options);
+        }
+
+        internal static bool OriginalSegmentButton(
+            string text,
+            bool selected)
+        {
+            return SegmentButton(
+                text,
+                selected,
+                OriginalButtonOptions);
+        }
+
+        internal static bool VisibilitySegmentButton(
+            string text,
+            bool selected)
+        {
+            return SegmentButton(
+                text,
+                selected,
+                VisibilityButtonOptions);
         }
 
         internal static bool Disclosure(bool expanded, string text)
         {
-            string prefix = expanded ? "[-] " : "[+] ";
-            return Button(prefix + (text ?? string.Empty))
+            EnsureResources();
+            string prefix = expanded
+                ? QuickSettingsTheme.Glyphs.Expanded
+                : QuickSettingsTheme.Glyphs.Collapsed;
+            return GUILayout.Button(
+                    prefix + "  " + (text ?? string.Empty),
+                    Resources.Disclosure)
                 ? !expanded
                 : expanded;
         }
 
-        internal static bool OriginalButton(string text)
-        {
-            return ImGuiPrimitives.Button(text, OriginalButtonOptions);
-        }
-
-        internal static bool VisibilityButton(string text)
-        {
-            return ImGuiPrimitives.Button(text, VisibilityButtonOptions);
-        }
-
         internal static bool Toggle(bool value, string text)
         {
-            return ImGuiPrimitives.Toggle(value, text);
+            EnsureResources();
+            BeginPropertyRow();
+            bool result = GUILayout.Toggle(
+                value,
+                text ?? string.Empty,
+                Resources.Toggle);
+            EndPropertyRow();
+            return result;
         }
 
         internal static string TextField(string value)
         {
-            return ImGuiPrimitives.TextField(value);
+            EnsureResources();
+            return GUILayout.TextField(
+                value ?? string.Empty,
+                Resources.TextField);
+        }
+
+        internal static string TextField(
+            string value,
+            GUILayoutOption[] options)
+        {
+            EnsureResources();
+            return GUILayout.TextField(
+                value ?? string.Empty,
+                Resources.TextField,
+                options);
         }
 
         internal static string LabeledTextField(
             string label,
             string value)
         {
-            BeginHorizontal();
-            ImGuiPrimitives.Label(label, SliderLabelOptions);
+            BeginPropertyRow();
+            Label(label, SliderLabelOptions);
             string result = TextField(value);
-            EndHorizontal();
+            EndPropertyRow();
             return result;
         }
 
@@ -146,37 +325,32 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             float maximum,
             string format)
         {
-            BeginHorizontal();
-            ImGuiPrimitives.Label(label, SliderLabelOptions);
+            EnsureResources();
+            BeginPropertyRow();
+            Label(label, SliderLabelOptions);
             float result = GUILayout.HorizontalSlider(
                 value,
                 minimum,
                 maximum,
+                Resources.Slider,
+                Resources.SliderThumb,
                 SliderOptions);
-            ImGuiPrimitives.Label(
+            GUILayout.Label(
                 result.ToString(format),
+                Resources.ValueLabel,
                 SliderValueOptions);
-            EndHorizontal();
+            EndPropertyRow();
             return result;
         }
 
-        private static void EnsureTextStyles()
+        internal static void DisposeResources()
         {
-            GUISkin skin = GUI.skin;
-            if (_cachedSkin == skin &&
-                _headingStyle != null &&
-                _helpStyle != null)
-            {
-                return;
-            }
+            Resources.Dispose();
+        }
 
-            _cachedSkin = skin;
-            _headingStyle = new GUIStyle(skin.label);
-            _headingStyle.fontStyle = FontStyle.Bold;
-            _headingStyle.wordWrap = true;
-            _helpStyle = new GUIStyle(skin.label);
-            _helpStyle.fontStyle = FontStyle.Italic;
-            _helpStyle.wordWrap = true;
+        private static void EnsureResources()
+        {
+            Resources.Ensure(GUI.skin);
         }
     }
 }

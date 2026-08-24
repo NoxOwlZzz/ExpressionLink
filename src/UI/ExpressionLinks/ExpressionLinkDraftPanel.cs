@@ -167,6 +167,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private string DrawBasicFields(
             EyeMotionCharacterController controller)
         {
+            ExpressionLinkGUILayout.Heading("Link and trigger");
             bool enabled = ExpressionLinkGUILayout.Toggle(
                 _draft.Enabled,
                 "Enable this link");
@@ -182,7 +183,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _draft.Source);
 
             string feedback = string.Empty;
-            ExpressionLinkGUILayout.BeginHorizontal();
+            ExpressionLinkGUILayout.BeginFieldRow();
             ExpressionLinkGUILayout.FieldLabel("Use current expression");
             SetLatestFeedback(
                 ref feedback,
@@ -202,8 +203,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     controller,
                     "Mouth",
                     ExpressionTriggerPart.Mouth));
-            ExpressionLinkGUILayout.EndHorizontal();
+            ExpressionLinkGUILayout.EndFieldRow();
 
+            ExpressionLinkGUILayout.Heading("Target and response");
             _draft.BlendshapeName = DrawDraftTextField(
                 "Blendshape to activate",
                 _draft.BlendshapeName);
@@ -239,7 +241,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void DrawScopeField()
         {
-            ExpressionLinkGUILayout.BeginHorizontal();
+            ExpressionLinkGUILayout.BeginFieldRow();
             ExpressionLinkGUILayout.FieldLabel("Where to search");
             if (ExpressionLinkGUILayout.NarrowButton("<"))
             {
@@ -256,36 +258,43 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 CycleScope(1);
             }
 
-            ExpressionLinkGUILayout.EndHorizontal();
+            ExpressionLinkGUILayout.EndFieldRow();
         }
 
         private void DrawModeField()
         {
-            ExpressionLinkGUILayout.BeginHorizontal();
+            ExpressionLinkGUILayout.BeginFieldRow();
             ExpressionLinkGUILayout.FieldLabel("Response");
-            string label = _draft.Mode == ExpressionLinkMode.FollowSource
-                ? "Follow expression strength"
-                : "On / off";
-            if (ExpressionLinkGUILayout.Button(label))
+            bool binarySelected =
+                _draft.Mode == ExpressionLinkMode.Binary;
+            if (ExpressionLinkGUILayout.ChoiceButton(
+                    "On / off",
+                    binarySelected) &&
+                !binarySelected)
             {
-                _draft.Mode = _draft.Mode == ExpressionLinkMode.Binary
-                    ? ExpressionLinkMode.FollowSource
-                    : ExpressionLinkMode.Binary;
+                _draft.Mode = ExpressionLinkMode.Binary;
                 MarkDirty();
             }
 
-            ExpressionLinkGUILayout.EndHorizontal();
+            bool followSelected =
+                _draft.Mode == ExpressionLinkMode.FollowSource;
+            if (ExpressionLinkGUILayout.ChoiceButton(
+                    "Follow strength",
+                    followSelected) &&
+                !followSelected)
+            {
+                _draft.Mode = ExpressionLinkMode.FollowSource;
+                MarkDirty();
+            }
+
+            ExpressionLinkGUILayout.EndFieldRow();
         }
 
         private void DrawAdvancedFields()
         {
-            string label = _showAdvanced
-                ? "[-] Advanced"
-                : "[+] Advanced";
-            if (ExpressionLinkGUILayout.Button(label))
-            {
-                _showAdvanced = !_showAdvanced;
-            }
+            _showAdvanced = ExpressionLinkGUILayout.Disclosure(
+                _showAdvanced,
+                "Technical settings");
 
             if (!_showAdvanced)
             {
@@ -293,8 +302,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             _draft.RendererPath = DrawDraftTextField(
-                "Exact renderer path (blank = automatic)",
+                "Renderer path",
                 _draft.RendererPath);
+            ExpressionLinkGUILayout.Help(
+                "Leave Renderer path blank to find it automatically.");
             DrawNumericTextField("Off value", ref _outputMinText);
             DrawNumericTextField("Source range start", ref _inputMinText);
             DrawNumericTextField("Source range end", ref _inputMaxText);

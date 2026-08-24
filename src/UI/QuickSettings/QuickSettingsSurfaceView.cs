@@ -6,8 +6,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     internal sealed class QuickSettingsSurfaceView
     {
         private const int PanelDepth = -1000;
-        private const float FixedVerticalContentHeight = 192f;
 
+        private static readonly GUILayoutOption[] ExpandHeightOptions =
+        {
+            GUILayout.ExpandHeight(true)
+        };
         private static readonly GUILayoutOption[] SelectorButtonOptions =
         {
             GUILayout.Width(32f)
@@ -23,11 +26,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private readonly ExpressionLinkEditorView _expressionLinkEditor;
         private readonly QuickSettingsNavigationView _navigation;
         private readonly QuickSettingsFooterView _footer;
-        private readonly GUILayoutOption[] _scrollViewOptions =
-            new GUILayoutOption[1];
 
         private Vector2 _scrollPosition;
-        private float _scrollViewOptionHeight = float.NaN;
         private string _navigationFeedback = string.Empty;
 
         internal QuickSettingsSurfaceView(
@@ -42,6 +42,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             Action apply,
             Action discard,
             Action writeDiagnostics,
+            Func<bool> hasUnsavedSettings,
             Action close)
         {
             _headerHeight = Mathf.Max(0f, headerHeight);
@@ -59,6 +60,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 Require(apply, "apply"),
                 Require(discard, "discard"),
                 Require(writeDiagnostics, "writeDiagnostics"),
+                Require(hasUnsavedSettings, "hasUnsavedSettings"),
                 Require(close, "close"));
         }
 
@@ -76,14 +78,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             try
             {
                 GUI.depth = PanelDepth;
-                GUILayout.BeginArea(bodyBounds, GUI.skin.box);
+                QuickSettingsGui.BeginSurfaceArea(bodyBounds);
                 try
                 {
-                    DrawContent(bodyBounds.width, bodyBounds.height);
+                    DrawContent(bodyBounds.width);
                 }
                 finally
                 {
-                    GUILayout.EndArea();
+                    QuickSettingsGui.EndSurfaceArea();
                 }
             }
             finally
@@ -92,12 +94,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
         }
 
-        private void DrawContent(float width, float height)
+        private void DrawContent(float width)
         {
             QuickSettingsGui.BeginVertical();
             try
             {
-                bool compactLayout = width < 520f;
+                bool compactLayout = width < 420f;
                 EyeMotionCharacterController controller =
                     DrawControllerSelector();
                 bool preventLeavingCurrentView =
@@ -122,12 +124,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
                 if (_navigationFeedback.Length > 0)
                 {
-                    QuickSettingsGui.Help(_navigationFeedback);
+                    QuickSettingsGui.Warning(_navigationFeedback);
                 }
 
                 _scrollPosition = GUILayout.BeginScrollView(
                     _scrollPosition,
-                    GetScrollViewOptions(height));
+                    ExpandHeightOptions);
                 try
                 {
                     LiveStatusSnapshot status =
@@ -162,8 +164,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private EyeMotionCharacterController DrawControllerSelector()
         {
             EyeMotionCharacterController controller = _selection.Resolve();
-            QuickSettingsGui.BeginHorizontal();
-            if (GUILayout.Button("<", SelectorButtonOptions))
+            QuickSettingsGui.BeginToolbar();
+            if (QuickSettingsGui.Button("<", SelectorButtonOptions))
             {
                 SelectController(-1);
                 controller = _selection.Resolve();
@@ -171,15 +173,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             LiveStatusSnapshot status =
                 _statusPresenter.GetSnapshot(controller);
-            QuickSettingsGui.Label(status.SelectedCharacterLine);
+            QuickSettingsGui.ToolbarLabel(status.SelectedCharacterLine);
 
-            if (GUILayout.Button(">", SelectorButtonOptions))
+            if (QuickSettingsGui.Button(">", SelectorButtonOptions))
             {
                 SelectController(1);
                 controller = _selection.Resolve();
             }
 
-            QuickSettingsGui.EndHorizontal();
+            QuickSettingsGui.EndToolbar();
             return controller;
         }
 
@@ -188,7 +190,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (_expressionView.HasUnsavedChanges)
             {
                 _navigationFeedback =
-                    "Save character mappings or discard their edits first.";
+                    "Save game expressions or discard their edits first.";
                 _expressionView.RejectNavigationChange();
                 return;
             }
@@ -251,27 +253,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 _expressionView.RejectNavigationChange();
                 _navigationFeedback =
-                    "Save character mappings or discard their edits first.";
+                    "Save game expressions or discard their edits first.";
                 return;
             }
 
             _expressionLinkEditor.RejectNavigationChange();
             _navigationFeedback =
                 "Save or discard the current link edits first.";
-        }
-
-        private GUILayoutOption[] GetScrollViewOptions(float bodyHeight)
-        {
-            float height = Mathf.Max(
-                80f,
-                bodyHeight - FixedVerticalContentHeight);
-            if (_scrollViewOptionHeight != height)
-            {
-                _scrollViewOptionHeight = height;
-                _scrollViewOptions[0] = GUILayout.Height(height);
-            }
-
-            return _scrollViewOptions;
         }
 
         private static T Require<T>(T value, string parameterName)

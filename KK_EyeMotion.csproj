@@ -108,6 +108,10 @@
     <Compile Include="src\Persistence\Profiles\ExpressionLinkProfileJsonCodec.cs" />
     <Compile Include="src\Persistence\Profiles\ExpressionLinkProfileStore.cs" />
     <Compile Include="src\UI\ImGuiPrimitives.cs" />
+    <Compile Include="src\UI\Styling\QuickSettingsTheme.cs" />
+    <Compile Include="src\UI\Styling\QuickSettingsTextureCatalog.cs" />
+    <Compile Include="src\UI\Styling\QuickSettingsStyleFactory.cs" />
+    <Compile Include="src\UI\Styling\QuickSettingsGuiResources.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkEditorView.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkDraftPanel.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkGUILayout.cs" />

@@ -99,7 +99,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 QuickSettingsGui.BeginHorizontal();
                 changed |= DrawSecondaryButton(
                     AutomaticSection,
-                    "ExpressionMesh slots",
+                    "Game expressions",
                     QuickSettingsDestination.AutomaticExpressions,
                     false,
                     preventLeavingCurrentView,
@@ -126,7 +126,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             Action navigationBlocked)
         {
             bool selected = _selectedPage == page;
-            if (!QuickSettingsGui.Button(FormatTab(label, selected)) || selected)
+            if (!QuickSettingsGui.TabButton(label, selected) || selected)
             {
                 return false;
             }
@@ -155,7 +155,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             bool selected = eyesSection
                 ? _selectedEyesSection == section
                 : _selectedExpressionsSection == section;
-            if (!QuickSettingsGui.Button(FormatTab(label, selected)) || selected)
+            if (!QuickSettingsGui.SecondaryTabButton(label, selected) ||
+                selected)
             {
                 return false;
             }
@@ -233,11 +234,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 default:
                     return "Set up camera tracking, blinking, calibration, and smoothing.";
             }
-        }
-
-        private static string FormatTab(string label, bool selected)
-        {
-            return selected ? "[" + label + "]" : label;
         }
 
         private static void ClearKeyboardFocus()

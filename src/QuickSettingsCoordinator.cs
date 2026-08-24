@@ -41,6 +41,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 ApplyConfiguration,
                 ReloadConfiguration,
                 WriteDiagnostics,
+                HasUnsavedConfiguration,
                 Close);
             _selection.SelectionChanged += HandleSelectionChanged;
         }
@@ -94,6 +95,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _window.Dispose();
                 _window = null;
             }
+
+            QuickSettingsGui.DisposeResources();
+        }
+
+        private bool HasUnsavedConfiguration()
+        {
+            return _configSession.HasUnsavedChanges;
         }
 
         private void ApplyConfiguration()

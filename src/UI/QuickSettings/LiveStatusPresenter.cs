@@ -44,6 +44,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
     internal sealed class LiveStatusPresenter
     {
+        private const int MaximumCharacterNameLength = 36;
+
         private int _cachedFrame = -1;
         private int _cachedControllerInstanceId;
         private LiveStatusSnapshot _snapshot = LiveStatusSnapshot.NoCharacter;
@@ -104,7 +106,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             return new LiveStatusSnapshot(
-                "Character: " + controller.GetCharacterName(),
+                "Character: " + GetDisplayCharacterName(controller),
                 string.Format(
                     "State: {0} | X/Y: {1:F3} / {2:F3} | Raw X: {3:F3}",
                     controller.CurrentBindingState,
@@ -124,6 +126,26 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 " | Sync override: " +
                 (controller.HighlightSyncEffective ? "active" : "inactive"),
                 "Card data: " + controller.CardPersistenceStatus);
+        }
+
+        private static string GetDisplayCharacterName(
+            EyeMotionCharacterController controller)
+        {
+            string name = (controller.GetCharacterName() ?? string.Empty)
+                .Trim();
+            if (name.Length == 0)
+            {
+                return "Unnamed";
+            }
+
+            if (name.Length <= MaximumCharacterNameLength)
+            {
+                return name;
+            }
+
+            return name.Substring(
+                0,
+                MaximumCharacterNameLength - 3) + "...";
         }
     }
 }

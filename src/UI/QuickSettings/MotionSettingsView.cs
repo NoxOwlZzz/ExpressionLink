@@ -68,10 +68,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 "Live values");
             if (_showLiveValues)
             {
-                QuickSettingsGui.Label(status.MotionStateLine);
+                QuickSettingsGui.Help(status.MotionStateLine);
                 if (!string.IsNullOrEmpty(status.WeightsLine))
                 {
-                    QuickSettingsGui.Label(status.WeightsLine);
+                    QuickSettingsGui.Help(status.WeightsLine);
                 }
             }
         }

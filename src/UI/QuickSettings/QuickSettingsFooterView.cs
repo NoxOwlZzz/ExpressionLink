@@ -7,6 +7,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private readonly Action _apply;
         private readonly Action _discard;
         private readonly Action _writeDiagnostics;
+        private readonly Func<bool> _hasUnsavedSettings;
         private readonly Action _close;
         private bool _showTroubleshooting;
 
@@ -14,6 +15,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             Action apply,
             Action discard,
             Action writeDiagnostics,
+            Func<bool> hasUnsavedSettings,
             Action close)
         {
             _apply = Require(apply, "apply");
@@ -21,6 +23,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _writeDiagnostics = Require(
                 writeDiagnostics,
                 "writeDiagnostics");
+            _hasUnsavedSettings = Require(
+                hasUnsavedSettings,
+                "hasUnsavedSettings");
             _close = Require(close, "close");
         }
 
@@ -28,6 +33,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             bool showSettingsActions,
             bool compactLayout)
         {
+            QuickSettingsGui.BeginFooter();
+            if (showSettingsActions && _hasUnsavedSettings())
+            {
+                QuickSettingsGui.StatusBadge("Unsaved plugin settings");
+            }
+
+            bool opened;
             if (compactLayout && showSettingsActions)
             {
                 QuickSettingsGui.BeginHorizontal();
@@ -35,20 +47,23 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 QuickSettingsGui.EndHorizontal();
 
                 QuickSettingsGui.BeginHorizontal();
-                bool opened = DrawHelpAndCloseActions();
+                opened = DrawHelpAndCloseActions();
                 QuickSettingsGui.EndHorizontal();
-                return opened;
             }
-
-            QuickSettingsGui.BeginHorizontal();
-            if (showSettingsActions)
+            else
             {
-                DrawSettingsActions();
+                QuickSettingsGui.BeginHorizontal();
+                if (showSettingsActions)
+                {
+                    DrawSettingsActions();
+                }
+
+                opened = DrawHelpAndCloseActions();
+                QuickSettingsGui.EndHorizontal();
             }
 
-            bool troubleshootingOpened = DrawHelpAndCloseActions();
-            QuickSettingsGui.EndHorizontal();
-            return troubleshootingOpened;
+            QuickSettingsGui.EndFooter();
+            return opened;
         }
 
         internal void DrawTroubleshooting()
@@ -61,7 +76,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             QuickSettingsGui.Space(6f);
             QuickSettingsGui.Heading("Getting started");
             QuickSettingsGui.Help(
-                "Use Save settings for plugin options. Character mappings " +
+                "Use Apply plugin settings for plugin options. Game expressions " +
                 "and Custom links have their own Save buttons.");
             QuickSettingsGui.Heading("Troubleshooting");
             QuickSettingsGui.Help(
@@ -74,7 +89,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void DrawSettingsActions()
         {
-            if (QuickSettingsGui.Button("Save settings"))
+            bool previousGuiEnabled = UnityEngine.GUI.enabled;
+            UnityEngine.GUI.enabled =
+                previousGuiEnabled && _hasUnsavedSettings();
+            if (QuickSettingsGui.PrimaryButton("Apply plugin settings"))
             {
                 _apply();
             }
@@ -83,6 +101,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 _discard();
             }
+
+            UnityEngine.GUI.enabled = previousGuiEnabled;
         }
 
         private bool DrawHelpAndCloseActions()

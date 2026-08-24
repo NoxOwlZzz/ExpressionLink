@@ -46,6 +46,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 Path.Combine(projectRoot, @"src\UI\QuickSettingsMovableWindow.cs"));
             string visualFactorySource = File.ReadAllText(
                 Path.Combine(projectRoot, @"src\UI\QuickSettingsWindowVisualFactory.cs"));
+            string surfaceSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\QuickSettings\QuickSettingsSurfaceView.cs"));
+            string navigationSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\QuickSettings\QuickSettingsNavigationView.cs"));
+            string styleResourcesSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\Styling\QuickSettingsGuiResources.cs"));
+            string expressionLayoutSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\ExpressionLinks\ExpressionLinkGUILayout.cs"));
             string sourceTree = ReadSourceTree(
                 Path.Combine(projectRoot, @"src"));
             Check(
@@ -133,6 +141,63 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 visualFactorySource.IndexOf(
                     "image.raycastTarget = true",
                     StringComparison.Ordinal) >= 0);
+            Check(
+                "quick-settings uses a semantic theme",
+                sourceTree.IndexOf(
+                    "internal static class QuickSettingsTheme",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "quick-settings does not replace the global GUI skin",
+                sourceTree.IndexOf(
+                    "GUI.skin =",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "quick-settings tabs use selected styles",
+                navigationSource.IndexOf(
+                    "TabButton(label, selected)",
+                    StringComparison.Ordinal) >= 0 &&
+                navigationSource.IndexOf(
+                    "FormatTab(",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "quick-settings styles are cached by skin",
+                styleResourcesSource.IndexOf(
+                    "_skin == skin",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "quick-settings style resources are disposed",
+                quickSettingsSource.IndexOf(
+                    "QuickSettingsGui.DisposeResources();",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "quick-settings body uses remaining height",
+                surfaceSource.IndexOf(
+                    "ExpandHeightOptions",
+                    StringComparison.Ordinal) >= 0 &&
+                surfaceSource.IndexOf(
+                    "FixedVerticalContentHeight",
+                    StringComparison.Ordinal) < 0);
+            Check(
+                "expression links share quick-settings styles",
+                expressionLayoutSource.IndexOf(
+                    "QuickSettingsGui.BeginPropertyRow();",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "styled header has its own accent",
+                visualFactorySource.IndexOf(
+                    "QuickSettingsHeaderAccent",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "visibility selection no longer uses brackets",
+                sourceTree.IndexOf(
+                    "\"[Game default]\"",
+                    StringComparison.Ordinal) < 0 &&
+                sourceTree.IndexOf(
+                    "\"[Show]\"",
+                    StringComparison.Ordinal) < 0 &&
+                sourceTree.IndexOf(
+                    "\"[Hide]\"",
+                    StringComparison.Ordinal) < 0);
             string[] loadOrder =
             {
                 @"lib\UnityEngine.dll",
@@ -263,6 +328,26 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 GetPluginType(
                     pluginAssembly,
                     "ImGuiPrimitives") != null);
+            Check(
+                "quick-settings semantic theme type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsTheme") != null);
+            Check(
+                "quick-settings style resource type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsGuiResources") != null);
+            Check(
+                "quick-settings texture owner type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsTextureCatalog") != null);
+            Check(
+                "quick-settings style factory type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsStyleFactory") != null);
             Type windowFrameType = GetPluginType(
                 pluginAssembly,
                 "QuickSettingsWindowFrame");

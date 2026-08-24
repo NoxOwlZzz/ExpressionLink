@@ -7,6 +7,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     internal sealed class ExpressionLinkEditorView
     {
         private const int MaximumStatusLength = 180;
+        private const int MaximumNavigationNameLength = 24;
 
         private static readonly CultureInfo InvariantCulture =
             CultureInfo.InvariantCulture;
@@ -56,21 +57,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (controller == null)
             {
                 ResetSelection();
-                ExpressionLinkGUILayout.Label(
-                    "Use a game expression to control a blendshape on " +
-                    "this character.");
-                ExpressionLinkGUILayout.Label(
+                ExpressionLinkGUILayout.Help(
                     "Select a character to create or edit links.");
                 return;
             }
 
             EnsureSelection(controller);
-            ExpressionLinkGUILayout.Label(
-                "Use a game expression to control a blendshape on " +
-                "this character.");
-            ExpressionLinkGUILayout.Label(
-                "New, Duplicate, and Delete update this character " +
-                "immediately.");
             DrawNavigation(controller);
 
             if (_draftPanel.HasDraft)
@@ -90,7 +82,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
             else
             {
-                ExpressionLinkGUILayout.Label(
+                ExpressionLinkGUILayout.Help(
                     "No links yet. Select New link to create one.");
             }
 
@@ -250,7 +242,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 status += " Unsaved edits.";
             }
 
-            ExpressionLinkGUILayout.Label(
+            ExpressionLinkGUILayout.Help(
                 "Status: " + NormalizeStatus(status));
         }
 
@@ -431,6 +423,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 (_selectedIndex + 1).ToString(InvariantCulture) +
                 " of " + count.ToString(InvariantCulture);
             string name = _draftPanel.DisplayName.Trim();
+            if (name.Length > MaximumNavigationNameLength)
+            {
+                name = name.Substring(
+                    0,
+                    MaximumNavigationNameLength - 3) + "...";
+            }
+
             return name.Length == 0 ? label : label + " - " + name;
         }
 

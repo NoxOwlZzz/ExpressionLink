@@ -50,7 +50,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 "Live values");
             if (_showLiveValues)
             {
-                QuickSettingsGui.Label(status.IrisStateLine);
+                QuickSettingsGui.Help(status.IrisStateLine);
             }
         }
 

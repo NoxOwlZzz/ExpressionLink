@@ -141,7 +141,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return;
             }
 
-            QuickSettingsGui.BeginHorizontal();
+            QuickSettingsGui.BeginPropertyRow();
             QuickSettingsGui.VisibilityLabel(label);
             DrawVisibilityButtons(
                 controller,
@@ -149,7 +149,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 slotIndex,
                 mode);
             QuickSettingsGui.VisibilityStatus(status);
-            QuickSettingsGui.EndHorizontal();
+            QuickSettingsGui.EndPropertyRow();
         }
 
         private void DrawVisibilityButtons(
@@ -158,10 +158,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             int slotIndex,
             ManualVisibilityMode mode)
         {
-            if (QuickSettingsGui.OriginalButton(
-                    mode == ManualVisibilityMode.Original
-                        ? "[Game default]"
-                        : "Game default"))
+            if (QuickSettingsGui.OriginalSegmentButton(
+                    "Game default",
+                    mode == ManualVisibilityMode.Original))
             {
                 SetVisibilityMode(
                     controller,
@@ -170,10 +169,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     ManualVisibilityMode.Original);
             }
 
-            if (QuickSettingsGui.VisibilityButton(
-                    mode == ManualVisibilityMode.Visible
-                        ? "[Show]"
-                        : "Show"))
+            if (QuickSettingsGui.VisibilitySegmentButton(
+                    "Show",
+                    mode == ManualVisibilityMode.Visible))
             {
                 SetVisibilityMode(
                     controller,
@@ -182,10 +180,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     ManualVisibilityMode.Visible);
             }
 
-            if (QuickSettingsGui.VisibilityButton(
-                    mode == ManualVisibilityMode.Hidden
-                        ? "[Hide]"
-                        : "Hide"))
+            if (QuickSettingsGui.VisibilitySegmentButton(
+                    "Hide",
+                    mode == ManualVisibilityMode.Hidden))
             {
                 SetVisibilityMode(
                     controller,

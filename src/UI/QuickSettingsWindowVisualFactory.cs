@@ -35,10 +35,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     {
         private const int WindowSortingOrder = 1000;
 
+        // The Canvas panel owns drag and raycasts. IMGUI draws the opaque body.
         private static readonly Color MainPanelColor =
-            new Color32(36, 36, 36, 1);
+            new Color32(29, 34, 41, 1);
         private static readonly Color HeaderPanelColor =
-            new Color32(100, 99, 95, 255);
+            QuickSettingsTheme.Colors.ElevatedSurface;
 
         internal static QuickSettingsWindowVisual Create(
             Transform owner,
@@ -101,6 +102,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             CreateHeaderTitle(
                 headerPanel,
                 title ?? string.Empty);
+            CreateHeaderAccent(headerPanel);
             QuickSettingsMovableWindow movableWindow =
                 headerPanel.gameObject
                     .AddComponent<QuickSettingsMovableWindow>();
@@ -135,6 +137,24 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             return rectTransform;
         }
 
+        private static void CreateHeaderAccent(Transform parent)
+        {
+            RectTransform accent = CreateImage(
+                "QuickSettingsHeaderAccent",
+                parent,
+                QuickSettingsTheme.Colors.Accent);
+            accent.anchorMin = new Vector2(0f, 0f);
+            accent.anchorMax = new Vector2(1f, 0f);
+            accent.pivot = new Vector2(0.5f, 0f);
+            accent.offsetMin = Vector2.zero;
+            accent.offsetMax = new Vector2(0f, 2f);
+            Image image = accent.GetComponent<Image>();
+            if (image != null)
+            {
+                image.raycastTarget = false;
+            }
+        }
+
         private static void CreateHeaderTitle(
             Transform parent,
             string title)
@@ -157,8 +177,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             text.font = Resources.GetBuiltinResource<Font>(
                 "Arial.ttf");
             text.fontSize = 14;
-            text.color = Color.white;
-            text.alignment = TextAnchor.MiddleLeft;
+            text.color = QuickSettingsTheme.Colors.PrimaryText;
+            text.alignment = TextAnchor.MiddleCenter;
             text.horizontalOverflow =
                 HorizontalWrapMode.Overflow;
             text.verticalOverflow =

@@ -33,7 +33,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal void RejectNavigationChange()
         {
             _feedback =
-                "Save character mappings or discard their edits first.";
+                "Save game expressions or discard their edits first.";
         }
 
         internal void Draw(EyeMotionCharacterController controller)
@@ -41,7 +41,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             QuickSettingsGui.Heading("Plugin settings");
             _draft.AutomationEnabled = QuickSettingsGui.Toggle(
                 _draft.AutomationEnabled,
-                "Enable ExpressionMesh slots");
+                "Enable automatic game expressions");
 
             _showFineTuning = QuickSettingsGui.Disclosure(
                 _showFineTuning,
@@ -57,19 +57,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             QuickSettingsGui.Help(
-                "Save settings stores the plugin options above.");
-            QuickSettingsGui.Heading("Selected character mappings");
+                "Apply plugin settings stores the options above.");
+            QuickSettingsGui.Heading("Game expressions");
             QuickSettingsGui.Help(
-                "Each slot controls its matching ExpressionMesh blendshape.");
+                "Each game expression activates its matching ExpressionMesh blendshape. These choices are saved per character.");
             if (controller == null)
             {
-                QuickSettingsGui.Help("Select a character to edit mappings.");
+                QuickSettingsGui.Help("Select a character to edit game expressions.");
                 if (_triggersDirty)
                 {
                     QuickSettingsGui.Help(
                         "The character being edited is no longer available.");
                     if (QuickSettingsGui.Button(
-                            "Discard unavailable mapping edits"))
+                            "Discard unavailable expression edits"))
                     {
                         DiscardUnavailableMappings();
                     }
@@ -106,7 +106,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             DrawCaptureButtons(controller, _selectedSlotIndex);
 
             QuickSettingsGui.BeginHorizontal();
-            if (QuickSettingsGui.Button("Save character mappings"))
+            if (QuickSettingsGui.Button("Save game expressions"))
             {
                 controller.SetExpressionTriggers(
                     _triggers,
@@ -115,16 +115,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _triggersDirty = false;
             }
 
-            if (QuickSettingsGui.Button("Discard mapping edits"))
+            if (QuickSettingsGui.Button("Discard expression edits"))
             {
                 ReloadTriggerBuffer(controller);
-                _feedback = "Mapping edits discarded.";
+                _feedback = "Expression edits discarded.";
             }
 
             QuickSettingsGui.EndHorizontal();
             if (_triggersDirty)
             {
-                QuickSettingsGui.Help("Unsaved character mappings.");
+                QuickSettingsGui.Warning("Unsaved game expressions.");
             }
 
             if (_feedback.Length > 0)
@@ -178,7 +178,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (replacedUnsavedEdits)
             {
                 _feedback =
-                    "Mappings changed outside this editor and were reloaded.";
+                    "Game expressions changed outside this editor and were reloaded.";
             }
         }
 
@@ -200,7 +200,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _triggerControllerInstanceId = 0;
             _triggerRevision = -1;
             _triggersDirty = false;
-            _feedback = "Unavailable mapping edits discarded.";
+            _feedback = "Unavailable expression edits discarded.";
             for (int i = 0; i < _triggers.Length; i++)
             {
                 _triggers[i] = string.Empty;
@@ -259,7 +259,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _feedback =
                 "Captured " + selector + " for slot " +
                 (slotIndex + 1).ToString() +
-                ". Select Save character mappings.";
+                ". Select Save game expressions.";
         }
     }
 }

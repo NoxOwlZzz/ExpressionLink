@@ -28,12 +28,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             feedback = string.Empty;
             bool linksReplaced = false;
-            string label = _showProfiles
-                ? "[-] Reusable profiles"
-                : "[+] Reusable profiles";
-            if (ExpressionLinkGUILayout.Button(label))
+            bool showProfiles = ExpressionLinkGUILayout.Disclosure(
+                _showProfiles,
+                "Reusable profiles");
+            if (showProfiles != _showProfiles)
             {
-                _showProfiles = !_showProfiles;
+                _showProfiles = showProfiles;
                 if (!_showProfiles)
                 {
                     _confirmReplace = false;
@@ -50,7 +50,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return false;
             }
 
-            ExpressionLinkGUILayout.Label(
+            ExpressionLinkGUILayout.Help(
                 "Profiles contain the complete Custom links list.");
             string editedProfileName = ExpressionLinkGUILayout.TextField(
                 "Profile name",

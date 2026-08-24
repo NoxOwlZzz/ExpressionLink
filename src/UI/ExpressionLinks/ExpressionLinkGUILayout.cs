@@ -23,50 +23,80 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal static void BeginHorizontal()
         {
-            ImGuiPrimitives.BeginHorizontal();
+            QuickSettingsGui.BeginHorizontal();
         }
 
         internal static void EndHorizontal()
         {
-            ImGuiPrimitives.EndHorizontal();
+            QuickSettingsGui.EndHorizontal();
+        }
+
+        internal static void BeginFieldRow()
+        {
+            QuickSettingsGui.BeginPropertyRow();
+        }
+
+        internal static void EndFieldRow()
+        {
+            QuickSettingsGui.EndPropertyRow();
         }
 
         internal static void Label(string text)
         {
-            ImGuiPrimitives.Label(text);
+            QuickSettingsGui.Label(text);
+        }
+
+        internal static void Heading(string text)
+        {
+            QuickSettingsGui.Heading(text);
+        }
+
+        internal static void Help(string text)
+        {
+            QuickSettingsGui.Help(text);
         }
 
         internal static void FieldLabel(string text)
         {
-            ImGuiPrimitives.Label(text, FieldLabelOptions);
+            QuickSettingsGui.Label(text, FieldLabelOptions);
         }
 
         internal static void CountLabel(string text)
         {
-            ImGuiPrimitives.Label(text, CountLabelOptions);
+            QuickSettingsGui.Label(text, CountLabelOptions);
         }
 
         internal static bool Button(string text)
         {
-            return ImGuiPrimitives.Button(text);
+            return QuickSettingsGui.Button(text);
         }
 
         internal static bool NarrowButton(string text)
         {
-            return ImGuiPrimitives.Button(text, NarrowButtonOptions);
+            return QuickSettingsGui.Button(text, NarrowButtonOptions);
         }
 
         internal static bool Toggle(bool value, string text)
         {
-            return ImGuiPrimitives.Toggle(value, text);
+            return QuickSettingsGui.Toggle(value, text);
+        }
+
+        internal static bool ChoiceButton(string text, bool selected)
+        {
+            return QuickSettingsGui.SecondaryTabButton(text, selected);
+        }
+
+        internal static bool Disclosure(bool expanded, string text)
+        {
+            return QuickSettingsGui.Disclosure(expanded, text);
         }
 
         internal static string TextField(string label, string value)
         {
-            BeginHorizontal();
+            BeginFieldRow();
             FieldLabel(label);
-            string next = ImGuiPrimitives.TextField(value);
-            EndHorizontal();
+            string next = QuickSettingsGui.TextField(value);
+            EndFieldRow();
             return next;
         }
 
@@ -74,12 +104,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             string label,
             string value)
         {
-            BeginHorizontal();
+            BeginFieldRow();
             FieldLabel(label);
-            string next = ImGuiPrimitives.TextField(
+            string next = QuickSettingsGui.TextField(
                 value,
                 NumericFieldOptions);
-            EndHorizontal();
+            EndFieldRow();
             return next;
         }
     }
