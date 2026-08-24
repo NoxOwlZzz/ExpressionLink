@@ -40,6 +40,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             _failures = 0;
 
             ReloadUsesInjectedStore();
+            CleanSessionRefreshesExternalSettings();
+            DirtySessionPreservesLocalDraft();
             ApplyNormalizesAndSavesOnce();
 
             checks = _checks;
@@ -102,6 +104,78 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "visibility target reloaded",
                 "ears_b",
                 session.Visibility.GetRendererTarget(0));
+        }
+
+        private static void CleanSessionRefreshesExternalSettings()
+        {
+            FakeQuickSettingsConfigStore store =
+                new FakeQuickSettingsConfigStore();
+            store.LoadEnabled = false;
+            store.LoadPositiveXInputLimit = 0.24f;
+
+            QuickSettingsConfigSession session =
+                new QuickSettingsConfigSession(store);
+            store.LoadEnabled = true;
+            store.LoadPositiveXInputLimit = 0.81f;
+
+            IsTrue("clean session reloads", session.ReloadIfClean());
+            Equal("clean reload count", 2, store.LoadCalls);
+            IsTrue("external enabled value refreshed", session.Motion.Enabled);
+            Equal(
+                "external limit refreshed",
+                0.81f,
+                session.Motion.PositiveXInputLimit);
+            IsFalse("clean reload remains clean", session.HasUnsavedChanges);
+
+            session.Iris.SetBlendshapeName(0, "iris_local");
+            IsTrue("iris draft is tracked", session.HasUnsavedChanges);
+            session.Reload();
+            IsFalse("iris reload clears dirty", session.HasUnsavedChanges);
+
+            session.Expressions.ActivationThreshold = 0.93f;
+            IsTrue("expression draft is tracked", session.HasUnsavedChanges);
+            session.Reload();
+            IsFalse(
+                "expression reload clears dirty",
+                session.HasUnsavedChanges);
+
+            session.Visibility.SetRendererTarget(0, "ears_local");
+            IsTrue("visibility draft is tracked", session.HasUnsavedChanges);
+            session.Reload();
+            IsFalse(
+                "visibility reload clears dirty",
+                session.HasUnsavedChanges);
+        }
+
+        private static void DirtySessionPreservesLocalDraft()
+        {
+            FakeQuickSettingsConfigStore store =
+                new FakeQuickSettingsConfigStore();
+            store.LoadEnabled = false;
+            store.LoadPositiveXInputLimit = 0.22f;
+
+            QuickSettingsConfigSession session =
+                new QuickSettingsConfigSession(store);
+            session.Motion.Enabled = true;
+            store.LoadPositiveXInputLimit = 0.88f;
+
+            IsTrue("edited session is dirty", session.HasUnsavedChanges);
+            IsFalse("dirty session skips reload", session.ReloadIfClean());
+            Equal("dirty reload count unchanged", 1, store.LoadCalls);
+            IsTrue("local enabled edit preserved", session.Motion.Enabled);
+            Equal(
+                "clean field remains from draft snapshot",
+                0.22f,
+                session.Motion.PositiveXInputLimit);
+
+            session.Reload();
+            Equal("explicit discard reloads", 2, store.LoadCalls);
+            IsFalse("external enabled value restored", session.Motion.Enabled);
+            Equal(
+                "external limit restored",
+                0.88f,
+                session.Motion.PositiveXInputLimit);
+            IsFalse("explicit reload clears dirty", session.HasUnsavedChanges);
         }
 
         private static void ApplyNormalizesAndSavesOnce()

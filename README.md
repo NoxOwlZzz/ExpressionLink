@@ -118,8 +118,16 @@ actions remain accessible. Drag the title bar to move it: the body may leave the
 screen, but the complete header stays visible vertically and at least 120 pixels
 remain available horizontally to recover it.
 
-Version 0.5.0 provides Motion, Iris, Expressions, Visibility, and Links tabs.
-Only the selected group is displayed.
+The panel is organized into three clear categories:
+
+- **Eyes**: **Tracking** for camera tracking and calibration, and **Size
+  controls** for the game's Iris/Size sliders.
+- **Expressions**: **ExpressionMesh slots** for the four simple mappings, and
+  **Custom links** for blendshapes on any supported character mesh.
+- **Visibility**: highlight synchronization, card persistence, and manual parts.
+
+Common controls stay visible. Fine tuning, names, live values, target setup,
+and troubleshooting begin collapsed and can be opened when needed.
 
 The same panel can also be opened from:
 
@@ -129,20 +137,21 @@ The same panel can also be opened from:
 The Studio button now uses the same neutral square background and bevel as the
 surrounding toolbar buttons while retaining the monochrome eye glyph.
 
-Use the arrows at the top to select a character. Global settings such as
-movement calibration, maximum weights, blendshape names, renderer targets, and
-the automation threshold take effect after pressing **Apply**. Manual
-visibility, legacy ExpressionMesh triggers, and Expression Links act on the
-selected character.
+Use the arrows at the top to select a character. Settings changed under Eyes,
+ExpressionMesh slots, or Visibility are stored with **Save settings**;
+**Discard changes** reloads their saved values. Manual visibility buttons take
+effect immediately. ExpressionMesh mappings and Custom links use their own clearly
+labelled save buttons because they belong to the selected character.
 
 Recommended X/Y gaze calibration:
 
-1. Make the character look straight ahead and press **Center X/Y**.
-2. Move the look target to a horizontal extreme and press **Use current X** if
-   that range should reach maximum weight sooner.
-3. Adjust positive and negative limits independently if necessary. A lower
-   input limit means higher sensitivity.
-4. Press **Apply**.
+1. Make the character look straight ahead and press **Set neutral pose**.
+2. Move the look target fully left and press **Set horizontal range**.
+3. Move it fully right and press **Set horizontal range** again.
+4. Try **Sensitive preset** or **Standard preset** for a quick starting point.
+5. Open **Fine tuning** only when separate left/right or up/down adjustment is
+   needed. A lower range means higher sensitivity.
+6. Press **Save settings**.
 
 ## Expression Links
 
@@ -151,7 +160,7 @@ writes a blendshape on a selected character renderer. Links are stored per
 character, so a VRChat-derived headmod can drive facial details as well as
 hair ears, horns, accessories, clothing parts, or other authored shapes.
 
-Use the **Links** tab for the selected character:
+Use **Expressions > Custom links** for the selected character:
 
 1. Add a link and give it a descriptive name.
 2. Set its source to an exact Koikatsu FBS Close/Open blendshape name or an
@@ -161,7 +170,7 @@ Use the **Links** tab for the selected character:
    only when that blendshape is unique within the selected scope and slot.
 5. Use an exact renderer path and component index when status reports an
    ambiguous destination.
-6. Choose **Binary** or **Follow Source**, tune the output, and apply the link.
+6. Choose **On / off** or **Follow expression strength**, then save the link.
 
 A source name is matched against Koikatsu's current brow, eyes, and mouth
 Close/Open patterns. Names under `eye_motion.*` are output destinations and
@@ -190,10 +199,10 @@ Resolution is conservative:
 
 ### Output modes
 
-- **Binary:** outputs `OutputMax` while the source is greater than `Threshold`;
+- **On / off** (`Binary` internally): outputs `OutputMax` above `Threshold`;
   otherwise it outputs `OutputMin`.
-- **Follow Source:** clamps and maps `InputMin..InputMax` to
-  `OutputMin..OutputMax`.
+- **Follow expression strength** (`Follow Source` internally): maps
+  `InputMin..InputMax` to `OutputMin..OutputMax` after clamping.
 - **Smoothing Speed:** limits movement in blendshape-weight units per second.
   Zero applies the result immediately.
 
@@ -375,8 +384,8 @@ features conservatively:
 
 ## Diagnostics
 
-Press the configured diagnostics shortcut (default `Left Shift + F10`) or use
-the **Diagnostics** button. Reports are written under:
+Press the configured diagnostics shortcut (default `Left Shift + F10`) or open
+**Help** and select **Create debug report**. Reports are written under:
 
 ```text
 BepInEx\config\KK_ExpressionLink\diagnostics

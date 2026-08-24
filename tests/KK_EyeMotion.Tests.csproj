@@ -79,6 +79,9 @@
     <Compile Include="..\src\UI\QuickSettings\Configuration\VisibilitySettingsDraft.cs">
       <Link>VisibilitySettingsDraft.cs</Link>
     </Compile>
+    <Compile Include="..\src\UI\QuickSettings\Configuration\QuickSettingsConfigSnapshot.cs">
+      <Link>QuickSettingsConfigSnapshot.cs</Link>
+    </Compile>
     <Compile Include="..\src\UI\QuickSettings\Configuration\QuickSettingsConfigSession.cs">
       <Link>QuickSettingsConfigSession.cs</Link>
     </Compile>

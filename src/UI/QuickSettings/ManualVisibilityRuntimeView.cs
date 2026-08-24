@@ -26,18 +26,18 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ObserveController(controller);
             if (controller == null)
             {
-                QuickSettingsGui.Label("No character.");
+                QuickSettingsGui.Help("No character selected.");
                 return;
             }
 
             ManualVisibilityBinding binding = controller.ManualVisibility;
             if (binding == null)
             {
-                QuickSettingsGui.Label("Visibility not bound.");
+                QuickSettingsGui.Help("Part controls are not ready.");
                 return;
             }
 
-            QuickSettingsGui.Label("Fused parts");
+            QuickSettingsGui.Heading("Blendshape-controlled parts");
             for (int i = 0; i < binding.BlendshapeSlots.Length; i++)
             {
                 BlendshapeVisibilitySlot slot = binding.BlendshapeSlots[i];
@@ -52,7 +52,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             QuickSettingsGui.Space(4f);
-            QuickSettingsGui.Label("Expression meshes");
+            QuickSettingsGui.Heading("Separate expression meshes");
             for (int i = 0; i < binding.RendererSlots.Length; i++)
             {
                 RendererVisibilitySlot slot = binding.RendererSlots[i];
@@ -81,16 +81,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             QuickSettingsGui.BeginHorizontal();
-            if (QuickSettingsGui.Button("Restore"))
+            if (QuickSettingsGui.Button("Restore all"))
             {
                 if (controller.RestoreManualVisibility(out _feedback) &&
                     _feedback.Length == 0)
                 {
-                    _feedback = "Original visibility restored.";
+                    _feedback = "Game visibility restored.";
                 }
             }
 
-            if (QuickSettingsGui.Button("Re-detect"))
+            if (QuickSettingsGui.Button("Scan again"))
             {
                 controller.RefreshManualVisibility(out _feedback);
             }
@@ -98,7 +98,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             QuickSettingsGui.EndHorizontal();
             if (_feedback.Length > 0)
             {
-                QuickSettingsGui.Label(_feedback);
+                QuickSettingsGui.Help(_feedback);
             }
         }
 
@@ -160,8 +160,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             if (QuickSettingsGui.OriginalButton(
                     mode == ManualVisibilityMode.Original
-                        ? "[Original]"
-                        : "Original"))
+                        ? "[Game default]"
+                        : "Game default"))
             {
                 SetVisibilityMode(
                     controller,

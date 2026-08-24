@@ -5,7 +5,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     internal sealed class VisibilityTargetEditorView
     {
         private readonly VisibilitySettingsDraft _draft;
-        private bool _expanded;
 
         internal VisibilityTargetEditorView(VisibilitySettingsDraft draft)
         {
@@ -19,15 +18,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal void Draw()
         {
-            _expanded = QuickSettingsGui.Toggle(
-                _expanded,
-                "Edit names / targets");
-            if (!_expanded)
-            {
-                return;
-            }
-
-            QuickSettingsGui.Label("Hide shape names");
+            QuickSettingsGui.Heading("Blendshape names");
             for (int i = 0; i < _draft.BlendshapeNameCount; i++)
             {
                 string label = i <
@@ -40,7 +31,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _draft.SetBlendshapeName(i, value);
             }
 
-            QuickSettingsGui.Label("Expression mesh targets");
+            QuickSettingsGui.Heading("Expression mesh targets");
             for (int i = 0; i < _draft.RendererTargetCount; i++)
             {
                 string label = i <

@@ -17,6 +17,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private int _controllerInstanceId;
         private int _observedRevision = -1;
         private int _selectedIndex;
+        private int _pendingDeleteIndex = -1;
         private string _feedback = string.Empty;
 
         internal ExpressionLinkEditorView()
@@ -35,14 +36,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _controllerInstanceId = 0;
             _observedRevision = -1;
             _selectedIndex = 0;
+            _pendingDeleteIndex = -1;
             _feedback = string.Empty;
             _draftPanel.Reset();
         }
 
         internal void RejectControllerChange()
         {
-            SetFeedback(
-                "Apply or revert the current link before changing character.");
+            RejectNavigationChange();
+        }
+
+        internal void RejectNavigationChange()
+        {
+            SetFeedback("Save or discard changes first.");
         }
 
         internal void Draw(EyeMotionCharacterController controller)
@@ -51,16 +57,30 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 ResetSelection();
                 ExpressionLinkGUILayout.Label(
-                    "Expression Links: no character selected.");
+                    "Use a game expression to control a blendshape on " +
+                    "this character.");
+                ExpressionLinkGUILayout.Label(
+                    "Select a character to create or edit links.");
                 return;
             }
 
             EnsureSelection(controller);
+            ExpressionLinkGUILayout.Label(
+                "Use a game expression to control a blendshape on " +
+                "this character.");
+            ExpressionLinkGUILayout.Label(
+                "New, Duplicate, and Delete update this character " +
+                "immediately.");
             DrawNavigation(controller);
 
             if (_draftPanel.HasDraft)
             {
                 string draftFeedback = _draftPanel.Draw(controller);
+                if (_draftPanel.ChangedDuringLastDraw)
+                {
+                    _feedback = string.Empty;
+                }
+
                 if (draftFeedback.Length > 0)
                 {
                     SetFeedback(draftFeedback);
@@ -71,7 +91,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             else
             {
                 ExpressionLinkGUILayout.Label(
-                    "No links. Press + to create one.");
+                    "No links yet. Select New link to create one.");
             }
 
             string profileFeedback;
@@ -111,7 +131,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (discardedDraft)
             {
                 SetFeedback(
-                    "Links changed; the local draft was reloaded.");
+                    "Links changed. Your editor was refreshed.");
             }
         }
 
@@ -126,19 +146,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             ExpressionLinkGUILayout.CountLabel(
-                count == 0
-                    ? "0 / 0"
-                    : (_selectedIndex + 1).ToString(InvariantCulture) +
-                      " / " + count.ToString(InvariantCulture));
+                GetNavigationLabel(count));
 
             if (ExpressionLinkGUILayout.NarrowButton(">") && count > 1)
             {
                 TrySelect(controller, _selectedIndex + 1);
             }
 
-            if (ExpressionLinkGUILayout.Button("+"))
+            ExpressionLinkGUILayout.EndHorizontal();
+
+            ExpressionLinkGUILayout.BeginHorizontal();
+            if (ExpressionLinkGUILayout.Button("New link"))
             {
-                if (RequireCleanDraft("creating another link"))
+                if (RequireCleanDraft())
                 {
                     AddDefault(controller);
                 }
@@ -148,21 +168,45 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             GUI.enabled = previousGuiEnabled && _draftPanel.HasDraft;
             if (ExpressionLinkGUILayout.Button("Duplicate"))
             {
-                if (RequireCleanDraft("duplicating this link"))
+                if (RequireCleanDraft())
                 {
                     DuplicateSelected(controller);
                 }
             }
 
-            if (ExpressionLinkGUILayout.Button("Delete"))
+            if (ExpressionLinkGUILayout.Button("Delete link"))
             {
-                if (RequireCleanDraft("deleting this link"))
+                if (RequireCleanDraft())
+                {
+                    _pendingDeleteIndex = _selectedIndex;
+                    SetFeedback(
+                        "Select Confirm delete to remove this link.");
+                }
+            }
+
+            GUI.enabled = previousGuiEnabled;
+            ExpressionLinkGUILayout.EndHorizontal();
+
+            if (_pendingDeleteIndex != _selectedIndex)
+            {
+                return;
+            }
+
+            ExpressionLinkGUILayout.BeginHorizontal();
+            if (ExpressionLinkGUILayout.Button("Confirm delete"))
+            {
+                if (RequireCleanDraft())
                 {
                     DeleteSelected(controller);
                 }
             }
 
-            GUI.enabled = previousGuiEnabled;
+            if (ExpressionLinkGUILayout.Button("Cancel"))
+            {
+                _pendingDeleteIndex = -1;
+                SetFeedback("Delete cancelled.");
+            }
+
             ExpressionLinkGUILayout.EndHorizontal();
         }
 
@@ -170,16 +214,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             EyeMotionCharacterController controller)
         {
             ExpressionLinkGUILayout.BeginHorizontal();
-            if (ExpressionLinkGUILayout.Button(
-                    _draftPanel.IsDirty ? "Apply *" : "Apply"))
+            if (ExpressionLinkGUILayout.Button("Save link"))
             {
                 ApplyDraft(controller);
             }
 
-            if (ExpressionLinkGUILayout.Button("Revert"))
+            if (ExpressionLinkGUILayout.Button("Discard edits"))
             {
                 LoadSelected(controller);
-                SetFeedback("Local changes reverted.");
+                SetFeedback("Edits discarded.");
             }
 
             ExpressionLinkGUILayout.EndHorizontal();
@@ -204,22 +247,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             if (_draftPanel.IsDirty && _feedback.Length == 0)
             {
-                status += " Not applied.";
+                status += " Unsaved edits.";
             }
 
             ExpressionLinkGUILayout.Label(
                 "Status: " + NormalizeStatus(status));
         }
 
-        private bool RequireCleanDraft(string action)
+        private bool RequireCleanDraft()
         {
             if (!_draftPanel.IsDirty)
             {
                 return true;
             }
 
-            SetFeedback(
-                "Apply or Revert before " + action + ".");
+            RejectNavigationChange();
             return false;
         }
 
@@ -227,7 +269,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             EyeMotionCharacterController controller,
             int requestedIndex)
         {
-            if (!RequireCleanDraft("moving to another link"))
+            if (!RequireCleanDraft())
             {
                 return;
             }
@@ -373,8 +415,23 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 ? null
                 : controller.GetExpressionLink(_selectedIndex);
             _draftPanel.Load(selected);
+            _pendingDeleteIndex = -1;
             _observedRevision = controller.ExpressionLinkRevision;
             _feedback = string.Empty;
+        }
+
+        private string GetNavigationLabel(int count)
+        {
+            if (count <= 0)
+            {
+                return "Link 0 of 0";
+            }
+
+            string label = "Link " +
+                (_selectedIndex + 1).ToString(InvariantCulture) +
+                " of " + count.ToString(InvariantCulture);
+            string name = _draftPanel.DisplayName.Trim();
+            return name.Length == 0 ? label : label + " - " + name;
         }
 
         private void ClampSelection(int count)

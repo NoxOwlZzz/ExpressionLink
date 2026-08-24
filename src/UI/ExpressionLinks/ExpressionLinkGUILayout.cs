@@ -6,7 +6,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     {
         private static readonly GUILayoutOption[] FieldLabelOptions =
         {
-            GUILayout.Width(142f)
+            GUILayout.Width(160f)
         };
         private static readonly GUILayoutOption[] NarrowButtonOptions =
         {
@@ -14,7 +14,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         };
         private static readonly GUILayoutOption[] CountLabelOptions =
         {
-            GUILayout.Width(54f)
+            GUILayout.ExpandWidth(true)
         };
         private static readonly GUILayoutOption[] NumericFieldOptions =
         {

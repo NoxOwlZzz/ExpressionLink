@@ -6,7 +6,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     {
         internal static readonly LiveStatusSnapshot NoCharacter =
             new LiveStatusSnapshot(
-                "Selected character: none",
+                "Character: none",
                 "State: no controller",
                 string.Empty,
                 "ExpressionControl: no character",
@@ -104,7 +104,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             return new LiveStatusSnapshot(
-                "Selected character: " + controller.GetCharacterName(),
+                "Character: " + controller.GetCharacterName(),
                 string.Format(
                     "State: {0} | X/Y: {1:F3} / {2:F3} | Raw X: {3:F3}",
                     controller.CurrentBindingState,

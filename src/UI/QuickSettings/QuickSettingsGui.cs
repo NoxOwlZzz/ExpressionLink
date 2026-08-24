@@ -35,6 +35,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             GUILayout.MinWidth(50f)
         };
+        private static GUISkin _cachedSkin;
+        private static GUIStyle _headingStyle;
+        private static GUIStyle _helpStyle;
 
         internal static void BeginHorizontal()
         {
@@ -66,6 +69,22 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ImGuiPrimitives.Label(text);
         }
 
+        internal static void Heading(string text)
+        {
+            EnsureTextStyles();
+            GUILayout.Label(
+                text ?? string.Empty,
+                _headingStyle);
+        }
+
+        internal static void Help(string text)
+        {
+            EnsureTextStyles();
+            GUILayout.Label(
+                text ?? string.Empty,
+                _helpStyle);
+        }
+
         internal static void VisibilityLabel(string text)
         {
             ImGuiPrimitives.Label(text, VisibilityLabelOptions);
@@ -79,6 +98,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal static bool Button(string text)
         {
             return ImGuiPrimitives.Button(text);
+        }
+
+        internal static bool Disclosure(bool expanded, string text)
+        {
+            string prefix = expanded ? "[-] " : "[+] ";
+            return Button(prefix + (text ?? string.Empty))
+                ? !expanded
+                : expanded;
         }
 
         internal static bool OriginalButton(string text)
@@ -131,6 +158,25 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 SliderValueOptions);
             EndHorizontal();
             return result;
+        }
+
+        private static void EnsureTextStyles()
+        {
+            GUISkin skin = GUI.skin;
+            if (_cachedSkin == skin &&
+                _headingStyle != null &&
+                _helpStyle != null)
+            {
+                return;
+            }
+
+            _cachedSkin = skin;
+            _headingStyle = new GUIStyle(skin.label);
+            _headingStyle.fontStyle = FontStyle.Bold;
+            _headingStyle.wordWrap = true;
+            _helpStyle = new GUIStyle(skin.label);
+            _helpStyle.fontStyle = FontStyle.Italic;
+            _helpStyle.wordWrap = true;
         }
     }
 }

@@ -10,6 +10,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private int _triggerControllerInstanceId;
         private int _triggerRevision = -1;
+        private int _selectedSlotIndex;
+        private bool _showFineTuning;
+        private bool _triggersDirty;
         private string _feedback = string.Empty;
 
         internal ExpressionSettingsView(ExpressionSettingsDraft draft)
@@ -22,47 +25,141 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _draft = draft;
         }
 
+        internal bool HasUnsavedChanges
+        {
+            get { return _triggersDirty; }
+        }
+
+        internal void RejectNavigationChange()
+        {
+            _feedback =
+                "Save character mappings or discard their edits first.";
+        }
+
         internal void Draw(EyeMotionCharacterController controller)
         {
+            QuickSettingsGui.Heading("Plugin settings");
             _draft.AutomationEnabled = QuickSettingsGui.Toggle(
                 _draft.AutomationEnabled,
-                "Automatic expressions");
-            _draft.ActivationThreshold = QuickSettingsGui.Slider(
-                "Threshold",
-                _draft.ActivationThreshold,
-                0f,
-                1f,
-                "0.000");
+                "Enable ExpressionMesh slots");
 
+            _showFineTuning = QuickSettingsGui.Disclosure(
+                _showFineTuning,
+                "Fine tuning");
+            if (_showFineTuning)
+            {
+                _draft.ActivationThreshold = QuickSettingsGui.Slider(
+                    "Activation threshold",
+                    _draft.ActivationThreshold,
+                    0f,
+                    1f,
+                    "0.000");
+            }
+
+            QuickSettingsGui.Help(
+                "Save settings stores the plugin options above.");
+            QuickSettingsGui.Heading("Selected character mappings");
+            QuickSettingsGui.Help(
+                "Each slot controls its matching ExpressionMesh blendshape.");
             if (controller == null)
             {
-                QuickSettingsGui.Label("No character.");
+                QuickSettingsGui.Help("Select a character to edit mappings.");
+                if (_triggersDirty)
+                {
+                    QuickSettingsGui.Help(
+                        "The character being edited is no longer available.");
+                    if (QuickSettingsGui.Button(
+                            "Discard unavailable mapping edits"))
+                    {
+                        DiscardUnavailableMappings();
+                    }
+                }
+
+                if (_feedback.Length > 0)
+                {
+                    QuickSettingsGui.Help(_feedback);
+                }
+
                 return;
             }
 
             EnsureTriggerBuffer(controller);
-            for (int i = 0; i < _triggers.Length; i++)
+            DrawSlotNavigation();
+
+            string previous = _triggers[_selectedSlotIndex];
+            string edited = QuickSettingsGui.LabeledTextField(
+                "Game expression",
+                previous);
+            if (!string.Equals(
+                    edited,
+                    previous,
+                    StringComparison.Ordinal))
             {
-                _triggers[i] = QuickSettingsGui.LabeledTextField(
-                    "ExpressionMesh " + (i + 1).ToString("00"),
-                    _triggers[i]);
-                QuickSettingsGui.Label(
-                    "  " + controller.GetExpressionTriggerStatus(i));
-                DrawCaptureButtons(controller, i);
+                _triggers[_selectedSlotIndex] = edited;
+                _triggersDirty = true;
+                _feedback = string.Empty;
             }
 
-            if (QuickSettingsGui.Button("Apply triggers"))
+            QuickSettingsGui.Help(
+                "Status: " + controller.GetExpressionTriggerStatus(
+                    _selectedSlotIndex));
+            DrawCaptureButtons(controller, _selectedSlotIndex);
+
+            QuickSettingsGui.BeginHorizontal();
+            if (QuickSettingsGui.Button("Save character mappings"))
             {
                 controller.SetExpressionTriggers(
                     _triggers,
                     out _feedback);
                 _triggerRevision = controller.ExpressionTriggerRevision;
+                _triggersDirty = false;
+            }
+
+            if (QuickSettingsGui.Button("Discard mapping edits"))
+            {
+                ReloadTriggerBuffer(controller);
+                _feedback = "Mapping edits discarded.";
+            }
+
+            QuickSettingsGui.EndHorizontal();
+            if (_triggersDirty)
+            {
+                QuickSettingsGui.Help("Unsaved character mappings.");
             }
 
             if (_feedback.Length > 0)
             {
-                QuickSettingsGui.Label(_feedback);
+                QuickSettingsGui.Help(_feedback);
             }
+        }
+
+        private void DrawSlotNavigation()
+        {
+            QuickSettingsGui.BeginHorizontal();
+            if (QuickSettingsGui.Button("<"))
+            {
+                MoveSelectedSlot(-1);
+            }
+
+            QuickSettingsGui.Label(
+                "ExpressionMesh " +
+                (_selectedSlotIndex + 1).ToString("00") +
+                " of " + _triggers.Length.ToString("00"));
+
+            if (QuickSettingsGui.Button(">"))
+            {
+                MoveSelectedSlot(1);
+            }
+
+            QuickSettingsGui.EndHorizontal();
+        }
+
+        private void MoveSelectedSlot(int direction)
+        {
+            int count = _triggers.Length;
+            _selectedSlotIndex =
+                (_selectedSlotIndex + direction + count) % count;
+            _feedback = string.Empty;
         }
 
         private void EnsureTriggerBuffer(
@@ -76,8 +173,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return;
             }
 
-            _triggerControllerInstanceId = instanceId;
-            _triggerRevision = revision;
+            bool replacedUnsavedEdits = _triggersDirty;
+            ReloadTriggerBuffer(controller);
+            if (replacedUnsavedEdits)
+            {
+                _feedback =
+                    "Mappings changed outside this editor and were reloaded.";
+            }
+        }
+
+        private void ReloadTriggerBuffer(
+            EyeMotionCharacterController controller)
+        {
+            _triggerControllerInstanceId = controller.GetInstanceID();
+            _triggerRevision = controller.ExpressionTriggerRevision;
+            _triggersDirty = false;
             _feedback = string.Empty;
             for (int i = 0; i < _triggers.Length; i++)
             {
@@ -85,12 +195,24 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
         }
 
+        private void DiscardUnavailableMappings()
+        {
+            _triggerControllerInstanceId = 0;
+            _triggerRevision = -1;
+            _triggersDirty = false;
+            _feedback = "Unavailable mapping edits discarded.";
+            for (int i = 0; i < _triggers.Length; i++)
+            {
+                _triggers[i] = string.Empty;
+            }
+        }
+
         private void DrawCaptureButtons(
             EyeMotionCharacterController controller,
             int slotIndex)
         {
+            QuickSettingsGui.Help("Use current expression:");
             QuickSettingsGui.BeginHorizontal();
-            QuickSettingsGui.Label("Capture:");
             if (QuickSettingsGui.Button("Brow"))
             {
                 CaptureCurrentExpression(
@@ -133,10 +255,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             _triggers[slotIndex] = selector;
+            _triggersDirty = true;
             _feedback =
-                "Captured " + selector + " for " +
-                (slotIndex + 1).ToString("00") +
-                ". Press Apply triggers.";
+                "Captured " + selector + " for slot " +
+                (slotIndex + 1).ToString() +
+                ". Select Save character mappings.";
         }
     }
 }

@@ -6,6 +6,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     {
         private readonly IrisSettingsDraft _draft;
         private bool _showBlendshapeNames;
+        private bool _showLiveValues;
 
         internal IrisSettingsView(IrisSettingsDraft draft)
         {
@@ -20,30 +21,41 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal void Draw(LiveStatusSnapshot status)
         {
             status = status ?? LiveStatusSnapshot.NoCharacter;
-            QuickSettingsGui.Label(status.IrisStateLine);
             _draft.Enabled = QuickSettingsGui.Toggle(
                 _draft.Enabled,
-                "Enable IrisY / Size");
+                "Follow game eye controls");
             _draft.IrisYMaxWeight = QuickSettingsGui.Slider(
-                "IrisY weight",
+                "Iris height effect",
                 _draft.IrisYMaxWeight,
                 0f,
                 100f,
                 "0");
             _draft.IrisSizeMaxWeight = QuickSettingsGui.Slider(
-                "Size weight",
+                "Eye size effect",
                 _draft.IrisSizeMaxWeight,
                 0f,
                 100f,
                 "0");
-            _showBlendshapeNames = QuickSettingsGui.Toggle(
+
+            _showBlendshapeNames = QuickSettingsGui.Disclosure(
                 _showBlendshapeNames,
-                "Edit shape names");
-            if (!_showBlendshapeNames)
+                "Blendshape names");
+            if (_showBlendshapeNames)
             {
-                return;
+                DrawBlendshapeNames();
             }
 
+            _showLiveValues = QuickSettingsGui.Disclosure(
+                _showLiveValues,
+                "Live values");
+            if (_showLiveValues)
+            {
+                QuickSettingsGui.Label(status.IrisStateLine);
+            }
+        }
+
+        private void DrawBlendshapeNames()
+        {
             int count = Math.Min(
                 _draft.BlendshapeNameCount,
                 EyeCustomizationCatalog.ChannelCount);

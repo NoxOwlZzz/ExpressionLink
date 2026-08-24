@@ -25,13 +25,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal QuickSettingsCoordinator(Transform owner)
         {
             _owner = owner;
-            _windowTitle = Plugin.PluginName + " " +
-                Plugin.PluginVersion + " - Quick Settings";
+            _windowTitle = "Expression Link Settings";
             _configSession = new QuickSettingsConfigSession();
             _selection = new CharacterSelectionModel();
             _statusPresenter = new LiveStatusPresenter();
             _surfaceView = new QuickSettingsSurfaceView(
-                _windowTitle,
+                HeaderHeight,
                 _selection,
                 _statusPresenter,
                 new MotionSettingsView(_configSession.Motion),
@@ -65,7 +64,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return;
             }
 
-            _configSession.Reload();
+            _configSession.ReloadIfClean();
             window.RefreshViewport();
             window.Show();
         }

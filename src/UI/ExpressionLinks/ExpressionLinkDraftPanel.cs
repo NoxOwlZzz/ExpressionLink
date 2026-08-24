@@ -14,6 +14,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private ExpressionLinkDefinition _draft;
         private bool _dirty;
         private bool _showAdvanced;
+        private bool _changedDuringLastDraw;
         private string _thresholdText = string.Empty;
         private string _inputMinText = string.Empty;
         private string _inputMaxText = string.Empty;
@@ -34,10 +35,27 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             get { return _dirty; }
         }
 
+        internal bool ChangedDuringLastDraw
+        {
+            get { return _changedDuringLastDraw; }
+        }
+
+        internal string DisplayName
+        {
+            get
+            {
+                return _draft == null
+                    ? string.Empty
+                    : _draft.Name ?? string.Empty;
+            }
+        }
+
         internal void Reset()
         {
             _draft = null;
             _dirty = false;
+            _changedDuringLastDraw = false;
+            _showAdvanced = false;
             ClearNumericText();
         }
 
@@ -45,11 +63,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             _draft = definition == null ? null : definition.Clone();
             _dirty = false;
+            _changedDuringLastDraw = false;
+            _showAdvanced = false;
             LoadNumericText();
         }
 
         internal string Draw(EyeMotionCharacterController controller)
         {
+            _changedDuringLastDraw = false;
             if (_draft == null)
             {
                 return string.Empty;
@@ -88,22 +109,22 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     out error) ||
                 !TryParseFloat(
                     _inputMinText,
-                    "Input minimum",
+                    "Source range start",
                     out inputMin,
                     out error) ||
                 !TryParseFloat(
                     _inputMaxText,
-                    "Input maximum",
+                    "Source range end",
                     out inputMax,
                     out error) ||
                 !TryParseFloat(
                     _outputMinText,
-                    "Inactive weight",
+                    "Off value",
                     out outputMin,
                     out error) ||
                 !TryParseFloat(
                     _outputMaxText,
-                    "Active weight",
+                    "Blendshape strength",
                     out outputMax,
                     out error) ||
                 !TryParseFloat(
@@ -148,19 +169,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             bool enabled = ExpressionLinkGUILayout.Toggle(
                 _draft.Enabled,
-                "Enabled");
+                "Enable this link");
             if (enabled != _draft.Enabled)
             {
                 _draft.Enabled = enabled;
-                _dirty = true;
+                MarkDirty();
             }
 
-            _draft.Name = DrawDraftTextField("Name", _draft.Name);
-            _draft.Source = DrawDraftTextField("Source", _draft.Source);
+            _draft.Name = DrawDraftTextField("Link name", _draft.Name);
+            _draft.Source = DrawDraftTextField(
+                "Game expression",
+                _draft.Source);
 
             string feedback = string.Empty;
             ExpressionLinkGUILayout.BeginHorizontal();
-            ExpressionLinkGUILayout.FieldLabel("Capture source");
+            ExpressionLinkGUILayout.FieldLabel("Use current expression");
             SetLatestFeedback(
                 ref feedback,
                 DrawCaptureButton(
@@ -182,11 +205,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ExpressionLinkGUILayout.EndHorizontal();
 
             _draft.BlendshapeName = DrawDraftTextField(
-                "Target blendshape",
+                "Blendshape to activate",
                 _draft.BlendshapeName);
             DrawScopeField();
             DrawModeField();
-            DrawNumericTextField("Active weight", ref _outputMaxText);
+            DrawNumericTextField(
+                "Blendshape strength",
+                ref _outputMaxText);
             return feedback;
         }
 
@@ -208,14 +233,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             _draft.Source = selector;
-            _dirty = true;
-            return "Captured " + selector + ". Press Apply.";
+            MarkDirty();
+            return "Captured " + selector + ". Select Save link.";
         }
 
         private void DrawScopeField()
         {
             ExpressionLinkGUILayout.BeginHorizontal();
-            ExpressionLinkGUILayout.FieldLabel("Target scope");
+            ExpressionLinkGUILayout.FieldLabel("Where to search");
             if (ExpressionLinkGUILayout.NarrowButton("<"))
             {
                 CycleScope(-1);
@@ -237,16 +262,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private void DrawModeField()
         {
             ExpressionLinkGUILayout.BeginHorizontal();
-            ExpressionLinkGUILayout.FieldLabel("Mode");
+            ExpressionLinkGUILayout.FieldLabel("Response");
             string label = _draft.Mode == ExpressionLinkMode.FollowSource
-                ? "Follow source"
-                : "Binary";
+                ? "Follow expression strength"
+                : "On / off";
             if (ExpressionLinkGUILayout.Button(label))
             {
                 _draft.Mode = _draft.Mode == ExpressionLinkMode.Binary
                     ? ExpressionLinkMode.FollowSource
                     : ExpressionLinkMode.Binary;
-                _dirty = true;
+                MarkDirty();
             }
 
             ExpressionLinkGUILayout.EndHorizontal();
@@ -268,21 +293,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             _draft.RendererPath = DrawDraftTextField(
-                "Renderer path (blank = auto)",
+                "Exact renderer path (blank = automatic)",
                 _draft.RendererPath);
-            DrawNumericTextField("Inactive weight", ref _outputMinText);
-            DrawNumericTextField("Input minimum", ref _inputMinText);
-            DrawNumericTextField("Input maximum", ref _inputMaxText);
+            DrawNumericTextField("Off value", ref _outputMinText);
+            DrawNumericTextField("Source range start", ref _inputMinText);
+            DrawNumericTextField("Source range end", ref _inputMaxText);
             DrawNumericTextField("Activation threshold", ref _thresholdText);
             DrawNumericTextField("Smoothing speed", ref _smoothingSpeedText);
             DrawNumericTextField("Priority", ref _priorityText);
             DrawNumericTextField("Component index", ref _componentIndexText);
             DrawNumericTextField("Slot index", ref _slotIndexText);
             _draft.RendererHint = DrawDraftTextField(
-                "Renderer name hint",
+                "Preferred renderer",
                 _draft.RendererHint);
             _draft.MeshHint = DrawDraftTextField(
-                "Mesh name hint",
+                "Preferred mesh",
                 _draft.MeshHint);
         }
 
@@ -332,7 +357,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             _draft.Scope = (ExpressionTargetScope)value;
-            _dirty = true;
+            MarkDirty();
         }
 
         private string DrawDraftTextField(string label, string value)
@@ -341,7 +366,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             string next = ExpressionLinkGUILayout.TextField(label, original);
             if (!string.Equals(next, original, StringComparison.Ordinal))
             {
-                _dirty = true;
+                MarkDirty();
             }
 
             return next;
@@ -356,8 +381,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (!string.Equals(next, original, StringComparison.Ordinal))
             {
                 value = next;
-                _dirty = true;
+                MarkDirty();
             }
+        }
+
+        private void MarkDirty()
+        {
+            _dirty = true;
+            _changedDuringLastDraw = true;
         }
 
         private static void SetLatestFeedback(

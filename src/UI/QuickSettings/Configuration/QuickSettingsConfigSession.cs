@@ -5,6 +5,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     internal sealed class QuickSettingsConfigSession
     {
         private readonly IQuickSettingsConfigStore _store;
+        private QuickSettingsConfigSnapshot _baseline;
 
         internal QuickSettingsConfigSession()
             : this(new PluginConfigQuickSettingsStore())
@@ -34,9 +35,34 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal VisibilitySettingsDraft Visibility { get; private set; }
 
+        internal bool HasUnsavedChanges
+        {
+            get
+            {
+                return _baseline != null && !_baseline.Matches(
+                    Motion,
+                    Iris,
+                    Expressions,
+                    Visibility);
+            }
+        }
+
+        internal bool ReloadIfClean()
+        {
+            if (HasUnsavedChanges)
+            {
+                return false;
+            }
+
+            Reload();
+            return true;
+        }
+
         internal void Reload()
         {
             _store.Load(Motion, Iris, Expressions, Visibility);
+            _baseline = new QuickSettingsConfigSnapshot(
+                Motion, Iris, Expressions, Visibility);
         }
 
         internal void Apply()

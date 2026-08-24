@@ -74,9 +74,29 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     "Input.GetMouseButton",
                     StringComparison.Ordinal) < 0);
             Check(
+                "quick-settings uses progressive disclosure",
+                sourceTree.IndexOf(
+                    "QuickSettingsGui.Disclosure(",
+                    StringComparison.Ordinal) >= 0);
+            Check(
                 "quick-settings window is created lazily",
                 quickSettingsSource.IndexOf(
                     "EnsureWindow()",
+                    StringComparison.Ordinal) >= 0);
+            string reloadCall = "_configSession.Reload();";
+            int reloadCallIndex = quickSettingsSource.IndexOf(
+                reloadCall,
+                StringComparison.Ordinal);
+            Check(
+                "opening quick-settings preserves unsaved settings",
+                reloadCallIndex >= 0 && reloadCallIndex ==
+                    quickSettingsSource.LastIndexOf(
+                        reloadCall,
+                        StringComparison.Ordinal));
+            Check(
+                "opening quick-settings refreshes clean settings",
+                quickSettingsSource.IndexOf(
+                    "_configSession.ReloadIfClean();",
                     StringComparison.Ordinal) >= 0);
             Check(
                 "Material Editor drag samples Input.mousePosition",
@@ -187,19 +207,32 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "QuickSettingsSurfaceView");
             Check(
                 "quick-settings surface type", quickSettingsSurfaceType != null);
+            Type navigationType = GetPluginType(
+                pluginAssembly,
+                "QuickSettingsNavigationView");
+            Type footerType = GetPluginType(
+                pluginAssembly,
+                "QuickSettingsFooterView");
+            Check("quick-settings navigation type", navigationType != null);
+            Check("quick-settings footer type", footerType != null);
             Check(
-                "quick-settings tabs",
+                "quick-settings selected-view dispatch",
                 quickSettingsSurfaceType.GetMethod(
-                    "DrawTabs", instanceNonPublic) != null);
+                    "DrawSelectedView", instanceNonPublic) != null);
             Check(
-                "quick-settings selected tab state",
+                "quick-settings owns navigation state",
                 quickSettingsSurfaceType.GetField(
-                    "_selectedTab", instanceNonPublic) != null);
+                    "_navigation", instanceNonPublic) != null);
             Check(
-                "quick-settings cached window content",
+                "quick-settings owns footer actions",
+                quickSettingsSurfaceType.GetField(
+                    "_footer",
+                    instanceNonPublic) != null);
+            Check(
+                "duplicated IMGUI window title removed",
                 quickSettingsSurfaceType.GetField(
                     "_windowContent",
-                    instanceNonPublic) != null);
+                    instanceNonPublic) == null);
             Check(
                 "quick-settings old window delegate removed",
                 quickSettingsSurfaceType.GetField(
@@ -297,15 +330,59 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 GetPluginType(
                     pluginAssembly,
                     "VisibilityTargetEditorView") != null);
+            Type expressionSettingsType = GetPluginType(
+                pluginAssembly,
+                "ExpressionSettingsView");
+            Check("automatic mappings view type", expressionSettingsType != null);
+            Check(
+                "automatic mappings expose unsaved state",
+                expressionSettingsType.GetProperty(
+                    "HasUnsavedChanges", instanceNonPublic) != null);
+            Check(
+                "automatic mappings reject unsafe navigation",
+                expressionSettingsType.GetMethod(
+                    "RejectNavigationChange", instanceNonPublic) != null);
+            Check(
+                "automatic mappings can discard unavailable edits",
+                expressionSettingsType.GetMethod(
+                    "DiscardUnavailableMappings",
+                    instanceNonPublic) != null);
+            Check(
+                "automatic mappings own dirty state",
+                expressionSettingsType.GetField(
+                    "_triggersDirty", instanceNonPublic) != null);
             Type linkEditorType = GetPluginType(
                 pluginAssembly,
                 "ExpressionLinkEditorView");
             Check("expression-link editor type", linkEditorType != null);
+            Type linkDraftPanelType = GetPluginType(
+                pluginAssembly,
+                "ExpressionLinkDraftPanel");
+            Check("expression-link draft panel type", linkDraftPanelType != null);
+            Check(
+                "link draft reports edits from current draw",
+                linkDraftPanelType.GetProperty(
+                    "ChangedDuringLastDraw", instanceNonPublic) != null);
             Check(
                 "quick-settings expression-link editor",
                 quickSettingsSurfaceType.GetField(
                     "_expressionLinkEditor",
                     instanceNonPublic) != null);
+            Check(
+                "quick-settings visible navigation feedback",
+                quickSettingsSurfaceType.GetField(
+                    "_navigationFeedback",
+                    instanceNonPublic) != null);
+            Type linkProfilePanelType = GetPluginType(
+                pluginAssembly,
+                "ExpressionLinkProfilePanel");
+            Check(
+                "expression-link profile panel type",
+                linkProfilePanelType != null);
+            Check(
+                "profile replacement requires confirmation state",
+                linkProfilePanelType.GetField(
+                    "_confirmReplace", instanceNonPublic) != null);
             Check(
                 "Maker quick-settings launcher",
                 pluginType.GetMethod(

@@ -6,18 +6,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     internal sealed class QuickSettingsSurfaceView
     {
         private const int PanelDepth = -1000;
-        private const float FixedVerticalContentHeight = 126f;
-        private const int MotionTab = 0;
-        private const int IrisTab = 1;
-        private const int ExpressionsTab = 2;
-        private const int VisibilityTab = 3;
-        private const int LinksTab = 4;
+        private const float FixedVerticalContentHeight = 192f;
 
         private static readonly GUILayoutOption[] SelectorButtonOptions =
         {
             GUILayout.Width(32f)
         };
 
+        private readonly float _headerHeight;
         private readonly CharacterSelectionModel _selection;
         private readonly LiveStatusPresenter _statusPresenter;
         private readonly MotionSettingsView _motionView;
@@ -25,20 +21,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private readonly ExpressionSettingsView _expressionView;
         private readonly VisibilitySettingsView _visibilityView;
         private readonly ExpressionLinkEditorView _expressionLinkEditor;
-        private readonly Action _apply;
-        private readonly Action _reload;
-        private readonly Action _writeDiagnostics;
-        private readonly Action _close;
-        private readonly GUIContent _windowContent;
+        private readonly QuickSettingsNavigationView _navigation;
+        private readonly QuickSettingsFooterView _footer;
         private readonly GUILayoutOption[] _scrollViewOptions =
             new GUILayoutOption[1];
 
         private Vector2 _scrollPosition;
         private float _scrollViewOptionHeight = float.NaN;
-        private int _selectedTab;
+        private string _navigationFeedback = string.Empty;
 
         internal QuickSettingsSurfaceView(
-            string windowTitle,
+            float headerHeight,
             CharacterSelectionModel selection,
             LiveStatusPresenter statusPresenter,
             MotionSettingsView motionView,
@@ -47,10 +40,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             VisibilitySettingsView visibilityView,
             ExpressionLinkEditorView expressionLinkEditor,
             Action apply,
-            Action reload,
+            Action discard,
             Action writeDiagnostics,
             Action close)
         {
+            _headerHeight = Mathf.Max(0f, headerHeight);
             _selection = Require(selection, "selection");
             _statusPresenter = Require(statusPresenter, "statusPresenter");
             _motionView = Require(motionView, "motionView");
@@ -60,33 +54,32 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _expressionLinkEditor = Require(
                 expressionLinkEditor,
                 "expressionLinkEditor");
-            _apply = Require(apply, "apply");
-            _reload = Require(reload, "reload");
-            _writeDiagnostics = Require(
-                writeDiagnostics,
-                "writeDiagnostics");
-            _close = Require(close, "close");
-            _windowContent = new GUIContent(windowTitle ?? string.Empty);
+            _navigation = new QuickSettingsNavigationView();
+            _footer = new QuickSettingsFooterView(
+                Require(apply, "apply"),
+                Require(discard, "discard"),
+                Require(writeDiagnostics, "writeDiagnostics"),
+                Require(close, "close"));
         }
 
         internal void Draw(QuickSettingsWindowBounds bounds)
         {
-            Rect guiBounds = new Rect(
+            float headerHeight = Mathf.Min(
+                _headerHeight,
+                Mathf.Max(0f, bounds.Height));
+            Rect bodyBounds = new Rect(
                 bounds.X,
-                bounds.Y,
+                bounds.Y + headerHeight,
                 bounds.Width,
-                bounds.Height);
+                Mathf.Max(1f, bounds.Height - headerHeight));
             int previousDepth = GUI.depth;
             try
             {
                 GUI.depth = PanelDepth;
-                GUILayout.BeginArea(
-                    guiBounds,
-                    _windowContent,
-                    GUI.skin.window);
+                GUILayout.BeginArea(bodyBounds, GUI.skin.box);
                 try
                 {
-                    DrawContent(bounds);
+                    DrawContent(bodyBounds.width, bodyBounds.height);
                 }
                 finally
                 {
@@ -99,23 +92,71 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
         }
 
-        private void DrawContent(QuickSettingsWindowBounds bounds)
+        private void DrawContent(float width, float height)
         {
             QuickSettingsGui.BeginVertical();
-            EyeMotionCharacterController controller = DrawControllerSelector();
-            DrawTabs();
+            try
+            {
+                bool compactLayout = width < 520f;
+                EyeMotionCharacterController controller =
+                    DrawControllerSelector();
+                bool preventLeavingCurrentView =
+                    (_navigation.Destination ==
+                        QuickSettingsDestination.CustomLinks &&
+                     _expressionLinkEditor.HasUnsavedChanges) ||
+                    (_navigation.Destination ==
+                        QuickSettingsDestination.AutomaticExpressions &&
+                     _expressionView.HasUnsavedChanges);
+                if (!preventLeavingCurrentView)
+                {
+                    _navigationFeedback = string.Empty;
+                }
 
-            _scrollPosition = GUILayout.BeginScrollView(
-                _scrollPosition,
-                GetScrollViewOptions(bounds.Height));
-            DrawSelectedTab(
-                controller,
-                _statusPresenter.GetSnapshot(controller),
-                bounds.Width < 520f);
-            GUILayout.EndScrollView();
+                if (_navigation.Draw(
+                        preventLeavingCurrentView,
+                        HandleNavigationBlocked))
+                {
+                    _scrollPosition = Vector2.zero;
+                    _navigationFeedback = string.Empty;
+                }
 
-            DrawFooter();
-            QuickSettingsGui.EndVertical();
+                if (_navigationFeedback.Length > 0)
+                {
+                    QuickSettingsGui.Help(_navigationFeedback);
+                }
+
+                _scrollPosition = GUILayout.BeginScrollView(
+                    _scrollPosition,
+                    GetScrollViewOptions(height));
+                try
+                {
+                    LiveStatusSnapshot status =
+                        _statusPresenter.GetSnapshot(controller);
+                    DrawSelectedView(
+                        controller,
+                        status,
+                        compactLayout);
+                    _footer.DrawTroubleshooting();
+                }
+                finally
+                {
+                    GUILayout.EndScrollView();
+                }
+
+                if (_footer.DrawActions(
+                    _navigation.Destination !=
+                        QuickSettingsDestination.CustomLinks,
+                    compactLayout))
+                {
+                    _scrollPosition = new Vector2(
+                        0f,
+                        float.MaxValue);
+                }
+            }
+            finally
+            {
+                QuickSettingsGui.EndVertical();
+            }
         }
 
         private EyeMotionCharacterController DrawControllerSelector()
@@ -144,14 +185,24 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void SelectController(int direction)
         {
-            if (_expressionLinkEditor.HasUnsavedChanges)
+            if (_expressionView.HasUnsavedChanges)
             {
-                _expressionLinkEditor.RejectControllerChange();
-                _selectedTab = LinksTab;
-                _scrollPosition = Vector2.zero;
+                _navigationFeedback =
+                    "Save character mappings or discard their edits first.";
+                _expressionView.RejectNavigationChange();
                 return;
             }
 
+            if (_expressionLinkEditor.HasUnsavedChanges)
+            {
+                _navigationFeedback =
+                    "Save or discard the current link edits first.";
+                _expressionLinkEditor.RejectControllerChange();
+                return;
+            }
+
+            _navigationFeedback = string.Empty;
+            GUIUtility.keyboardControl = 0;
             if (direction < 0)
             {
                 _selection.SelectPrevious();
@@ -162,93 +213,58 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
         }
 
-        private void DrawTabs()
-        {
-            QuickSettingsGui.BeginHorizontal();
-            DrawTabButton(MotionTab, "Motion");
-            DrawTabButton(IrisTab, "Iris");
-            DrawTabButton(ExpressionsTab, "Expressions");
-            DrawTabButton(VisibilityTab, "Visibility");
-            DrawTabButton(LinksTab, "Links");
-            QuickSettingsGui.EndHorizontal();
-        }
-
-        private void DrawTabButton(int tab, string label)
-        {
-            string text = _selectedTab == tab
-                ? "[" + label + "]"
-                : label;
-            if (!QuickSettingsGui.Button(text) || _selectedTab == tab)
-            {
-                return;
-            }
-
-            _selectedTab = tab;
-            _scrollPosition = Vector2.zero;
-        }
-
-        private void DrawSelectedTab(
+        private void DrawSelectedView(
             EyeMotionCharacterController controller,
             LiveStatusSnapshot status,
             bool compactLayout)
         {
-            switch (_selectedTab)
+            switch (_navigation.Destination)
             {
-                case IrisTab:
+                case QuickSettingsDestination.EyeSize:
                     _irisView.Draw(status);
                     return;
-                case ExpressionsTab:
+                case QuickSettingsDestination.AutomaticExpressions:
                     _expressionView.Draw(controller);
                     return;
-                case VisibilityTab:
+                case QuickSettingsDestination.CustomLinks:
+                    _expressionLinkEditor.Draw(controller);
+                    return;
+                case QuickSettingsDestination.Visibility:
                     _visibilityView.Draw(
                         controller,
                         status,
                         compactLayout);
                     return;
-                case LinksTab:
-                    _expressionLinkEditor.Draw(controller);
-                    return;
                 default:
-                    _motionView.Draw(controller, status, compactLayout);
+                    _motionView.Draw(
+                        controller,
+                        status,
+                        compactLayout);
                     return;
             }
         }
 
-        private void DrawFooter()
+        private void HandleNavigationBlocked()
         {
-            QuickSettingsGui.BeginHorizontal();
-            if (_selectedTab != LinksTab)
+            if (_navigation.Destination ==
+                QuickSettingsDestination.AutomaticExpressions)
             {
-                if (QuickSettingsGui.Button("Apply"))
-                {
-                    _apply();
-                }
-
-                if (QuickSettingsGui.Button("Reload"))
-                {
-                    _reload();
-                }
+                _expressionView.RejectNavigationChange();
+                _navigationFeedback =
+                    "Save character mappings or discard their edits first.";
+                return;
             }
 
-            if (QuickSettingsGui.Button("Diagnostics"))
-            {
-                _writeDiagnostics();
-            }
-
-            if (QuickSettingsGui.Button("Close"))
-            {
-                _close();
-            }
-
-            QuickSettingsGui.EndHorizontal();
+            _expressionLinkEditor.RejectNavigationChange();
+            _navigationFeedback =
+                "Save or discard the current link edits first.";
         }
 
-        private GUILayoutOption[] GetScrollViewOptions(float windowHeight)
+        private GUILayoutOption[] GetScrollViewOptions(float bodyHeight)
         {
             float height = Mathf.Max(
                 80f,
-                windowHeight - FixedVerticalContentHeight);
+                bodyHeight - FixedVerticalContentHeight);
             if (_scrollViewOptionHeight != height)
             {
                 _scrollViewOptionHeight = height;

@@ -14,6 +14,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private string[] _profileNames = new string[0];
         private int _profileIndex = -1;
         private bool _profileNamesLoaded;
+        private bool _confirmReplace;
 
         internal ExpressionLinkProfilePanel()
         {
@@ -28,11 +29,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             feedback = string.Empty;
             bool linksReplaced = false;
             string label = _showProfiles
-                ? "[-] Profiles"
-                : "[+] Profiles";
+                ? "[-] Reusable profiles"
+                : "[+] Reusable profiles";
             if (ExpressionLinkGUILayout.Button(label))
             {
                 _showProfiles = !_showProfiles;
+                if (!_showProfiles)
+                {
+                    _confirmReplace = false;
+                }
+
                 if (_showProfiles && !_profileNamesLoaded)
                 {
                     feedback = RefreshProfileNames(false);
@@ -44,44 +50,83 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return false;
             }
 
-            _profileName = ExpressionLinkGUILayout.TextField(
+            ExpressionLinkGUILayout.Label(
+                "Profiles contain the complete Custom links list.");
+            string editedProfileName = ExpressionLinkGUILayout.TextField(
                 "Profile name",
                 _profileName);
-            ExpressionLinkGUILayout.BeginHorizontal();
-            if (ExpressionLinkGUILayout.Button("Save"))
+            if (!string.Equals(
+                    editedProfileName,
+                    _profileName,
+                    StringComparison.Ordinal))
             {
-                feedback = hasUnappliedDraft
-                    ? "Apply or Revert before saving a profile."
-                    : SaveProfile(controller);
+                _profileName = editedProfileName;
+                _confirmReplace = false;
             }
 
-            if (ExpressionLinkGUILayout.Button("Load"))
+            ExpressionLinkGUILayout.BeginHorizontal();
+            if (ExpressionLinkGUILayout.Button("Save / overwrite profile"))
+            {
+                feedback = hasUnappliedDraft
+                    ? "Save or discard changes first."
+                    : SaveProfile(controller);
+                _confirmReplace = false;
+            }
+
+            if (ExpressionLinkGUILayout.Button("Replace all links"))
             {
                 if (hasUnappliedDraft)
                 {
                     feedback =
-                        "Apply or Revert before loading a profile.";
+                        "Save or discard changes first.";
                 }
                 else
+                {
+                    _confirmReplace = true;
+                    feedback =
+                        "Select Confirm replace to replace every link.";
+                }
+            }
+
+            ExpressionLinkGUILayout.EndHorizontal();
+
+            if (_confirmReplace)
+            {
+                ExpressionLinkGUILayout.BeginHorizontal();
+                if (ExpressionLinkGUILayout.Button("Confirm replace"))
                 {
                     linksReplaced = TryLoadProfile(
                         controller,
                         out feedback);
+                    _confirmReplace = false;
                 }
+
+                if (ExpressionLinkGUILayout.Button("Cancel"))
+                {
+                    _confirmReplace = false;
+                    feedback = "Replace cancelled.";
+                }
+
+                ExpressionLinkGUILayout.EndHorizontal();
             }
+
+            ExpressionLinkGUILayout.BeginHorizontal();
 
             if (ExpressionLinkGUILayout.NarrowButton("<"))
             {
+                _confirmReplace = false;
                 feedback = CycleProfile(-1);
             }
 
             if (ExpressionLinkGUILayout.NarrowButton(">"))
             {
+                _confirmReplace = false;
                 feedback = CycleProfile(1);
             }
 
-            if (ExpressionLinkGUILayout.Button("Refresh"))
+            if (ExpressionLinkGUILayout.Button("Refresh profiles"))
             {
+                _confirmReplace = false;
                 feedback = RefreshProfileNames(true);
             }
 
@@ -153,8 +198,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             _profileName = profile.Name;
-            feedback = "Profile loaded: " + profile.Name +
-                ". Links received new IDs.";
+            feedback = "Profile loaded: " + profile.Name + ".";
             return true;
         }
 

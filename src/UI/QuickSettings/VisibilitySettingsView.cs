@@ -7,6 +7,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private readonly VisibilitySettingsDraft _draft;
         private readonly ManualVisibilityRuntimeView _runtimeView;
         private readonly VisibilityTargetEditorView _targetEditor;
+        private bool _showLiveDetails;
+        private bool _showManualControls;
+        private bool _showAdvancedTargetSetup;
 
         internal VisibilitySettingsView(VisibilitySettingsDraft draft)
         {
@@ -27,27 +30,58 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             status = status ?? LiveStatusSnapshot.NoCharacter;
 
+            QuickSettingsGui.Heading("Highlight and card");
             _draft.FollowBaseGameHighlightVisibility =
                 QuickSettingsGui.Toggle(
                     _draft.FollowBaseGameHighlightVisibility,
-                    "Follow Erase Highlight");
+                    "Hide custom highlights with Erase Highlight");
             _draft.CardPersistenceEnabled = QuickSettingsGui.Toggle(
                 _draft.CardPersistenceEnabled,
-                "Save with character card");
-            if (controller != null)
+                "Save choices with character card");
+
+            _showManualControls = QuickSettingsGui.Disclosure(
+                _showManualControls,
+                "Manual part controls");
+            if (_showManualControls)
             {
-                QuickSettingsGui.Label(status.HighlightStateLine);
-                QuickSettingsGui.Label(status.CardDataLine);
+                QuickSettingsGui.Help(
+                    "Changes in this section take effect immediately.");
+                _runtimeView.Draw(controller, compactLayout);
             }
 
-            _draft.ManualHideBlendshapeWeight = QuickSettingsGui.Slider(
-                "Hidden weight",
-                _draft.ManualHideBlendshapeWeight,
-                0f,
-                100f,
-                "0");
-            _runtimeView.Draw(controller, compactLayout);
-            _targetEditor.Draw();
+            _showAdvancedTargetSetup = QuickSettingsGui.Disclosure(
+                _showAdvancedTargetSetup,
+                "Advanced target setup");
+            if (_showAdvancedTargetSetup)
+            {
+                QuickSettingsGui.Help(
+                    "Change these values only when your headmod uses " +
+                    "different names.");
+                _draft.ManualHideBlendshapeWeight =
+                    QuickSettingsGui.Slider(
+                        "Hidden blendshape strength",
+                        _draft.ManualHideBlendshapeWeight,
+                        0f,
+                        100f,
+                        "0");
+                _targetEditor.Draw();
+            }
+
+            _showLiveDetails = QuickSettingsGui.Disclosure(
+                _showLiveDetails,
+                "Live details");
+            if (_showLiveDetails)
+            {
+                if (controller == null)
+                {
+                    QuickSettingsGui.Help("No character selected.");
+                }
+                else
+                {
+                    QuickSettingsGui.Help(status.HighlightStateLine);
+                    QuickSettingsGui.Help(status.CardDataLine);
+                }
+            }
         }
     }
 }
