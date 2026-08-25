@@ -52,6 +52,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 Path.Combine(projectRoot, @"src\UI\QuickSettings\QuickSettingsNavigationView.cs"));
             string styleResourcesSource = File.ReadAllText(
                 Path.Combine(projectRoot, @"src\UI\Styling\QuickSettingsGuiResources.cs"));
+            string styleFactorySource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\Styling\QuickSettingsStyleFactory.cs"));
+            string textureCatalogSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\Styling\QuickSettingsTextureCatalog.cs"));
+            string roundedTextureSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\Styling\QuickSettingsRoundedTextureFactory.cs"));
+            string chromeResourcesSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\UI\Styling\QuickSettingsWindowChromeResources.cs"));
             string expressionLayoutSource = File.ReadAllText(
                 Path.Combine(projectRoot, @"src\UI\ExpressionLinks\ExpressionLinkGUILayout.cs"));
             string sourceTree = ReadSourceTree(
@@ -145,6 +153,38 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "quick-settings uses a semantic theme",
                 sourceTree.IndexOf(
                     "internal static class QuickSettingsTheme",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "quick-settings rounded textures are generated once",
+                roundedTextureSource.IndexOf(
+                    "private const int SamplesPerAxis = 4",
+                    StringComparison.Ordinal) >= 0 &&
+                roundedTextureSource.IndexOf(
+                    "FilterMode.Bilinear",
+                    StringComparison.Ordinal) >= 0 &&
+                roundedTextureSource.IndexOf(
+                    "texture.Apply(false, true)",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "quick-settings catalog owns rounded assets",
+                textureCatalogSource.IndexOf(
+                    "CreateRounded(",
+                    StringComparison.Ordinal) >= 0 &&
+                textureCatalogSource.IndexOf(
+                    "InputFocused",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "quick-settings styles use nine-slice borders",
+                styleFactorySource.IndexOf(
+                    "CreateBorder(borderSlice)",
+                    StringComparison.Ordinal) >= 0);
+            Check(
+                "quick-settings header uses a sliced rounded sprite",
+                visualFactorySource.IndexOf(
+                    "Image.Type.Sliced",
+                    StringComparison.Ordinal) >= 0 &&
+                chromeResourcesSource.IndexOf(
+                    "Sprite.Create(",
                     StringComparison.Ordinal) >= 0);
             Check(
                 "quick-settings does not replace the global GUI skin",
@@ -348,6 +388,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 GetPluginType(
                     pluginAssembly,
                     "QuickSettingsStyleFactory") != null);
+            Check(
+                "quick-settings rounded texture factory type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsRoundedTextureFactory") != null);
+            Check(
+                "quick-settings window chrome resource type",
+                GetPluginType(
+                    pluginAssembly,
+                    "QuickSettingsWindowChromeResources") != null);
             Type windowFrameType = GetPluginType(
                 pluginAssembly,
                 "QuickSettingsWindowFrame");

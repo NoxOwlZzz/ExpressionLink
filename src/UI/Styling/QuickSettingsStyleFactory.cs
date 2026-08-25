@@ -10,14 +10,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             int left,
             int right,
             int top,
-            int bottom)
+            int bottom,
+            int borderSlice)
         {
             GUIStyle style = new GUIStyle(source);
             style.normal.background = background;
             style.hover.background = background;
             style.active.background = background;
             style.focused.background = background;
-            style.border = new RectOffset(0, 0, 0, 0);
+            style.border = CreateBorder(borderSlice);
             style.padding = new RectOffset(left, right, top, bottom);
             style.margin = new RectOffset(0, 0, 0, 0);
             return style;
@@ -43,7 +44,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             style.fixedHeight = QuickSettingsTheme.Metrics.RowHeight;
             style.padding = new RectOffset(7, 7, 2, 2);
             style.margin = new RectOffset(1, 1, 1, 1);
-            style.border = new RectOffset(0, 0, 0, 0);
+            style.border = CreateBorder(
+                QuickSettingsTheme.Metrics.ControlSlice);
             return style;
         }
 
@@ -71,7 +73,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             style.fixedHeight = 21f;
             style.padding = new RectOffset(5, 5, 2, 2);
             style.margin = new RectOffset(2, 2, 1, 1);
-            style.border = new RectOffset(0, 0, 0, 0);
+            style.border = CreateBorder(
+                QuickSettingsTheme.Metrics.ControlSlice);
         }
 
         internal static void ConfigureSliderTrack(
@@ -87,6 +90,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ConfigureState(style.onHover, background, textColor);
             ConfigureState(style.onActive, background, textColor);
             ConfigureState(style.onFocused, background, textColor);
+            style.border = CreateBorder(
+                QuickSettingsTheme.Metrics.SliderSlice);
         }
 
         internal static void ConfigureSliderThumb(
@@ -111,9 +116,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 style.focused,
                 hover,
                 QuickSettingsTheme.Colors.PrimaryText);
-            style.fixedWidth = 11f;
+            style.fixedWidth = 14f;
             style.fixedHeight = 18f;
-            style.border = new RectOffset(0, 0, 0, 0);
+            style.border = CreateBorder(
+                QuickSettingsTheme.Metrics.ThumbSlice);
         }
 
         internal static void ConfigureText(GUIStyle style, Color color)
@@ -126,6 +132,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             style.onHover.textColor = color;
             style.onActive.textColor = color;
             style.onFocused.textColor = color;
+        }
+
+        internal static RectOffset CreateBorder(int slice)
+        {
+            return new RectOffset(slice, slice, slice, slice);
         }
 
         private static void ConfigureState(

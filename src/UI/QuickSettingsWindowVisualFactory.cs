@@ -4,20 +4,24 @@ using UnityEngine.UI;
 
 namespace NightOwlZzz.Koikatsu.EyeMotion
 {
-    internal sealed class QuickSettingsWindowVisual
+    internal sealed class QuickSettingsWindowVisual : IDisposable
     {
+        private QuickSettingsWindowChromeResources _chromeResources;
+
         internal QuickSettingsWindowVisual(
             GameObject root,
             CanvasScaler scaler,
             RectTransform mainPanel,
             RectTransform headerPanel,
-            QuickSettingsMovableWindow movableWindow)
+            QuickSettingsMovableWindow movableWindow,
+            QuickSettingsWindowChromeResources chromeResources)
         {
             Root = root;
             Scaler = scaler;
             MainPanel = mainPanel;
             HeaderPanel = headerPanel;
             MovableWindow = movableWindow;
+            _chromeResources = chromeResources;
         }
 
         internal GameObject Root { get; private set; }
@@ -29,6 +33,26 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             get;
             private set;
         }
+
+        public void Dispose()
+        {
+            if (Root != null)
+            {
+                UnityEngine.Object.Destroy(Root);
+                Root = null;
+            }
+
+            if (_chromeResources != null)
+            {
+                _chromeResources.Dispose();
+                _chromeResources = null;
+            }
+
+            Scaler = null;
+            MainPanel = null;
+            HeaderPanel = null;
+            MovableWindow = null;
+        }
     }
 
     internal static class QuickSettingsWindowVisualFactory
@@ -38,8 +62,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         // The Canvas panel owns drag and raycasts. IMGUI draws the opaque body.
         private static readonly Color MainPanelColor =
             new Color32(29, 34, 41, 1);
-        private static readonly Color HeaderPanelColor =
-            QuickSettingsTheme.Colors.ElevatedSurface;
 
         internal static QuickSettingsWindowVisual Create(
             Transform owner,
@@ -48,6 +70,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             float viewportWidth,
             float viewportHeight)
         {
+            QuickSettingsWindowChromeResources chromeResources =
+                new QuickSettingsWindowChromeResources();
             GameObject root = new GameObject(
                 "KK_ExpressionLink_QuickSettingsCanvas",
                 typeof(RectTransform),
@@ -82,7 +106,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             RectTransform mainPanel = CreateImage(
                 "QuickSettingsMainPanel",
                 root.transform,
-                MainPanelColor);
+                MainPanelColor,
+                null);
             mainPanel.anchorMin = new Vector2(0f, 1f);
             mainPanel.anchorMax = new Vector2(0f, 1f);
             mainPanel.pivot = new Vector2(0f, 1f);
@@ -90,7 +115,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             RectTransform headerPanel = CreateImage(
                 "QuickSettingsHeaderPanel",
                 mainPanel,
-                HeaderPanelColor);
+                Color.white,
+                chromeResources.HeaderSprite);
             headerPanel.anchorMin = new Vector2(0f, 1f);
             headerPanel.anchorMax = new Vector2(1f, 1f);
             headerPanel.pivot = new Vector2(0.5f, 1f);
@@ -113,13 +139,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 scaler,
                 mainPanel,
                 headerPanel,
-                movableWindow);
+                movableWindow,
+                chromeResources);
         }
 
         private static RectTransform CreateImage(
             string name,
             Transform parent,
-            Color color)
+            Color color,
+            Sprite sprite)
         {
             GameObject gameObject = new GameObject(
                 name,
@@ -133,6 +161,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             Image image = gameObject.GetComponent<Image>();
             image.color = color;
+            image.sprite = sprite;
+            if (sprite != null)
+            {
+                image.type = Image.Type.Sliced;
+                image.fillCenter = true;
+            }
+
             image.raycastTarget = true;
             return rectTransform;
         }
@@ -142,12 +177,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             RectTransform accent = CreateImage(
                 "QuickSettingsHeaderAccent",
                 parent,
-                QuickSettingsTheme.Colors.Accent);
+                QuickSettingsTheme.Colors.Accent,
+                null);
             accent.anchorMin = new Vector2(0f, 0f);
             accent.anchorMax = new Vector2(1f, 0f);
             accent.pivot = new Vector2(0.5f, 0f);
-            accent.offsetMin = Vector2.zero;
-            accent.offsetMax = new Vector2(0f, 2f);
+            accent.offsetMin = new Vector2(6f, 0f);
+            accent.offsetMax = new Vector2(-6f, 2f);
             Image image = accent.GetComponent<Image>();
             if (image != null)
             {

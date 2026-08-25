@@ -92,7 +92,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _visual.MovableWindow.Dragged -= HandleDrag;
                 _visual.MovableWindow.Cancel();
                 _visual.MovableWindow.ToDrag = null;
-                UnityEngine.Object.Destroy(_visual.Root);
+                _visual.Dispose();
             }
 
             _rectController = null;

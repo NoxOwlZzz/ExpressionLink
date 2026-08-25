@@ -60,28 +60,32 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 QuickSettingsTheme.Metrics.ContentPadding,
                 QuickSettingsTheme.Metrics.ContentPadding,
                 QuickSettingsTheme.Metrics.ContentPadding,
-                QuickSettingsTheme.Metrics.ContentPadding);
+                QuickSettingsTheme.Metrics.ContentPadding,
+                QuickSettingsTheme.Metrics.PanelSlice);
             Toolbar = QuickSettingsStyleFactory.CreatePanel(
                 skin.box,
                 _textures.ElevatedSurface,
                 4,
                 4,
                 1,
-                1);
+                1,
+                QuickSettingsTheme.Metrics.ControlSlice);
             Footer = QuickSettingsStyleFactory.CreatePanel(
                 skin.box,
                 _textures.ElevatedSurface,
                 4,
                 4,
                 3,
-                3);
+                3,
+                QuickSettingsTheme.Metrics.ControlSlice);
             PropertyRow = QuickSettingsStyleFactory.CreatePanel(
                 skin.box,
                 _textures.PropertyRow,
                 5,
                 5,
                 1,
-                1);
+                1,
+                QuickSettingsTheme.Metrics.ControlSlice);
 
             Label = new GUIStyle(skin.label);
             QuickSettingsStyleFactory.ConfigureText(
@@ -108,6 +112,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             Warning.normal.textColor = QuickSettingsTheme.Colors.WarningText;
             Warning.padding = new RectOffset(7, 7, 4, 4);
             Warning.margin = new RectOffset(3, 3, 3, 4);
+            Warning.border = QuickSettingsStyleFactory.CreateBorder(
+                QuickSettingsTheme.Metrics.ControlSlice);
 
             Heading = new GUIStyle(Label);
             Heading.normal.background = _textures.Section;
@@ -117,6 +123,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             Heading.fixedHeight = QuickSettingsTheme.Metrics.SectionHeight;
             Heading.padding = new RectOffset(8, 6, 2, 2);
             Heading.margin = new RectOffset(0, 0, 4, 1);
+            Heading.border = QuickSettingsStyleFactory.CreateBorder(
+                QuickSettingsTheme.Metrics.ControlSlice);
 
             Button = QuickSettingsStyleFactory.CreateButton(
                 skin.button,
@@ -174,7 +182,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             QuickSettingsStyleFactory.ConfigureInput(
                 TextField,
                 _textures.Input,
-                _textures.Selected);
+                _textures.InputFocused);
 
             Toggle = new GUIStyle(skin.toggle);
             QuickSettingsStyleFactory.ConfigureText(
@@ -190,8 +198,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             Slider = new GUIStyle(skin.horizontalSlider);
             QuickSettingsStyleFactory.ConfigureSliderTrack(
                 Slider,
-                _textures.Input);
-            Slider.fixedHeight = 6f;
+                _textures.SliderTrack);
+            Slider.fixedHeight = 8f;
             Slider.margin = new RectOffset(4, 4, 8, 5);
             SliderThumb = new GUIStyle(skin.horizontalSliderThumb);
             QuickSettingsStyleFactory.ConfigureSliderThumb(
@@ -205,6 +213,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ValueLabel.alignment = TextAnchor.MiddleCenter;
             ValueLabel.fixedHeight = 20f;
             ValueLabel.padding = new RectOffset(3, 3, 1, 1);
+            ValueLabel.border = QuickSettingsStyleFactory.CreateBorder(
+                QuickSettingsTheme.Metrics.ControlSlice);
 
             SelectedSegment = new GUIStyle(SelectedSecondaryTab);
             StatusBadge = new GUIStyle(Label);
@@ -216,6 +226,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             StatusBadge.fixedHeight = 20f;
             StatusBadge.padding = new RectOffset(6, 6, 1, 1);
             StatusBadge.margin = new RectOffset(3, 3, 2, 2);
+            StatusBadge.border = QuickSettingsStyleFactory.CreateBorder(
+                QuickSettingsTheme.Metrics.ControlSlice);
         }
 
         private void Release()
