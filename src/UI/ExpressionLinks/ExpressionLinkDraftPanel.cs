@@ -5,11 +5,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 {
     internal sealed class ExpressionLinkDraftPanel
     {
-        private const int FirstScope = (int)ExpressionTargetScope.Any;
-        private const int LastScope = (int)ExpressionTargetScope.Other;
-
         private static readonly CultureInfo InvariantCulture =
             CultureInfo.InvariantCulture;
+
+        private readonly ExpressionLinkSourceSectionView _sourceSection =
+            new ExpressionLinkSourceSectionView();
+        private readonly ExpressionLinkTargetSectionView _targetSection =
+            new ExpressionLinkTargetSectionView();
+        private readonly ExpressionLinkResponseSectionView _responseSection =
+            new ExpressionLinkResponseSectionView();
 
         private ExpressionLinkDefinition _draft;
         private bool _dirty;
@@ -76,7 +80,27 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return string.Empty;
             }
 
-            string feedback = DrawBasicFields(controller);
+            bool enabled = ExpressionLinkGUILayout.Toggle(
+                _draft.Enabled,
+                "Expression link enabled");
+            if (enabled != _draft.Enabled)
+            {
+                _draft.Enabled = enabled;
+                MarkDirty();
+            }
+
+            string feedback = _sourceSection.Draw(
+                controller,
+                _draft,
+                MarkDirty);
+            _targetSection.Draw(
+                _draft,
+                MarkDirty,
+                HandleScopeChanged);
+            _responseSection.Draw(
+                _draft,
+                ref _outputMaxText,
+                MarkDirty);
             DrawAdvancedFields();
             return feedback;
         }
@@ -89,7 +113,25 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             error = string.Empty;
             if (_draft == null)
             {
-                error = "No link is selected.";
+                error = "No expression link is selected.";
+                return false;
+            }
+
+            if (_draft.Enabled &&
+                ExpressionLinkDraftRules.IsBlank(_draft.Source))
+            {
+                error =
+                    "Step 1 is incomplete. Capture a game expression " +
+                    "before saving this enabled link.";
+                return false;
+            }
+
+            if (_draft.Enabled &&
+                ExpressionLinkDraftRules.IsBlank(_draft.BlendshapeName))
+            {
+                error =
+                    "Step 2 is incomplete. Enter the destination " +
+                    "blendshape name before saving this enabled link.";
                 return false;
             }
 
@@ -104,32 +146,32 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             int slotIndex;
             if (!TryParseFloat(
                     _thresholdText,
-                    "Activation threshold",
+                    "Activation point",
                     out threshold,
                     out error) ||
                 !TryParseFloat(
                     _inputMinText,
-                    "Source range start",
+                    "Expression range start",
                     out inputMin,
                     out error) ||
                 !TryParseFloat(
                     _inputMaxText,
-                    "Source range end",
+                    "Expression range end",
                     out inputMax,
                     out error) ||
                 !TryParseFloat(
                     _outputMinText,
-                    "Off value",
+                    "Inactive strength",
                     out outputMin,
                     out error) ||
                 !TryParseFloat(
                     _outputMaxText,
-                    "Blendshape strength",
+                    "Maximum strength",
                     out outputMax,
                     out error) ||
                 !TryParseFloat(
                     _smoothingSpeedText,
-                    "Smoothing speed",
+                    "Transition speed",
                     out smoothingSpeed,
                     out error) ||
                 !TryParseInteger(
@@ -139,12 +181,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     out error) ||
                 !TryParseInteger(
                     _componentIndexText,
-                    "Component index",
+                    "Renderer component",
                     out componentIndex,
                     out error) ||
                 !TryParseInteger(
                     _slotIndexText,
-                    "Slot index",
+                    "Character slot",
                     out slotIndex,
                     out error))
             {
@@ -164,162 +206,68 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             return true;
         }
 
-        private string DrawBasicFields(
-            EyeMotionCharacterController controller)
-        {
-            ExpressionLinkGUILayout.Heading("Link and trigger");
-            bool enabled = ExpressionLinkGUILayout.Toggle(
-                _draft.Enabled,
-                "Enable this link");
-            if (enabled != _draft.Enabled)
-            {
-                _draft.Enabled = enabled;
-                MarkDirty();
-            }
-
-            _draft.Name = DrawDraftTextField("Link name", _draft.Name);
-            _draft.Source = DrawDraftTextField(
-                "Game expression",
-                _draft.Source);
-
-            string feedback = string.Empty;
-            ExpressionLinkGUILayout.BeginFieldRow();
-            ExpressionLinkGUILayout.FieldLabel("Use current expression");
-            SetLatestFeedback(
-                ref feedback,
-                DrawCaptureButton(
-                    controller,
-                    "Brow",
-                    ExpressionTriggerPart.Brow));
-            SetLatestFeedback(
-                ref feedback,
-                DrawCaptureButton(
-                    controller,
-                    "Eyes",
-                    ExpressionTriggerPart.Eyes));
-            SetLatestFeedback(
-                ref feedback,
-                DrawCaptureButton(
-                    controller,
-                    "Mouth",
-                    ExpressionTriggerPart.Mouth));
-            ExpressionLinkGUILayout.EndFieldRow();
-
-            ExpressionLinkGUILayout.Heading("Target and response");
-            _draft.BlendshapeName = DrawDraftTextField(
-                "Blendshape to activate",
-                _draft.BlendshapeName);
-            DrawScopeField();
-            DrawModeField();
-            DrawNumericTextField(
-                "Blendshape strength",
-                ref _outputMaxText);
-            return feedback;
-        }
-
-        private string DrawCaptureButton(
-            EyeMotionCharacterController controller,
-            string label,
-            ExpressionTriggerPart part)
-        {
-            if (!ExpressionLinkGUILayout.Button(label))
-            {
-                return string.Empty;
-            }
-
-            string selector = controller.GetCurrentExpressionSelector(part);
-            if (string.IsNullOrEmpty(selector))
-            {
-                return "No current " + label.ToLowerInvariant() +
-                    " source is available.";
-            }
-
-            _draft.Source = selector;
-            MarkDirty();
-            return "Captured " + selector + ". Select Save link.";
-        }
-
-        private void DrawScopeField()
-        {
-            ExpressionLinkGUILayout.BeginFieldRow();
-            ExpressionLinkGUILayout.FieldLabel("Where to search");
-            if (ExpressionLinkGUILayout.NarrowButton("<"))
-            {
-                CycleScope(-1);
-            }
-
-            if (ExpressionLinkGUILayout.Button(GetScopeName(_draft.Scope)))
-            {
-                CycleScope(1);
-            }
-
-            if (ExpressionLinkGUILayout.NarrowButton(">"))
-            {
-                CycleScope(1);
-            }
-
-            ExpressionLinkGUILayout.EndFieldRow();
-        }
-
-        private void DrawModeField()
-        {
-            ExpressionLinkGUILayout.BeginFieldRow();
-            ExpressionLinkGUILayout.FieldLabel("Response");
-            bool binarySelected =
-                _draft.Mode == ExpressionLinkMode.Binary;
-            if (ExpressionLinkGUILayout.ChoiceButton(
-                    "On / off",
-                    binarySelected) &&
-                !binarySelected)
-            {
-                _draft.Mode = ExpressionLinkMode.Binary;
-                MarkDirty();
-            }
-
-            bool followSelected =
-                _draft.Mode == ExpressionLinkMode.FollowSource;
-            if (ExpressionLinkGUILayout.ChoiceButton(
-                    "Follow strength",
-                    followSelected) &&
-                !followSelected)
-            {
-                _draft.Mode = ExpressionLinkMode.FollowSource;
-                MarkDirty();
-            }
-
-            ExpressionLinkGUILayout.EndFieldRow();
-        }
-
         private void DrawAdvancedFields()
         {
             _showAdvanced = ExpressionLinkGUILayout.Disclosure(
                 _showAdvanced,
-                "Technical settings");
+                "Advanced targeting and tuning");
 
             if (!_showAdvanced)
             {
                 return;
             }
 
+            _draft.Name = DrawDraftTextField(
+                "Link name",
+                _draft.Name);
+            _draft.Source = DrawDraftTextField(
+                "Expression selector",
+                _draft.Source);
+            ExpressionLinkGUILayout.Help(
+                "The selector is filled automatically by the capture buttons. " +
+                "Edit it only when you need an exact brow:N, eyes:N, mouth:N, " +
+                "or FBS name.");
+
             _draft.RendererPath = DrawDraftTextField(
                 "Renderer path",
                 _draft.RendererPath);
             ExpressionLinkGUILayout.Help(
-                "Leave Renderer path blank to find it automatically.");
-            DrawNumericTextField("Off value", ref _outputMinText);
-            DrawNumericTextField("Source range start", ref _inputMinText);
-            DrawNumericTextField("Source range end", ref _inputMaxText);
-            DrawNumericTextField("Activation threshold", ref _thresholdText);
-            DrawNumericTextField("Smoothing speed", ref _smoothingSpeedText);
-            DrawNumericTextField("Priority", ref _priorityText);
-            DrawNumericTextField("Component index", ref _componentIndexText);
-            DrawNumericTextField("Slot index", ref _slotIndexText);
+                "Leave the renderer path blank when the blendshape is unique " +
+                "in the selected character area.");
+
+            if (ScopeUsesSlots(_draft.Scope) ||
+                !IsDefaultSlotFilter())
+            {
+                DrawNumericTextField(
+                    "Character slot (-1 = any)",
+                    ref _slotIndexText);
+            }
+
+            DrawNumericTextField(
+                "Renderer component (-1 = any)",
+                ref _componentIndexText);
             _draft.RendererHint = DrawDraftTextField(
                 "Preferred renderer",
                 _draft.RendererHint);
             _draft.MeshHint = DrawDraftTextField(
                 "Preferred mesh",
                 _draft.MeshHint);
+            DrawNumericTextField(
+                "Inactive strength",
+                ref _outputMinText);
+            DrawNumericTextField(
+                "Expression range start",
+                ref _inputMinText);
+            DrawNumericTextField(
+                "Expression range end",
+                ref _inputMaxText);
+            DrawNumericTextField(
+                "Activation point",
+                ref _thresholdText);
+            DrawNumericTextField(
+                "Transition speed",
+                ref _smoothingSpeedText);
+            DrawNumericTextField("Priority", ref _priorityText);
         }
 
         private void LoadNumericText()
@@ -355,22 +303,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _slotIndexText = string.Empty;
         }
 
-        private void CycleScope(int direction)
-        {
-            int value = (int)_draft.Scope + direction;
-            if (value < FirstScope)
-            {
-                value = LastScope;
-            }
-            else if (value > LastScope)
-            {
-                value = FirstScope;
-            }
-
-            _draft.Scope = (ExpressionTargetScope)value;
-            MarkDirty();
-        }
-
         private string DrawDraftTextField(string label, string value)
         {
             string original = value ?? string.Empty;
@@ -402,14 +334,28 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _changedDuringLastDraw = true;
         }
 
-        private static void SetLatestFeedback(
-            ref string destination,
-            string message)
+        private void HandleScopeChanged(ExpressionTargetScope scope)
         {
-            if (!string.IsNullOrEmpty(message))
+            if (ScopeUsesSlots(scope))
             {
-                destination = message;
+                return;
             }
+
+            _draft.SlotIndex = -1;
+            _slotIndexText = "-1";
+        }
+
+        private bool IsDefaultSlotFilter()
+        {
+            return string.Equals(_slotIndexText, "-1", StringComparison.Ordinal);
+        }
+
+        private static bool ScopeUsesSlots(ExpressionTargetScope scope)
+        {
+            return scope == ExpressionTargetScope.Any ||
+                scope == ExpressionTargetScope.Hair ||
+                scope == ExpressionTargetScope.Clothes ||
+                scope == ExpressionTargetScope.Accessory;
         }
 
         private static bool TryParseFloat(
@@ -453,27 +399,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             error = string.Empty;
             return true;
-        }
-
-        private static string GetScopeName(ExpressionTargetScope scope)
-        {
-            switch (scope)
-            {
-                case ExpressionTargetScope.Head:
-                    return "Head";
-                case ExpressionTargetScope.Hair:
-                    return "Hair";
-                case ExpressionTargetScope.Body:
-                    return "Body";
-                case ExpressionTargetScope.Clothes:
-                    return "Clothes";
-                case ExpressionTargetScope.Accessory:
-                    return "Accessory";
-                case ExpressionTargetScope.Other:
-                    return "Other";
-                default:
-                    return "Any";
-            }
         }
 
         private static string FormatFloat(float value)

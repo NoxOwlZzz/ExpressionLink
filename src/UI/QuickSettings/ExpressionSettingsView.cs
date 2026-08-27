@@ -33,23 +33,23 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal void RejectNavigationChange()
         {
             _feedback =
-                "Save game expressions or discard their edits first.";
+                "Save or discard the ExpressionMesh mappings first.";
         }
 
         internal void Draw(EyeMotionCharacterController controller)
         {
-            QuickSettingsGui.Heading("Plugin settings");
+            QuickSettingsGui.Heading("All characters");
             _draft.AutomationEnabled = QuickSettingsGui.Toggle(
                 _draft.AutomationEnabled,
-                "Enable automatic game expressions");
+                "Enable separate ExpressionMesh switching");
 
             _showFineTuning = QuickSettingsGui.Disclosure(
                 _showFineTuning,
-                "Fine tuning");
+                "Activation tuning");
             if (_showFineTuning)
             {
                 _draft.ActivationThreshold = QuickSettingsGui.Slider(
-                    "Activation threshold",
+                    "Activation point",
                     _draft.ActivationThreshold,
                     0f,
                     1f,
@@ -57,19 +57,22 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             QuickSettingsGui.Help(
-                "Apply plugin settings stores the options above.");
-            QuickSettingsGui.Heading("Game expressions");
+                "Apply global settings stores the options above.");
+            QuickSettingsGui.Heading("Selected character");
             QuickSettingsGui.Help(
-                "Each game expression activates its matching ExpressionMesh blendshape. These choices are saved per character.");
+                "Each mapping shows or hides a separate renderer named " +
+                "ExpressionMesh_01 through ExpressionMesh_04. The mappings " +
+                "are saved with the character.");
             if (controller == null)
             {
-                QuickSettingsGui.Help("Select a character to edit game expressions.");
+                QuickSettingsGui.Help(
+                    "Select a character to edit ExpressionMesh mappings.");
                 if (_triggersDirty)
                 {
                     QuickSettingsGui.Help(
                         "The character being edited is no longer available.");
                     if (QuickSettingsGui.Button(
-                            "Discard unavailable expression edits"))
+                            "Discard unavailable mapping edits"))
                     {
                         DiscardUnavailableMappings();
                     }
@@ -83,12 +86,33 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return;
             }
 
+            if (HasStaleTriggerBuffer(controller))
+            {
+                QuickSettingsGui.Warning(
+                    "These mapping edits belong to another or earlier " +
+                    "character state. They are preserved until you discard " +
+                    "them.");
+                if (QuickSettingsGui.Button(
+                        "Discard mapping edits and refresh"))
+                {
+                    ReloadTriggerBuffer(controller);
+                    _feedback =
+                        "Mapping edits discarded; selected character refreshed.";
+                }
+
+                if (_feedback.Length > 0)
+                {
+                    QuickSettingsGui.Help(_feedback);
+                }
+                return;
+            }
+
             EnsureTriggerBuffer(controller);
             DrawSlotNavigation();
 
             string previous = _triggers[_selectedSlotIndex];
             string edited = QuickSettingsGui.LabeledTextField(
-                "Game expression",
+                "Show this mesh when",
                 previous);
             if (!string.Equals(
                     edited,
@@ -106,7 +130,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             DrawCaptureButtons(controller, _selectedSlotIndex);
 
             QuickSettingsGui.BeginHorizontal();
-            if (QuickSettingsGui.Button("Save game expressions"))
+            if (QuickSettingsGui.PrimaryButton(
+                    "Save ExpressionMesh mappings"))
             {
                 controller.SetExpressionTriggers(
                     _triggers,
@@ -115,16 +140,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _triggersDirty = false;
             }
 
-            if (QuickSettingsGui.Button("Discard expression edits"))
+            if (QuickSettingsGui.Button("Discard mapping edits"))
             {
                 ReloadTriggerBuffer(controller);
-                _feedback = "Expression edits discarded.";
+                _feedback = "ExpressionMesh mapping edits discarded.";
             }
 
             QuickSettingsGui.EndHorizontal();
             if (_triggersDirty)
             {
-                QuickSettingsGui.Warning("Unsaved game expressions.");
+                QuickSettingsGui.Warning("Unsaved ExpressionMesh mappings.");
             }
 
             if (_feedback.Length > 0)
@@ -142,7 +167,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             QuickSettingsGui.Label(
-                "ExpressionMesh " +
+                "Separate mesh " +
                 (_selectedSlotIndex + 1).ToString("00") +
                 " of " + _triggers.Length.ToString("00"));
 
@@ -162,6 +187,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _feedback = string.Empty;
         }
 
+        private bool HasStaleTriggerBuffer(
+            EyeMotionCharacterController controller)
+        {
+            if (!_triggersDirty)
+            {
+                return false;
+            }
+
+            return _triggerControllerInstanceId !=
+                    controller.GetInstanceID() ||
+                _triggerRevision != controller.ExpressionTriggerRevision;
+        }
+
         private void EnsureTriggerBuffer(
             EyeMotionCharacterController controller)
         {
@@ -173,13 +211,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return;
             }
 
-            bool replacedUnsavedEdits = _triggersDirty;
-            ReloadTriggerBuffer(controller);
-            if (replacedUnsavedEdits)
+            if (_triggersDirty)
             {
-                _feedback =
-                    "Game expressions changed outside this editor and were reloaded.";
+                return;
             }
+
+            ReloadTriggerBuffer(controller);
         }
 
         private void ReloadTriggerBuffer(
@@ -200,7 +237,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _triggerControllerInstanceId = 0;
             _triggerRevision = -1;
             _triggersDirty = false;
-            _feedback = "Unavailable expression edits discarded.";
+            _feedback = "Unavailable mapping edits discarded.";
             for (int i = 0; i < _triggers.Length; i++)
             {
                 _triggers[i] = string.Empty;
@@ -211,22 +248,22 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             EyeMotionCharacterController controller,
             int slotIndex)
         {
-            QuickSettingsGui.Help("Use current expression:");
+            QuickSettingsGui.Help("Capture the current expression:");
             QuickSettingsGui.BeginHorizontal();
-            if (QuickSettingsGui.Button("Brow"))
-            {
-                CaptureCurrentExpression(
-                    controller,
-                    slotIndex,
-                    ExpressionTriggerPart.Brow);
-            }
-
             if (QuickSettingsGui.Button("Eyes"))
             {
                 CaptureCurrentExpression(
                     controller,
                     slotIndex,
                     ExpressionTriggerPart.Eyes);
+            }
+
+            if (QuickSettingsGui.Button("Brows"))
+            {
+                CaptureCurrentExpression(
+                    controller,
+                    slotIndex,
+                    ExpressionTriggerPart.Brow);
             }
 
             if (QuickSettingsGui.Button("Mouth"))
@@ -250,16 +287,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 _feedback =
                     "No current " + part.ToString().ToLowerInvariant() +
-                    " pattern is available.";
+                    " expression is available.";
                 return;
             }
 
             _triggers[slotIndex] = selector;
             _triggersDirty = true;
             _feedback =
-                "Captured " + selector + " for slot " +
-                (slotIndex + 1).ToString() +
-                ". Select Save game expressions.";
+                "Current expression captured for separate mesh " +
+                (slotIndex + 1).ToString() + ".";
         }
     }
 }

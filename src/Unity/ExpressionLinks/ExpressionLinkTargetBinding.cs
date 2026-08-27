@@ -120,9 +120,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     _originalWeight = current;
                 }
 
-                // Reading even when the target is stable is intentional. It
-                // lets this owner repair a value changed by another writer on
-                // the next LateUpdate without performing redundant writes.
+                // Sample every managed channel so an external write persists
+                // for at most one update, while redundant writes are skipped.
                 if (!NearlyEqual(current, desiredWeight) ||
                     float.IsNaN(current) ||
                     float.IsInfinity(current))
@@ -174,8 +173,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 }
                 else
                 {
-                    // Another owner changed this channel after our last write.
-                    // Relinquish it without overwriting that external value.
+                    // Relinquish ownership when the channel no longer contains
+                    // this binding's last written value.
                     LastRestoreSkipped = true;
                 }
 

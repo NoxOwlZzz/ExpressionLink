@@ -76,8 +76,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             QuickSettingsGui.Space(6f);
             QuickSettingsGui.Heading("Getting started");
             QuickSettingsGui.Help(
-                "Use Apply plugin settings for plugin options. Game expressions " +
-                "and Custom links have their own Save buttons.");
+                "Save an expression link beside its editor. Apply global " +
+                "settings stores tracking, size, visibility, and separate " +
+                "ExpressionMesh compatibility options.");
             QuickSettingsGui.Heading("Troubleshooting");
             QuickSettingsGui.Help(
                 "Create a report when a shape cannot be found or does not move.");
@@ -92,12 +93,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             bool previousGuiEnabled = UnityEngine.GUI.enabled;
             UnityEngine.GUI.enabled =
                 previousGuiEnabled && _hasUnsavedSettings();
-            if (QuickSettingsGui.PrimaryButton("Apply plugin settings"))
+            if (QuickSettingsGui.PrimaryButton("Apply global settings"))
             {
                 _apply();
             }
 
-            if (QuickSettingsGui.Button("Discard changes"))
+            if (QuickSettingsGui.Button("Discard global changes"))
             {
                 _discard();
             }

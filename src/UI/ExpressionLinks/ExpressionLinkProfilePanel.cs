@@ -15,6 +15,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private int _profileIndex = -1;
         private bool _profileNamesLoaded;
         private bool _confirmReplace;
+        private int _confirmControllerInstanceId;
+        private int _confirmControllerRevision = -1;
 
         internal ExpressionLinkProfilePanel()
         {
@@ -28,15 +30,26 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             feedback = string.Empty;
             bool linksReplaced = false;
+            if (_confirmReplace &&
+                (hasUnappliedDraft || !ConfirmationMatches(controller)))
+            {
+                CancelPendingReplace();
+                feedback = hasUnappliedDraft
+                    ? "Replace cancelled. Save or cancel the current " +
+                      "expression link first."
+                    : "Replace confirmation cancelled because the selected " +
+                      "character changed.";
+            }
+
             bool showProfiles = ExpressionLinkGUILayout.Disclosure(
                 _showProfiles,
-                "Reusable profiles");
+                "Reusable link sets");
             if (showProfiles != _showProfiles)
             {
                 _showProfiles = showProfiles;
                 if (!_showProfiles)
                 {
-                    _confirmReplace = false;
+                    CancelPendingReplace();
                 }
 
                 if (_showProfiles && !_profileNamesLoaded)
@@ -51,9 +64,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             ExpressionLinkGUILayout.Help(
-                "Profiles contain the complete Custom links list.");
+                "A reusable set saves or loads every expression link for " +
+                "compatible characters.");
             string editedProfileName = ExpressionLinkGUILayout.TextField(
-                "Profile name",
+                "Set name",
                 _profileName);
             if (!string.Equals(
                     editedProfileName,
@@ -61,30 +75,33 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     StringComparison.Ordinal))
             {
                 _profileName = editedProfileName;
-                _confirmReplace = false;
+                CancelPendingReplace();
             }
+            ExpressionLinkGUILayout.Help(
+                "Using an existing name overwrites that saved set.");
 
             ExpressionLinkGUILayout.BeginHorizontal();
-            if (ExpressionLinkGUILayout.Button("Save / overwrite profile"))
+            if (ExpressionLinkGUILayout.Button("Save or overwrite set"))
             {
                 feedback = hasUnappliedDraft
-                    ? "Save or discard changes first."
+                    ? "Save or cancel the current expression link first."
                     : SaveProfile(controller);
-                _confirmReplace = false;
+                CancelPendingReplace();
             }
 
-            if (ExpressionLinkGUILayout.Button("Replace all links"))
+            if (ExpressionLinkGUILayout.Button("Load and replace links"))
             {
                 if (hasUnappliedDraft)
                 {
                     feedback =
-                        "Save or discard changes first.";
+                        "Save or cancel the current expression link first.";
                 }
                 else
                 {
-                    _confirmReplace = true;
+                    BeginReplaceConfirmation(controller);
                     feedback =
-                        "Select Confirm replace to replace every link.";
+                        "Select Confirm replace to load this set and replace " +
+                        "every current link.";
                 }
             }
 
@@ -95,15 +112,31 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 ExpressionLinkGUILayout.BeginHorizontal();
                 if (ExpressionLinkGUILayout.Button("Confirm replace"))
                 {
-                    linksReplaced = TryLoadProfile(
-                        controller,
-                        out feedback);
-                    _confirmReplace = false;
+                    if (hasUnappliedDraft)
+                    {
+                        feedback =
+                            "Replace cancelled. Save or cancel the current " +
+                            "expression link first.";
+                    }
+                    else if (!ConfirmationMatches(controller))
+                    {
+                        feedback =
+                            "Replace cancelled because the selected " +
+                            "character changed.";
+                    }
+                    else
+                    {
+                        linksReplaced = TryLoadProfile(
+                            controller,
+                            out feedback);
+                    }
+
+                    CancelPendingReplace();
                 }
 
                 if (ExpressionLinkGUILayout.Button("Cancel"))
                 {
-                    _confirmReplace = false;
+                    CancelPendingReplace();
                     feedback = "Replace cancelled.";
                 }
 
@@ -114,19 +147,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             if (ExpressionLinkGUILayout.NarrowButton("<"))
             {
-                _confirmReplace = false;
+                CancelPendingReplace();
                 feedback = CycleProfile(-1);
             }
 
             if (ExpressionLinkGUILayout.NarrowButton(">"))
             {
-                _confirmReplace = false;
+                CancelPendingReplace();
                 feedback = CycleProfile(1);
             }
 
-            if (ExpressionLinkGUILayout.Button("Refresh profiles"))
+            if (ExpressionLinkGUILayout.Button("Refresh saved sets"))
             {
-                _confirmReplace = false;
+                CancelPendingReplace();
                 feedback = RefreshProfileNames(true);
             }
 
@@ -135,11 +168,37 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (_profileNames.Length > 0)
             {
                 ExpressionLinkGUILayout.Label(
-                    "Saved profiles: " +
+                    "Saved sets: " +
                     _profileNames.Length.ToString(InvariantCulture));
             }
 
             return linksReplaced;
+        }
+
+        internal void CancelPendingReplace()
+        {
+            _confirmReplace = false;
+            _confirmControllerInstanceId = 0;
+            _confirmControllerRevision = -1;
+        }
+
+        private void BeginReplaceConfirmation(
+            EyeMotionCharacterController controller)
+        {
+            _confirmReplace = true;
+            _confirmControllerInstanceId = controller.GetInstanceID();
+            _confirmControllerRevision = controller.ExpressionLinkRevision;
+        }
+
+        private bool ConfirmationMatches(
+            EyeMotionCharacterController controller)
+        {
+            return controller != null &&
+                _confirmReplace &&
+                controller.GetInstanceID() ==
+                    _confirmControllerInstanceId &&
+                controller.ExpressionLinkRevision ==
+                    _confirmControllerRevision;
         }
 
         private string SaveProfile(
@@ -158,13 +217,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     out error))
             {
                 return error.Length == 0
-                    ? "The profile could not be saved."
+                    ? "The set could not be saved."
                     : error;
             }
 
             _profileName = savedName;
             RefreshProfileNames(false);
-            return "Profile saved: " + savedName + ".";
+            return "Set saved: " + savedName + ".";
         }
 
         private bool TryLoadProfile(
@@ -179,7 +238,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     out error))
             {
                 feedback = error.Length == 0
-                    ? "The profile could not be loaded."
+                    ? "The set could not be loaded."
                     : error;
                 return false;
             }
@@ -192,13 +251,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     out message))
             {
                 feedback = message.Length == 0
-                    ? "The profile could not be applied to the character."
+                    ? "The set could not be applied to the character."
                     : message;
                 return false;
             }
 
             _profileName = profile.Name;
-            feedback = "Profile loaded: " + profile.Name + ".";
+            feedback = "Set loaded: " + profile.Name + ".";
             return true;
         }
 
@@ -216,7 +275,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
                 return reportResult
                     ? _profileNames.Length.ToString(InvariantCulture) +
-                      " profile(s) found."
+                      " saved set(s) found."
                     : string.Empty;
             }
             catch (Exception exception)
@@ -224,7 +283,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _profileNames = new string[0];
                 _profileIndex = -1;
                 _profileNamesLoaded = true;
-                return "Profiles unavailable: " + exception.Message;
+                return "Saved sets unavailable: " + exception.Message;
             }
         }
 
@@ -232,7 +291,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             if (_profileNames.Length == 0)
             {
-                return "No saved profiles were found.";
+                return "No saved sets were found.";
             }
 
             if (_profileIndex < 0)
@@ -247,7 +306,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             _profileName = _profileNames[_profileIndex];
-            return "Selected profile: " + _profileName + ".";
+            return "Selected set: " + _profileName + ".";
         }
 
         private int FindProfileIndex(string name)

@@ -27,10 +27,6 @@ not calculate an independent look-at target, use vertex colors, replace
 - KK_ExpressionControl is optional. It is required only to drive the two
   optional IrisY/Size blendshapes.
 
-The development installation used BetterRepack RX22, BepInEx 5.4.23.2, and
-KKAPI 1.42.2. Other installations should be verified before being advertised
-as supported.
-
 This build targets Koikatsu/Koikatu only. Its core is organized for a future
 Koikatsu Sunshine adapter, but **KKS is not currently compatible or supported**.
 
@@ -122,8 +118,8 @@ The panel is organized into three clear categories:
 
 - **Eyes**: **Tracking** for camera tracking and calibration, and **Size
   controls** for the game's Iris/Size sliders.
-- **Expressions**: **ExpressionMesh slots** for the four simple mappings, and
-  **Custom links** for blendshapes on any supported character mesh.
+- **Expressions**: a guided expression-link editor for blendshapes on any
+  supported character mesh. Separate ExpressionMesh compatibility is collapsed.
 - **Visibility**: highlight synchronization, card persistence, and manual parts.
 
 Common controls stay visible. Fine tuning, names, live values, target setup,
@@ -137,11 +133,11 @@ The same panel can also be opened from:
 The Studio button now uses the same neutral square background and bevel as the
 surrounding toolbar buttons while retaining the monochrome eye glyph.
 
-Use the arrows at the top to select a character. Settings changed under Eyes,
-ExpressionMesh slots, or Visibility are stored with **Save settings**;
-**Discard changes** reloads their saved values. Manual visibility buttons take
-effect immediately. ExpressionMesh mappings and Custom links use their own clearly
-labelled save buttons because they belong to the selected character.
+Use the arrows at the top to select a character. Tracking, size, visibility,
+and separate ExpressionMesh compatibility options use **Apply global settings**;
+**Discard global changes** reloads them. Manual visibility buttons take effect
+immediately. Expression links use **Save expression link** beside the editor,
+and separate ExpressionMesh mappings have their own save button.
 
 Recommended X/Y gaze calibration:
 
@@ -151,7 +147,7 @@ Recommended X/Y gaze calibration:
 4. Try **Sensitive preset** or **Standard preset** for a quick starting point.
 5. Open **Fine tuning** only when separate left/right or up/down adjustment is
    needed. A lower range means higher sensitivity.
-6. Press **Save settings**.
+6. Press **Apply global settings**.
 
 ## Expression Links
 
@@ -160,30 +156,30 @@ writes a blendshape on a selected character renderer. Links are stored per
 character, so a VRChat-derived headmod can drive facial details as well as
 hair ears, horns, accessories, clothing parts, or other authored shapes.
 
-Use **Expressions > Custom links** for the selected character:
+Use **Expressions** for the selected character:
 
-1. Add a link and give it a descriptive name.
-2. Set its source to an exact Koikatsu FBS Close/Open blendshape name or an
-   explicit `brow:N`, `eyes:N`, or `mouth:N` selector.
-3. Enter the exact destination blendshape name.
-4. Choose the target scope and optional slot. Leave the renderer path empty
-   only when that blendshape is unique within the selected scope and slot.
-5. Use an exact renderer path and component index when status reports an
-   ambiguous destination.
-6. Choose **On / off** or **Follow expression strength**, then save the link.
+1. Select **Create link**.
+2. Pose the character and select **Use current eyes**, **Use current brows**,
+   or **Use current mouth**.
+3. Choose the character area and enter the exact destination blendshape name.
+4. Choose **Switch fully** or **Follow expression** and set its maximum strength.
+5. Select **Save expression link**.
 
-A source name is matched against Koikatsu's current brow, eyes, and mouth
-Close/Open patterns. Names under `eye_motion.*` are output destinations and
-are deliberately rejected as sources. If an exact source name is ambiguous,
-use the explicit selector reported by the status or diagnostics.
+The capture buttons store the current Koikatsu selector automatically, so the
+raw `brow:N`, `eyes:N`, or `mouth:N` value is not required for normal setup.
+
+Open **Advanced targeting and tuning** only when the target is ambiguous or
+needs custom ranges. It exposes the raw expression selector, exact renderer
+path, component and slot indices, renderer/mesh hints, smoothing, and priority.
 
 ### Multi-renderer targets
 
 Supported target scopes are `Any`, `Head`, `Hair`, `Body`, `Clothes`,
-`Accessory`, and `Other`. Hair, clothes, and accessory slots use zero-based
-indices; `-1` means any slot. Renderer paths are relative to the character's
-`ChaControl` transform, and component indices are zero-based when one
-GameObject contains multiple `SkinnedMeshRenderer` components.
+`Accessory`, and `Other`. The `Any`, `Hair`, `Clothes`, and `Accessory` scopes
+accept zero-based character slot filters; `-1` means any slot. Renderer paths
+are relative to the character's `ChaControl` transform, and component indices
+are zero-based when one GameObject contains multiple `SkinnedMeshRenderer`
+components.
 
 Resolution is conservative:
 
@@ -199,11 +195,11 @@ Resolution is conservative:
 
 ### Output modes
 
-- **On / off** (`Binary` internally): outputs `OutputMax` above `Threshold`;
-  otherwise it outputs `OutputMin`.
-- **Follow expression strength** (`Follow Source` internally): maps
+- **Switch fully** (`Binary` internally): outputs `OutputMax` above
+  `Threshold`; otherwise it outputs `OutputMin`.
+- **Follow expression** (`Follow Source` internally): maps
   `InputMin..InputMax` to `OutputMin..OutputMax` after clamping.
-- **Smoothing Speed:** limits movement in blendshape-weight units per second.
+- **Transition speed:** limits movement in blendshape-weight units per second.
   Zero applies the result immediately.
 
 Source ranges are 0 to 1 and destination weights are 0 to 100. Up to 128
@@ -216,26 +212,26 @@ write and restores it only if the channel still contains the last value it
 wrote. A later external writer is therefore not overwritten by a stale
 restore.
 
-### Reusable profiles
+### Reusable link sets
 
-The Profiles panel saves and loads validated JSON link sets under:
+The Reusable link sets panel saves and loads validated JSON files under:
 
 ```text
 BepInEx\config\KK_ExpressionLink\Profiles
 ```
 
-Loading a profile copies its links to the selected character with fresh IDs.
-Profiles are separate from character-card data and are intended for reuse
-across compatible headmods or characters. Version 0.5.0 profiles declare
-Koikatsu support only; a future KKS build will require its own validated adapter.
+Loading a set copies its links to the selected character with fresh IDs.
+Reusable sets are separate from character-card data and are intended for reuse
+across compatible headmods or characters. Version 0.5.0 sets declare Koikatsu
+support only; a future KKS build will require its own validated adapter.
 
-## Automatic ExpressionMesh triggers
+## Separate ExpressionMesh compatibility
 
-Each selected character has one trigger field for `ExpressionMesh_01` through
-`ExpressionMesh_04`. When a configured facial pattern exceeds the global
-activation threshold, KK_ExpressionLink shows that slot; otherwise it hides it. A slot
-controls its corresponding separate renderer and, when present, the matching
-fused Hide destination (`hide_expression01` through `hide_expression03`).
+This collapsed section is only for headmods with separate renderers named
+`ExpressionMesh_01` through `ExpressionMesh_04`. A configured facial pattern
+shows its renderer after passing the global activation point and hides it
+otherwise. It also controls the matching fused Hide destination when present
+(`hide_expression01` through `hide_expression03`).
 
 A trigger accepts either:
 
@@ -250,10 +246,10 @@ explicit selector shown by diagnostics/status. `eye_motion.*` names are
 destinations and are deliberately rejected as triggers.
 
 For easier setup, pose the character with the desired facial expression, then
-use the row labeled **Use current:** and press **Brow**, **Eyes**, or **Mouth**
-on the desired ExpressionMesh row. The panel records the strongest current
-pattern as an explicit selector. Press **Apply expression triggers to selected
-character** to resolve and use the four edited fields.
+select the desired **Separate mesh XX** with the arrows and press **Eyes**,
+**Brows**, or **Mouth** under **Capture the current expression**. The panel
+records the strongest current pattern as an explicit selector. Press **Save
+ExpressionMesh mappings** to store the edited mappings with the character.
 
 Automatic visibility has lower priority than manual intent:
 
@@ -262,7 +258,7 @@ Automatic visibility has lower priority than manual intent:
 3. Manual `Original` lets a configured expression trigger show/hide the slot.
 4. With no valid trigger, `Original` restores the captured runtime value.
 
-Disable **Enable expression-trigger automation** to return trigger-controlled
+Disable **Enable separate ExpressionMesh switching** to return trigger-controlled
 slots to their normal manual/original behavior without deleting saved trigger
 assignments.
 
@@ -343,8 +339,8 @@ BepInEx configuration.
 
 KKAPI keeps per-character data attached to characters stored in Studio scenes.
 KK_ExpressionLink does not create a separate global scene payload. JSON
-profiles are separate reusable files, not additional Studio scene data. Back
-up valuable cards before checking compatibility.
+profiles are separate reusable files, not additional Studio scene data. Test
+compatibility on copies of valuable cards and keep the originals unchanged.
 
 ## Renderer selection
 
@@ -416,10 +412,6 @@ configuration/dependency/PDB files, and creates:
 dist\KK_ExpressionLink-v0.5.0.zip
 dist\KK_ExpressionLink-v0.5.0.zip.sha256
 ```
-
-For local deployment, `deploy-release.bat` backs up the previous DLL outside
-the scanned `BepInEx\plugins` tree before copying the new one. The PDB is copied
-only with its explicit development option.
 
 ## Current limitations
 

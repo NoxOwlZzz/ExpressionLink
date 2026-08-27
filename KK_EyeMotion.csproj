@@ -116,8 +116,12 @@
     <Compile Include="src\UI\Styling\QuickSettingsWindowChromeResources.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkEditorView.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkDraftPanel.cs" />
+    <Compile Include="src\UI\ExpressionLinks\ExpressionLinkDraftRules.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkGUILayout.cs" />
     <Compile Include="src\UI\ExpressionLinks\ExpressionLinkProfilePanel.cs" />
+    <Compile Include="src\UI\ExpressionLinks\ExpressionLinkSourceSectionView.cs" />
+    <Compile Include="src\UI\ExpressionLinks\ExpressionLinkTargetSectionView.cs" />
+    <Compile Include="src\UI\ExpressionLinks\ExpressionLinkResponseSectionView.cs" />
     <Compile Include="src\UI\QuickSettingsWindowGeometry.cs" />
     <Compile Include="src\UI\QuickSettingsMovableWindow.cs" />
     <Compile Include="src\UI\QuickSettingsWindowVisualFactory.cs" />
@@ -129,6 +133,7 @@
     <Compile Include="src\UI\QuickSettings\QuickSettingsNavigationView.cs" />
     <Compile Include="src\UI\QuickSettings\QuickSettingsFooterView.cs" />
     <Compile Include="src\UI\QuickSettings\QuickSettingsSurfaceView.cs" />
+    <Compile Include="src\UI\QuickSettings\ExpressionWorkspaceView.cs" />
     <Compile Include="src\UI\QuickSettings\MotionSettingsView.cs" />
     <Compile Include="src\UI\QuickSettings\IrisSettingsView.cs" />
     <Compile Include="src\UI\QuickSettings\ExpressionSettingsView.cs" />

@@ -56,6 +56,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             QuickSettingsGui.Help(text);
         }
 
+        internal static void Warning(string text)
+        {
+            QuickSettingsGui.Warning(text);
+        }
+
+        internal static void StatusBadge(string text)
+        {
+            QuickSettingsGui.StatusBadge(text);
+        }
+
         internal static void FieldLabel(string text)
         {
             QuickSettingsGui.Label(text, FieldLabelOptions);
@@ -69,6 +79,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal static bool Button(string text)
         {
             return QuickSettingsGui.Button(text);
+        }
+
+        internal static bool PrimaryButton(string text)
+        {
+            return QuickSettingsGui.PrimaryButton(text);
         }
 
         internal static bool NarrowButton(string text)

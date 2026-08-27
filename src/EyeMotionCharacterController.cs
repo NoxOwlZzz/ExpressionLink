@@ -1374,7 +1374,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
             catch (Exception)
             {
-                // Diagnostic fallback only.
             }
 
             return ChaControl == null ? "<destroyed character>" : ChaControl.name;

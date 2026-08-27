@@ -7,41 +7,45 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal static class Colors
         {
             internal static readonly Color Surface =
-                new Color32(30, 36, 44, 255);
+                new Color32(36, 43, 52, 255);
             internal static readonly Color ElevatedSurface =
-                new Color32(37, 45, 55, 255);
+                new Color32(42, 49, 59, 255);
             internal static readonly Color PropertyRow =
-                new Color32(41, 50, 61, 255);
+                new Color32(42, 49, 59, 255);
             internal static readonly Color Input =
-                new Color32(21, 27, 34, 255);
+                new Color32(22, 27, 34, 255);
             internal static readonly Color Button =
-                new Color32(39, 50, 61, 255);
+                new Color32(32, 38, 47, 255);
             internal static readonly Color ButtonHover =
-                new Color32(52, 74, 92, 255);
+                new Color32(51, 70, 92, 255);
             internal static readonly Color ButtonPressed =
-                new Color32(41, 72, 84, 255);
+                new Color32(57, 69, 83, 255);
             internal static readonly Color Selected =
-                new Color32(53, 110, 137, 255);
+                new Color32(52, 105, 153, 255);
             internal static readonly Color SelectedHover =
-                new Color32(66, 126, 152, 255);
+                new Color32(60, 110, 155, 255);
+            internal static readonly Color SelectedPressed =
+                new Color32(49, 95, 137, 255);
             internal static readonly Color Section =
-                new Color32(81, 84, 109, 255);
+                new Color32(111, 90, 142, 255);
             internal static readonly Color SectionHover =
-                new Color32(96, 100, 126, 255);
+                new Color32(118, 95, 151, 255);
+            internal static readonly Color SectionPressed =
+                new Color32(95, 76, 125, 255);
             internal static readonly Color Accent =
-                new Color32(98, 176, 193, 255);
+                new Color32(143, 199, 232, 255);
             internal static readonly Color OuterBorder =
-                new Color32(14, 20, 26, 255);
+                new Color32(16, 21, 27, 255);
             internal static readonly Color ControlBorder =
-                new Color32(61, 74, 87, 255);
+                new Color32(62, 74, 88, 255);
             internal static readonly Color PrimaryText =
                 new Color32(230, 236, 242, 255);
             internal static readonly Color SecondaryText =
                 new Color32(170, 182, 195, 255);
             internal static readonly Color WarningSurface =
-                new Color32(73, 61, 42, 255);
+                new Color32(64, 55, 42, 255);
             internal static readonly Color WarningText =
-                new Color32(215, 164, 74, 255);
+                new Color32(226, 194, 135, 255);
         }
 
         internal static class Metrics

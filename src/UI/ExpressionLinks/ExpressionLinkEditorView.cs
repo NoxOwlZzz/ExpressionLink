@@ -19,6 +19,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private int _observedRevision = -1;
         private int _selectedIndex;
         private int _pendingDeleteIndex = -1;
+        private bool _isNewDraft;
         private string _feedback = string.Empty;
 
         internal ExpressionLinkEditorView()
@@ -29,7 +30,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal bool HasUnsavedChanges
         {
-            get { return _draftPanel.IsDirty; }
+            get { return _isNewDraft || _draftPanel.IsDirty; }
         }
 
         internal void ResetSelection()
@@ -38,8 +39,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _observedRevision = -1;
             _selectedIndex = 0;
             _pendingDeleteIndex = -1;
+            _isNewDraft = false;
             _feedback = string.Empty;
             _draftPanel.Reset();
+            _profilePanel.CancelPendingReplace();
         }
 
         internal void RejectControllerChange()
@@ -49,20 +52,41 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal void RejectNavigationChange()
         {
-            SetFeedback("Save or discard changes first.");
+            SetFeedback("Save or cancel the current expression link first.");
         }
 
         internal void Draw(EyeMotionCharacterController controller)
         {
+            ExpressionLinkGUILayout.Heading("Expression links");
+            ExpressionLinkGUILayout.Help(
+                "Choose a game expression, then choose the blendshape it " +
+                "should control.");
+
             if (controller == null)
             {
-                ResetSelection();
-                ExpressionLinkGUILayout.Help(
-                    "Select a character to create or edit links.");
+                if (HasUnsavedChanges)
+                {
+                    SetFeedback(
+                        "The character being edited is no longer available. " +
+                        "The draft is still preserved.");
+                    DrawUnavailableDraft(null);
+                }
+                else
+                {
+                    ResetSelection();
+                    ExpressionLinkGUILayout.Help(
+                        "Select a character to create or edit expression links.");
+                }
+
                 return;
             }
 
-            EnsureSelection(controller);
+            if (!EnsureSelection(controller))
+            {
+                DrawUnavailableDraft(controller);
+                return;
+            }
+
             DrawNavigation(controller);
 
             if (_draftPanel.HasDraft)
@@ -71,6 +95,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 if (_draftPanel.ChangedDuringLastDraw)
                 {
                     _feedback = string.Empty;
+                    _pendingDeleteIndex = -1;
                 }
 
                 if (draftFeedback.Length > 0)
@@ -78,18 +103,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     SetFeedback(draftFeedback);
                 }
 
-                DrawApplyButtons(controller);
+                if (!IsDeleteConfirmationPending())
+                {
+                    DrawSaveButtons(controller);
+                }
             }
             else
             {
                 ExpressionLinkGUILayout.Help(
-                    "No links yet. Select New link to create one.");
+                    "No expression links yet. Select Create link to begin.");
             }
 
             string profileFeedback;
             bool linksReplaced = _profilePanel.Draw(
                 controller,
-                _draftPanel.IsDirty,
+                HasUnsavedChanges,
                 out profileFeedback);
             if (linksReplaced)
             {
@@ -105,26 +133,30 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             DrawStatus(controller);
         }
 
-        private void EnsureSelection(
-            EyeMotionCharacterController controller)
+        private bool EnsureSelection(EyeMotionCharacterController controller)
         {
             int instanceId = controller.GetInstanceID();
             int revision = controller.ExpressionLinkRevision;
             if (_controllerInstanceId == instanceId &&
                 _observedRevision == revision)
             {
-                return;
+                return true;
             }
 
-            bool discardedDraft = _draftPanel.IsDirty;
+            if (HasUnsavedChanges)
+            {
+                SetFeedback(_controllerInstanceId != instanceId
+                    ? "The selected character changed while this draft was " +
+                      "open. The draft is preserved until you discard it."
+                    : "The stored links changed while this draft was open. " +
+                      "The draft is preserved until you discard it.");
+                return false;
+            }
+
             _controllerInstanceId = instanceId;
             ClampSelection(controller.ExpressionLinkCount);
             LoadSelected(controller);
-            if (discardedDraft)
-            {
-                SetFeedback(
-                    "Links changed. Your editor was refreshed.");
-            }
+            return true;
         }
 
         private void DrawNavigation(
@@ -148,11 +180,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ExpressionLinkGUILayout.EndHorizontal();
 
             ExpressionLinkGUILayout.BeginHorizontal();
-            if (ExpressionLinkGUILayout.Button("New link"))
+            if (ExpressionLinkGUILayout.Button("Create link"))
             {
                 if (RequireCleanDraft())
                 {
-                    AddDefault(controller);
+                    BeginNewDraft();
                 }
             }
 
@@ -162,11 +194,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 if (RequireCleanDraft())
                 {
-                    DuplicateSelected(controller);
+                    BeginDuplicateDraft();
                 }
             }
 
-            if (ExpressionLinkGUILayout.Button("Delete link"))
+            if (ExpressionLinkGUILayout.Button("Delete"))
             {
                 if (RequireCleanDraft())
                 {
@@ -179,7 +211,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             GUI.enabled = previousGuiEnabled;
             ExpressionLinkGUILayout.EndHorizontal();
 
-            if (_pendingDeleteIndex != _selectedIndex)
+            if (!IsDeleteConfirmationPending())
             {
                 return;
             }
@@ -202,19 +234,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ExpressionLinkGUILayout.EndHorizontal();
         }
 
-        private void DrawApplyButtons(
+        private void DrawSaveButtons(
             EyeMotionCharacterController controller)
         {
             ExpressionLinkGUILayout.BeginHorizontal();
-            if (ExpressionLinkGUILayout.Button("Save link"))
+            if (ExpressionLinkGUILayout.PrimaryButton(
+                    "Save expression link"))
             {
-                ApplyDraft(controller);
+                SaveDraft(controller);
             }
 
-            if (ExpressionLinkGUILayout.Button("Discard edits"))
+            if (ExpressionLinkGUILayout.Button("Cancel"))
             {
-                LoadSelected(controller);
-                SetFeedback("Edits discarded.");
+                CancelDraft(controller);
             }
 
             ExpressionLinkGUILayout.EndHorizontal();
@@ -223,32 +255,68 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private void DrawStatus(
             EyeMotionCharacterController controller)
         {
-            string status = _feedback;
-            if (status.Length == 0 && _draftPanel.HasDraft)
+            if (_feedback.Length > 0)
             {
-                status = controller.GetExpressionLinkStatus(
-                    _selectedIndex);
+                ExpressionLinkGUILayout.Help(
+                    "Message: " + NormalizeStatus(_feedback));
             }
 
+            string status;
+            if (_isNewDraft)
+            {
+                status =
+                    "Complete the three steps, then save the expression link.";
+            }
+            else if (_draftPanel.HasDraft)
+            {
+                status = controller.GetExpressionLinkStatus(_selectedIndex);
+            }
+            else
+            {
+                status = "No expression links.";
+            }
+
+            status = NormalizeStatus(status);
             if (string.IsNullOrEmpty(status))
             {
-                status = _draftPanel.HasDraft
-                    ? "Ready."
-                    : "No links.";
+                status = "Ready.";
             }
 
-            if (_draftPanel.IsDirty && _feedback.Length == 0)
+            if (HasUnsavedChanges && !_isNewDraft)
             {
-                status += " Unsaved edits.";
+                status += " The open draft has not been saved.";
             }
 
             ExpressionLinkGUILayout.Help(
                 "Status: " + NormalizeStatus(status));
         }
 
+        private void DrawUnavailableDraft(
+            EyeMotionCharacterController controller)
+        {
+            ExpressionLinkGUILayout.Warning(_feedback);
+            string label = controller == null
+                ? "Discard unavailable draft"
+                : "Discard draft and refresh";
+            if (!ExpressionLinkGUILayout.Button(label))
+            {
+                return;
+            }
+
+            if (controller == null)
+            {
+                ResetSelection();
+                return;
+            }
+
+            _controllerInstanceId = controller.GetInstanceID();
+            LoadSelected(controller);
+            SetFeedback("Draft discarded; selected character refreshed.");
+        }
+
         private bool RequireCleanDraft()
         {
-            if (!_draftPanel.IsDirty)
+            if (!HasUnsavedChanges)
             {
                 return true;
             }
@@ -269,31 +337,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             Select(controller, requestedIndex);
         }
 
-        private void AddDefault(
-            EyeMotionCharacterController controller)
+        private void BeginNewDraft()
         {
-            int newIndex;
-            string message;
-            if (!controller.AddExpressionLink(
-                    ExpressionLinkDefinition.CreateDefault(),
-                    out newIndex,
-                    out message))
-            {
-                SetFeedback(message.Length == 0
-                    ? "The link could not be created."
-                    : message);
-                return;
-            }
-
-            _selectedIndex = newIndex;
-            LoadSelected(controller);
-            SetFeedback(message.Length == 0
-                ? "Expression link created."
-                : message);
+            _draftPanel.Load(ExpressionLinkDefinition.CreateDefault());
+            _isNewDraft = true;
+            _pendingDeleteIndex = -1;
+            _profilePanel.CancelPendingReplace();
+            SetFeedback(
+                "Capture an expression, choose a target, and save when ready.");
         }
 
-        private void DuplicateSelected(
-            EyeMotionCharacterController controller)
+        private void BeginDuplicateDraft()
         {
             ExpressionLinkDefinition duplicate;
             string error;
@@ -309,25 +363,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             duplicate.Name = string.IsNullOrEmpty(duplicate.Name)
                 ? "Expression Link Copy"
                 : duplicate.Name + " Copy";
-
-            int newIndex;
-            string message;
-            if (!controller.AddExpressionLink(
-                    duplicate,
-                    out newIndex,
-                    out message))
-            {
-                SetFeedback(message.Length == 0
-                    ? "The link could not be duplicated."
-                    : message);
-                return;
-            }
-
-            _selectedIndex = newIndex;
-            LoadSelected(controller);
-            SetFeedback(message.Length == 0
-                ? "Expression link duplicated."
-                : message);
+            _draftPanel.Load(duplicate);
+            _isNewDraft = true;
+            _pendingDeleteIndex = -1;
+            _profilePanel.CancelPendingReplace();
+            SetFeedback(
+                "Edit the copy, then save it as a new expression link.");
         }
 
         private void DeleteSelected(
@@ -344,7 +385,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     out message))
             {
                 SetFeedback(message.Length == 0
-                    ? "The link could not be deleted."
+                    ? "The expression link could not be deleted."
                     : message);
                 return;
             }
@@ -356,7 +397,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 : message);
         }
 
-        private void ApplyDraft(
+        private void SaveDraft(
             EyeMotionCharacterController controller)
         {
             ExpressionLinkDefinition candidate;
@@ -370,21 +411,47 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             string message;
-            if (!controller.UpdateExpressionLink(
+            if (_isNewDraft)
+            {
+                int newIndex;
+                if (!controller.AddExpressionLink(
+                        candidate,
+                        out newIndex,
+                        out message))
+                {
+                    SetFeedback(message.Length == 0
+                        ? "The expression link could not be saved."
+                        : message);
+                    return;
+                }
+
+                _selectedIndex = newIndex;
+            }
+            else if (!controller.UpdateExpressionLink(
                     _selectedIndex,
                     candidate,
                     out message))
             {
                 SetFeedback(message.Length == 0
-                    ? "The link could not be applied."
+                    ? "The expression link could not be saved."
                     : message);
                 return;
             }
 
             LoadSelected(controller);
             SetFeedback(message.Length == 0
-                ? "Expression link applied."
+                ? "Expression link saved."
                 : message);
+        }
+
+        private void CancelDraft(
+            EyeMotionCharacterController controller)
+        {
+            bool cancelledNewDraft = _isNewDraft;
+            LoadSelected(controller);
+            SetFeedback(cancelledNewDraft
+                ? "New expression link cancelled."
+                : "Edits discarded.");
         }
 
         private void Select(
@@ -401,6 +468,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private void LoadSelected(
             EyeMotionCharacterController controller)
         {
+            _profilePanel.CancelPendingReplace();
             int count = controller.ExpressionLinkCount;
             ClampSelection(count);
             ExpressionLinkDefinition selected = count == 0
@@ -408,15 +476,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 : controller.GetExpressionLink(_selectedIndex);
             _draftPanel.Load(selected);
             _pendingDeleteIndex = -1;
+            _isNewDraft = false;
             _observedRevision = controller.ExpressionLinkRevision;
             _feedback = string.Empty;
         }
 
         private string GetNavigationLabel(int count)
         {
+            if (_isNewDraft)
+            {
+                return "New expression link";
+            }
+
             if (count <= 0)
             {
-                return "Link 0 of 0";
+                return "No expression links";
             }
 
             string label = "Link " +
@@ -488,6 +562,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             value %= count;
             return value < 0 ? value + count : value;
+        }
+
+        private bool IsDeleteConfirmationPending()
+        {
+            return _pendingDeleteIndex == _selectedIndex &&
+                !_isNewDraft;
         }
     }
 }

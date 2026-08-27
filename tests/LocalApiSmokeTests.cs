@@ -468,28 +468,60 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             Type expressionSettingsType = GetPluginType(
                 pluginAssembly,
                 "ExpressionSettingsView");
-            Check("automatic mappings view type", expressionSettingsType != null);
             Check(
-                "automatic mappings expose unsaved state",
+                "ExpressionMesh compatibility view type",
+                expressionSettingsType != null);
+            Check(
+                "ExpressionMesh mappings expose unsaved state",
                 expressionSettingsType.GetProperty(
                     "HasUnsavedChanges", instanceNonPublic) != null);
             Check(
-                "automatic mappings reject unsafe navigation",
+                "ExpressionMesh mappings reject unsafe navigation",
                 expressionSettingsType.GetMethod(
                     "RejectNavigationChange", instanceNonPublic) != null);
             Check(
-                "automatic mappings can discard unavailable edits",
+                "ExpressionMesh mappings can discard unavailable edits",
                 expressionSettingsType.GetMethod(
                     "DiscardUnavailableMappings",
                     instanceNonPublic) != null);
             Check(
-                "automatic mappings own dirty state",
+                "ExpressionMesh mappings own dirty state",
                 expressionSettingsType.GetField(
                     "_triggersDirty", instanceNonPublic) != null);
+            Check(
+                "ExpressionMesh mappings preserve stale edits",
+                expressionSettingsType.GetMethod(
+                    "HasStaleTriggerBuffer",
+                    instanceNonPublic) != null);
+            Type expressionWorkspaceType = GetPluginType(
+                pluginAssembly,
+                "ExpressionWorkspaceView");
+            Check(
+                "expression workspace type",
+                expressionWorkspaceType != null);
+            Check(
+                "expression workspace composes general links",
+                expressionWorkspaceType.GetField(
+                    "_linkEditor", instanceNonPublic) != null);
+            Check(
+                "expression workspace composes ExpressionMesh compatibility",
+                expressionWorkspaceType.GetField(
+                    "_compatibilityView", instanceNonPublic) != null);
             Type linkEditorType = GetPluginType(
                 pluginAssembly,
                 "ExpressionLinkEditorView");
             Check("expression-link editor type", linkEditorType != null);
+            Check(
+                "new expression links remain drafts until saved",
+                linkEditorType.GetField(
+                    "_isNewDraft", instanceNonPublic) != null);
+            MethodInfo ensureLinkSelectionMethod = linkEditorType.GetMethod(
+                "EnsureSelection",
+                instanceNonPublic);
+            Check(
+                "expression-link selection can block stale refresh",
+                ensureLinkSelectionMethod != null &&
+                ensureLinkSelectionMethod.ReturnType == typeof(bool));
             Type linkDraftPanelType = GetPluginType(
                 pluginAssembly,
                 "ExpressionLinkDraftPanel");
@@ -498,11 +530,84 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "link draft reports edits from current draw",
                 linkDraftPanelType.GetProperty(
                     "ChangedDuringLastDraw", instanceNonPublic) != null);
+            Type draftDefinitionType = GetPluginType(
+                pluginAssembly,
+                "ExpressionLinkDefinition");
+            object defaultDraft = draftDefinitionType.GetMethod(
+                "CreateDefault",
+                BindingFlags.Static | BindingFlags.NonPublic).Invoke(
+                    null,
+                    null);
+            object draftPanelInstance = Activator.CreateInstance(
+                linkDraftPanelType,
+                true);
+            linkDraftPanelType.GetMethod(
+                "Load",
+                instanceNonPublic).Invoke(
+                    draftPanelInstance,
+                    new object[] { defaultDraft });
+            object[] incompleteCandidateArguments =
+            {
+                null,
+                string.Empty
+            };
+            bool incompleteDraftAccepted = Convert.ToBoolean(
+                linkDraftPanelType.GetMethod(
+                    "TryBuildCandidate",
+                    instanceNonPublic).Invoke(
+                        draftPanelInstance,
+                        incompleteCandidateArguments));
             Check(
-                "quick-settings expression-link editor",
+                "enabled incomplete expression link rejected",
+                !incompleteDraftAccepted &&
+                ((string)incompleteCandidateArguments[1]).IndexOf(
+                    "Step 1",
+                    StringComparison.Ordinal) >= 0);
+            Type targetScopeType = GetPluginType(
+                pluginAssembly,
+                "ExpressionTargetScope");
+            MethodInfo scopeUsesSlotsMethod = linkDraftPanelType.GetMethod(
+                "ScopeUsesSlots",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Check(
+                "Any target scope preserves slot filters",
+                scopeUsesSlotsMethod != null &&
+                Convert.ToBoolean(
+                    scopeUsesSlotsMethod.Invoke(
+                        null,
+                        new object[]
+                        {
+                            Enum.Parse(targetScopeType, "Any")
+                        })));
+            Check(
+                "Head target scope does not expose slot filters",
+                !Convert.ToBoolean(
+                    scopeUsesSlotsMethod.Invoke(
+                        null,
+                        new object[]
+                        {
+                            Enum.Parse(targetScopeType, "Head")
+                        })));
+            Check(
+                "quick-settings owns expression workspace",
                 quickSettingsSurfaceType.GetField(
-                    "_expressionLinkEditor",
+                    "_expressionWorkspace",
                     instanceNonPublic) != null);
+            Check(
+                "expression source section type",
+                GetPluginType(
+                    pluginAssembly,
+                    "ExpressionLinkSourceSectionView") != null);
+            Check(
+                "expression target section type",
+                GetPluginType(
+                    pluginAssembly,
+                    "ExpressionLinkTargetSectionView") != null);
+            Check(
+                "expression response section type",
+                GetPluginType(
+                    pluginAssembly,
+                    "ExpressionLinkResponseSectionView") != null);
             Check(
                 "quick-settings visible navigation feedback",
                 quickSettingsSurfaceType.GetField(
@@ -518,6 +623,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "profile replacement requires confirmation state",
                 linkProfilePanelType.GetField(
                     "_confirmReplace", instanceNonPublic) != null);
+            Check(
+                "profile replacement bound to one character revision",
+                linkProfilePanelType.GetField(
+                    "_confirmControllerInstanceId",
+                    instanceNonPublic) != null &&
+                linkProfilePanelType.GetField(
+                    "_confirmControllerRevision",
+                    instanceNonPublic) != null);
+            Check(
+                "profile replacement confirmation can be cancelled",
+                linkProfilePanelType.GetMethod(
+                    "CancelPendingReplace",
+                    instanceNonPublic) != null);
             Check(
                 "Maker quick-settings launcher",
                 pluginType.GetMethod(

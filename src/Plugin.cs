@@ -211,9 +211,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     float irisY = (y - 15.5f) / 5.25f;
                     float irisDistance = irisX * irisX + irisY * irisY;
 
-                    // Studio's built-in toolbar uses small neutral monochrome
-                    // glyphs. Keep the existing soft gray eye on top of the
-                    // matching button background.
+                    // Draw a soft gray eye that matches Studio's small neutral
+                    // monochrome glyphs.
                     if (eyeDistance >= 0.74f && eyeDistance <= 1.08f)
                     {
                         color = new Color(0.78f, 0.80f, 0.82f, 1f);

@@ -7,8 +7,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     {
         EyeTracking,
         EyeSize,
-        AutomaticExpressions,
-        CustomLinks,
+        Expressions,
         Visibility
     }
 
@@ -20,12 +19,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private const int TrackingSection = 0;
         private const int SizeSection = 1;
-        private const int AutomaticSection = 0;
-        private const int LinksSection = 1;
 
         private int _selectedPage = EyesPage;
         private int _selectedEyesSection = TrackingSection;
-        private int _selectedExpressionsSection = AutomaticSection;
 
         internal QuickSettingsDestination Destination
         {
@@ -38,9 +34,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
                 if (_selectedPage == ExpressionsPage)
                 {
-                    return _selectedExpressionsSection == LinksSection
-                        ? QuickSettingsDestination.CustomLinks
-                        : QuickSettingsDestination.AutomaticExpressions;
+                    return QuickSettingsDestination.Expressions;
                 }
 
                 return _selectedEyesSection == SizeSection
@@ -64,7 +58,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             changed |= DrawPrimaryButton(
                 ExpressionsPage,
                 "Expressions",
-                GetExpressionsDestination(),
+                QuickSettingsDestination.Expressions,
                 preventLeavingCurrentView,
                 navigationBlocked);
             changed |= DrawPrimaryButton(
@@ -78,37 +72,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (_selectedPage == EyesPage)
             {
                 QuickSettingsGui.BeginHorizontal();
-                changed |= DrawSecondaryButton(
+                changed |= DrawEyesSectionButton(
                     TrackingSection,
                     "Tracking",
                     QuickSettingsDestination.EyeTracking,
-                    true,
                     preventLeavingCurrentView,
                     navigationBlocked);
-                changed |= DrawSecondaryButton(
+                changed |= DrawEyesSectionButton(
                     SizeSection,
                     "Size controls",
                     QuickSettingsDestination.EyeSize,
-                    true,
-                    preventLeavingCurrentView,
-                    navigationBlocked);
-                QuickSettingsGui.EndHorizontal();
-            }
-            else if (_selectedPage == ExpressionsPage)
-            {
-                QuickSettingsGui.BeginHorizontal();
-                changed |= DrawSecondaryButton(
-                    AutomaticSection,
-                    "Game expressions",
-                    QuickSettingsDestination.AutomaticExpressions,
-                    false,
-                    preventLeavingCurrentView,
-                    navigationBlocked);
-                changed |= DrawSecondaryButton(
-                    LinksSection,
-                    "Custom links",
-                    QuickSettingsDestination.CustomLinks,
-                    false,
                     preventLeavingCurrentView,
                     navigationBlocked);
                 QuickSettingsGui.EndHorizontal();
@@ -144,17 +117,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             return true;
         }
 
-        private bool DrawSecondaryButton(
+        private bool DrawEyesSectionButton(
             int section,
             string label,
             QuickSettingsDestination destination,
-            bool eyesSection,
             bool preventLeavingCurrentView,
             Action navigationBlocked)
         {
-            bool selected = eyesSection
-                ? _selectedEyesSection == section
-                : _selectedExpressionsSection == section;
+            bool selected = _selectedEyesSection == section;
             if (!QuickSettingsGui.SecondaryTabButton(label, selected) ||
                 selected)
             {
@@ -169,15 +139,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return false;
             }
 
-            if (eyesSection)
-            {
-                _selectedEyesSection = section;
-            }
-            else
-            {
-                _selectedExpressionsSection = section;
-            }
-
+            _selectedEyesSection = section;
             ClearKeyboardFocus();
             return true;
         }
@@ -212,23 +174,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 : QuickSettingsDestination.EyeTracking;
         }
 
-        private QuickSettingsDestination GetExpressionsDestination()
-        {
-            return _selectedExpressionsSection == LinksSection
-                ? QuickSettingsDestination.CustomLinks
-                : QuickSettingsDestination.AutomaticExpressions;
-        }
-
         private string GetDescription()
         {
             switch (Destination)
             {
                 case QuickSettingsDestination.EyeSize:
                     return "Connect the game's eye sliders to your custom eye shapes.";
-                case QuickSettingsDestination.AutomaticExpressions:
-                    return "Map game expressions to ExpressionMesh 01 through 04.";
-                case QuickSettingsDestination.CustomLinks:
-                    return "Drive a blendshape on the head, hair, body, clothes, or accessories.";
+                case QuickSettingsDestination.Expressions:
+                    return "Make a blendshape react to a facial expression.";
                 case QuickSettingsDestination.Visibility:
                     return "Show or hide custom parts and follow Erase Highlight.";
                 default:

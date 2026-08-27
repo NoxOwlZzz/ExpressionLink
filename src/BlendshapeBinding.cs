@@ -421,9 +421,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return;
             }
 
-            // A changed target must be written anyway, so avoid a redundant
-            // Unity read. A stable target is verified against the renderer so
-            // another writer is still corrected on the next LateUpdate.
+            // Skip the renderer read when the requested target differs from
+            // managed state. Stable targets are sampled each LateUpdate so an
+            // external write is reapplied on the next update.
             if (state.TargetChanged(desiredValue))
             {
                 Set(index, desiredValue);

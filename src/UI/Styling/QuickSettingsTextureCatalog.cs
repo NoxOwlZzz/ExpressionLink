@@ -67,6 +67,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 QuickSettingsTheme.Colors.SelectedHover,
                 QuickSettingsTheme.Colors.Accent,
                 QuickSettingsTheme.Metrics.ControlRadius);
+            SelectedPressed = CreateRounded(
+                "ExpressionLink.SelectedPressed",
+                QuickSettingsTheme.Colors.SelectedPressed,
+                QuickSettingsTheme.Colors.Accent,
+                QuickSettingsTheme.Metrics.ControlRadius);
             Section = CreateRounded(
                 "ExpressionLink.Section",
                 QuickSettingsTheme.Colors.Section,
@@ -75,6 +80,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             SectionHover = CreateRounded(
                 "ExpressionLink.SectionHover",
                 QuickSettingsTheme.Colors.SectionHover,
+                QuickSettingsTheme.Colors.ControlBorder,
+                QuickSettingsTheme.Metrics.ControlRadius);
+            SectionPressed = CreateRounded(
+                "ExpressionLink.SectionPressed",
+                QuickSettingsTheme.Colors.SectionPressed,
                 QuickSettingsTheme.Colors.ControlBorder,
                 QuickSettingsTheme.Metrics.ControlRadius);
             Accent = CreateRounded(
@@ -100,8 +110,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal Texture2D ButtonPressed { get; private set; }
         internal Texture2D Selected { get; private set; }
         internal Texture2D SelectedHover { get; private set; }
+        internal Texture2D SelectedPressed { get; private set; }
         internal Texture2D Section { get; private set; }
         internal Texture2D SectionHover { get; private set; }
+        internal Texture2D SectionPressed { get; private set; }
         internal Texture2D Accent { get; private set; }
         internal Texture2D WarningSurface { get; private set; }
 

@@ -136,7 +136,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 skin.button,
                 _textures.Selected,
                 _textures.SelectedHover,
-                _textures.Accent,
+                _textures.SelectedPressed,
                 QuickSettingsTheme.Colors.PrimaryText);
             PrimaryButton.fontStyle = FontStyle.Bold;
 
@@ -151,7 +151,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 skin.button,
                 _textures.Selected,
                 _textures.SelectedHover,
-                _textures.ButtonPressed,
+                _textures.SelectedPressed,
                 QuickSettingsTheme.Colors.PrimaryText);
             SelectedTab.fixedHeight = QuickSettingsTheme.Metrics.TabHeight;
             SelectedTab.fontStyle = FontStyle.Bold;
@@ -169,7 +169,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 skin.button,
                 _textures.Section,
                 _textures.SectionHover,
-                _textures.ButtonPressed,
+                _textures.SectionPressed,
                 QuickSettingsTheme.Colors.PrimaryText);
             Disclosure.alignment = TextAnchor.MiddleLeft;
             Disclosure.fontStyle = FontStyle.Bold;
@@ -206,7 +206,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 SliderThumb,
                 _textures.Accent,
                 _textures.SelectedHover,
-                _textures.ButtonPressed);
+                _textures.SelectedPressed);
 
             ValueLabel = new GUIStyle(Label);
             ValueLabel.normal.background = _textures.Input;
