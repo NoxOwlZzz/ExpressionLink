@@ -186,7 +186,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             if (eyeBinding == null || !eyeBinding.IsValid())
             {
-                throw new ArgumentException("A valid EyeMotion binding is required.", "eyeBinding");
+                throw new ArgumentException("A valid eye-motion binding is required.", "eyeBinding");
             }
 
             return new ManualVisibilityBinding(owner, eyeBinding);

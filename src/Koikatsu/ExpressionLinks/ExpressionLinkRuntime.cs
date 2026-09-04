@@ -155,21 +155,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _targetResolver = new ExpressionLinkTargetResolver(_catalog);
         }
 
-        internal CharacterRendererCatalog Catalog
-        {
-            get { return _catalog; }
-        }
-
-        internal int LinkCount
-        {
-            get { return _links.Length; }
-        }
-
-        internal int TargetCount
-        {
-            get { return _groups.Length; }
-        }
-
         internal bool HasUnresolvedLinks
         {
             get { return _hasUnresolvedLinks; }
@@ -178,11 +163,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal bool RequiresRebuild
         {
             get { return _requiresRebuild; }
-        }
-
-        internal string LastError
-        {
-            get { return _lastError; }
         }
 
         internal ExpressionLinkTargetDiagnostic GetDiagnostic(int linkIndex)

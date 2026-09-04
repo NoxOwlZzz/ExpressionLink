@@ -2,7 +2,7 @@
 
 **Blendshape and Expression Controller for Koikatsu**
 Author: NightOwlZzz / Owl
-Current version: 0.5.0
+Current version: 0.5.1
 
 KK_ExpressionLink preserves the optimized custom-eye movement, blink, iris
 adjustment, visibility, and highlight features introduced as EyeMotion. It now
@@ -27,13 +27,13 @@ not calculate an independent look-at target, use vertex colors, replace
 - KK_ExpressionControl is optional. It is required only to drive the two
   optional IrisY/Size blendshapes.
 
-This build targets Koikatsu/Koikatu only. Its core is organized for a future
-Koikatsu Sunshine adapter, but **KKS is not currently compatible or supported**.
+This build targets Koikatsu/Koikatu only. **Koikatsu Sunshine is not compatible
+or supported**; separation of the shared core is not a KKS compatibility claim.
 
 ## Clean ZIP installation
 
 1. Close Koikatsu and CharaStudio.
-2. Open `KK_ExpressionLink-v0.5.0.zip` and merge its `BepInEx` folder into
+2. Open `KK_ExpressionLink-v0.5.1.zip` and merge its `BepInEx` folder into
    the game directory.
 3. Confirm that the final DLL path is:
 
@@ -78,9 +78,13 @@ All five shapes must be on the same `SkinnedMeshRenderer`. The four direction
 shapes represent positive X, negative X, positive Y, and negative Y. The blink
 shape represents both eyes fully closed at weight 100.
 
+Detailed mesh-authoring and in-game verification checklists are available in
+[HEADMOD_AUTHORING.md](HEADMOD_AUTHORING.md) and
+[EXPRESSION_LINK_AUTHORING.md](EXPRESSION_LINK_AUTHORING.md).
+
 ## Optional KK_ExpressionControl eye-adjustment shapes
 
-Version 0.4.0 and later support only the two values actually exposed by
+The optional integration supports the two values exposed by
 KK_ExpressionControl's `IrisY` and `Size` sliders:
 
 ```text
@@ -130,8 +134,8 @@ The same panel can also be opened from:
 - Maker: **Face > Expression Link > Open Expression Link Quick Settings**.
 - Studio: the **KK_ExpressionLink** button in the left toolbar.
 
-The Studio button now uses the same neutral square background and bevel as the
-surrounding toolbar buttons while retaining the monochrome eye glyph.
+The Studio button uses a neutral square background and bevel consistent with
+the surrounding toolbar buttons while retaining its monochrome eye glyph.
 
 Use the arrows at the top to select a character. Tracking, size, and visibility
 configuration use **Apply global settings**; **Discard global changes** reloads
@@ -222,8 +226,8 @@ BepInEx\config\KK_ExpressionLink\Profiles
 
 Loading a set copies its links to the selected character with fresh IDs.
 Reusable sets are separate from character-card data and are intended for reuse
-across compatible headmods or characters. Version 0.5.0 sets declare Koikatsu
-support only; a future KKS build will require its own validated adapter.
+across compatible headmods or characters. Reusable sets declare Koikatsu
+support only and must not be treated as KKS-compatible data.
 
 ## Manual visibility
 
@@ -347,22 +351,47 @@ persistence status.
 
 ## Building and packaging
 
-```bat
-build-release.bat
+Building requires Visual Studio Build Tools or another MSBuild installation
+that supports the legacy C# project format. Place these local reference
+assemblies in the ignored `lib` directory:
+
+```text
+mscorlib.dll
+System.dll
+System.Core.dll
+BepInEx.dll
+KKAPI.dll
+ExtensibleSaveFormat.dll
+Assembly-CSharp.dll
+UnityEngine.dll
+UnityEngine.UI.dll
 ```
 
-After a successful Release build, create the clean public archive:
+Use assemblies from the compatible Koikatsu/BepInEx installation. They are
+build references only and must not be committed or included in the release.
+The scripts locate MSBuild through `MSBUILD_EXE`, `PATH`, `vswhere`, or a
+standard Visual Studio installation.
+
+Build Release and run the automated checks:
+
+```bat
+build-release.bat
+run-tests.bat
+```
+
+After the checks pass, create the clean public archive:
 
 ```bat
 package-release.bat
 ```
 
-The packager validates the assembly version and every ZIP entry, excludes
-configuration/dependency/PDB files, and creates:
+The Release build treats warnings as errors. The packager validates the
+assembly version and every ZIP entry, excludes configuration, dependency, and
+PDB files, and creates:
 
 ```text
-dist\KK_ExpressionLink-v0.5.0.zip
-dist\KK_ExpressionLink-v0.5.0.zip.sha256
+dist\KK_ExpressionLink-v0.5.1.zip
+dist\KK_ExpressionLink-v0.5.1.zip.sha256
 ```
 
 ## Current limitations
@@ -380,5 +409,22 @@ dist\KK_ExpressionLink-v0.5.0.zip.sha256
   parent. KK_ExpressionLink deliberately does not call `GameObject.SetActive`.
 - JSON profiles store Expression Links only; they do not package meshes or
   convert incompatible VRChat blendshape deltas.
+- A destination that remains absent throughout the initial resolution window
+  is not polled indefinitely. Reload the character or save the link again after
+  its renderer is present.
 - KoikatuVR and Koikatsu Sunshine are outside the declared compatibility
   scope. KKS support must not be assumed from the shared-core architecture.
+
+## Credits
+
+KK_ExpressionLink uses BepInEx, KKAPI, and ExtensibleSaveFormat. It can
+optionally integrate with KK_ExpressionControl when that plugin is installed.
+Those projects are not bundled in the release archive.
+
+## License
+
+Copyright (c) 2026 NightOwlZzz / Owl.
+
+No open-source license is currently included in this repository. Contact the
+author before redistributing the plugin or reusing or modifying its source
+code.

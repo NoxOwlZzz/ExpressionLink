@@ -16,11 +16,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             get { return Resolve(); }
         }
 
-        internal int SelectedInstanceId
-        {
-            get { return _selectedInstanceId; }
-        }
-
         internal EyeMotionCharacterController Resolve()
         {
             return Resolve(EyeMotionCharacterController.ActiveControllers);

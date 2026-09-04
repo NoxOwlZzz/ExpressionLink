@@ -50,21 +50,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal string BlendshapeName { get; private set; }
 
-        internal bool Owned
-        {
-            get { return _owned; }
-        }
-
-        internal float OriginalWeight
-        {
-            get { return _originalWeight; }
-        }
-
-        internal float LastWritten
-        {
-            get { return _lastWritten; }
-        }
-
         internal bool LastRestoreSkipped { get; private set; }
 
         internal bool IsValid()

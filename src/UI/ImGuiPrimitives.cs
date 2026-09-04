@@ -31,49 +31,5 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             GUILayout.Space(pixels);
         }
-
-        internal static void Label(string text)
-        {
-            Label(text, NoLayoutOptions);
-        }
-
-        internal static void Label(
-            string text,
-            GUILayoutOption[] options)
-        {
-            GUILayout.Label(text ?? string.Empty, options);
-        }
-
-        internal static bool Button(string text)
-        {
-            return Button(text, NoLayoutOptions);
-        }
-
-        internal static bool Button(
-            string text,
-            GUILayoutOption[] options)
-        {
-            return GUILayout.Button(text ?? string.Empty, options);
-        }
-
-        internal static bool Toggle(bool value, string text)
-        {
-            return GUILayout.Toggle(
-                value,
-                text ?? string.Empty,
-                NoLayoutOptions);
-        }
-
-        internal static string TextField(string value)
-        {
-            return TextField(value, NoLayoutOptions);
-        }
-
-        internal static string TextField(
-            string value,
-            GUILayoutOption[] options)
-        {
-            return GUILayout.TextField(value ?? string.Empty, options);
-        }
     }
 }

@@ -38,6 +38,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
         {
             string projectRoot = Path.GetFullPath(
                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."));
+            string pluginSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\Plugin.cs"));
+            string controllerSource = File.ReadAllText(
+                Path.Combine(projectRoot, @"src\EyeMotionCharacterController.cs"));
             string quickSettingsSource = File.ReadAllText(
                 Path.Combine(projectRoot, @"src\QuickSettingsCoordinator.cs"));
             string windowFrameSource = File.ReadAllText(
@@ -263,7 +267,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             Check("assembly name", pluginAssembly.GetName().Name == "KK_EyeMotion");
             Check(
                 "assembly version",
-                pluginAssembly.GetName().Version.ToString() == "0.5.0.0");
+                pluginAssembly.GetName().Version.ToString() == "0.5.1.0");
 
             Type pluginType = GetPluginType(pluginAssembly, "Plugin");
             CustomAttributeData pluginAttribute = FindAttribute(
@@ -279,7 +283,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 GetConstructorArgument(pluginAttribute, 1) == "KK_ExpressionLink");
             Check(
                 "plugin semantic version",
-                GetConstructorArgument(pluginAttribute, 2) == "0.5.0");
+                GetConstructorArgument(pluginAttribute, 2) == "0.5.1");
             Check(
                 "Extended Save dependency attribute",
                 CountAttributesWithFirstArgument(
@@ -293,6 +297,32 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "plugin polling focus callback removed",
                 pluginType.GetMethod(
                     "OnApplicationFocus", instanceNonPublic) == null);
+            FieldInfo studioToolbarButtonField = pluginType.GetField(
+                "_studioToolbarButton",
+                instanceNonPublic);
+            Check(
+                "Studio toolbar button handle retained",
+                studioToolbarButtonField != null &&
+                typeof(IDisposable).IsAssignableFrom(
+                    studioToolbarButtonField.FieldType));
+            int toolbarDisposeIndex = pluginSource.IndexOf(
+                "_studioToolbarButton.Dispose();",
+                StringComparison.Ordinal);
+            int toolbarIconDestroyIndex = pluginSource.IndexOf(
+                "UnityEngine.Object.Destroy(_studioToolbarIcon);",
+                StringComparison.Ordinal);
+            Check(
+                "Studio toolbar button disposed before icon",
+                toolbarDisposeIndex >= 0 &&
+                toolbarIconDestroyIndex > toolbarDisposeIndex);
+            Check(
+                "Studio toolbar button registration handle stored",
+                pluginSource.IndexOf(
+                    "_studioToolbarButton =",
+                    StringComparison.Ordinal) >= 0 &&
+                pluginSource.IndexOf(
+                    "CustomToolbarButtons.AddLeftToolbarButton(",
+                    StringComparison.Ordinal) >= 0);
             Type quickSettingsType = GetPluginType(
                 pluginAssembly,
                 "QuickSettingsCoordinator");
@@ -664,6 +694,59 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
 
             BindingFlags staticNonPublic =
                 BindingFlags.Static | BindingFlags.NonPublic;
+            MethodInfo beginRuntimeMethod = controllerType.GetMethod(
+                "BeginRuntime",
+                staticNonPublic);
+            MethodInfo shutdownRuntimeMethod = controllerType.GetMethod(
+                "ShutdownAndRestoreAll",
+                staticNonPublic);
+            PropertyInfo runtimeShuttingDownProperty =
+                controllerType.GetProperty(
+                    "RuntimeShuttingDown",
+                    staticNonPublic);
+            Check(
+                "controller runtime shutdown API",
+                beginRuntimeMethod != null &&
+                shutdownRuntimeMethod != null &&
+                runtimeShuttingDownProperty != null);
+            if (beginRuntimeMethod != null &&
+                shutdownRuntimeMethod != null &&
+                runtimeShuttingDownProperty != null)
+            {
+                beginRuntimeMethod.Invoke(null, null);
+                Check(
+                    "controller runtime begins active",
+                    !Convert.ToBoolean(
+                        runtimeShuttingDownProperty.GetValue(null, null)));
+                shutdownRuntimeMethod.Invoke(null, null);
+                shutdownRuntimeMethod.Invoke(null, null);
+                Check(
+                    "controller shutdown is idempotent",
+                    Convert.ToBoolean(
+                        runtimeShuttingDownProperty.GetValue(null, null)));
+                beginRuntimeMethod.Invoke(null, null);
+            }
+            int lateUpdateIndex = controllerSource.IndexOf(
+                "private void LateUpdate()",
+                StringComparison.Ordinal);
+            int lateUpdateShutdownGateIndex = controllerSource.IndexOf(
+                "if (_runtimeShuttingDown)",
+                lateUpdateIndex,
+                StringComparison.Ordinal);
+            int bindingRevisionCheckIndex = controllerSource.IndexOf(
+                "_observedBindingRevision != PluginConfig.BindingRevision",
+                lateUpdateIndex,
+                StringComparison.Ordinal);
+            Check(
+                "shutdown gate precedes LateUpdate work",
+                lateUpdateIndex >= 0 &&
+                lateUpdateShutdownGateIndex > lateUpdateIndex &&
+                bindingRevisionCheckIndex > lateUpdateShutdownGateIndex);
+            Check(
+                "binding coroutine observes shutdown gate",
+                controllerSource.IndexOf(
+                    "if (_runtimeShuttingDown ||",
+                    StringComparison.Ordinal) >= 0);
             Type cardDataType = GetPluginType(
                 pluginAssembly,
                 "VisibilityCardData");
@@ -805,9 +888,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     controllerType,
                     "SetManualBlendshapeVisibility",
                     instanceNonPublic) == 2);
-            CheckMethod(controllerType, "SetManualRendererVisibility", "controller manual renderer command", instanceNonPublic);
             CheckMethod(controllerType, "RefreshManualVisibility", "controller manual visibility refresh", instanceNonPublic);
-            CheckMethod(controllerType, "SetExpressionTriggers", "controller expression trigger batch command", instanceNonPublic);
 
             Type expressionTriggerType = GetPluginType(
                 pluginAssembly,

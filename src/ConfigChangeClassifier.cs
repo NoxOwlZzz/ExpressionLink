@@ -20,10 +20,5 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         {
             return section == "Manual Visibility";
         }
-
-        internal static bool AffectsEyeAdjustmentValues(string section)
-        {
-            return section == "ExpressionControl Eye Adjustments";
-        }
     }
 }

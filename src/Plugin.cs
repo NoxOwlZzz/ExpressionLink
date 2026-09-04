@@ -21,16 +21,18 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     {
         internal const string PluginGuid = "com.nightowlzzz.koikatsu.eyemotion";
         internal const string PluginName = "KK_ExpressionLink";
-        internal const string PluginVersion = "0.5.0";
+        internal const string PluginVersion = "0.5.1";
 
         internal static ManualLogSource Log;
 
         private QuickSettingsCoordinator _quickSettings;
+        private ToolbarButton _studioToolbarButton;
         private Texture2D _studioToolbarIcon;
 
         private void Awake()
         {
             Log = Logger;
+            EyeMotionCharacterController.BeginRuntime();
             PluginConfig.Bind(Config);
             _quickSettings = new QuickSettingsCoordinator(transform);
             useGUILayout = false;
@@ -47,7 +49,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             CharacterApi.RegisterExtraBehaviour<EyeMotionCharacterController>(PluginGuid);
             Logger.LogInfo(
-                "KK_ExpressionLink 0.5.0 loaded. Eye motion, blink, optional " +
+                "KK_ExpressionLink 0.5.1 loaded. Eye motion, blink, optional " +
                 "ExpressionControl iris adjustments, and multi-renderer expression links are active. " +
                 "Manual visibility and base-game highlight synchronization remain available.");
         }
@@ -79,7 +81,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private void OnDestroy()
         {
             MakerAPI.RegisterCustomSubCategories -= RegisterMakerControls;
-            EyeMotionCharacterController.RestoreAll();
+            EyeMotionCharacterController.ShutdownAndRestoreAll();
+            // The toolbar button retains the plugin-owned sprite, so release
+            // the UI handle before destroying the texture.
+            if (_studioToolbarButton != null)
+            {
+                _studioToolbarButton.Dispose();
+                _studioToolbarButton = null;
+            }
+
             if (_studioToolbarIcon != null)
             {
                 UnityEngine.Object.Destroy(_studioToolbarIcon);
@@ -135,9 +145,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 }
 
                 _studioToolbarIcon = CreateStudioToolbarIcon();
-                CustomToolbarButtons.AddLeftToolbarButton(
-                    _studioToolbarIcon,
-                    ToggleQuickSettings);
+                _studioToolbarButton =
+                    CustomToolbarButtons.AddLeftToolbarButton(
+                        _studioToolbarIcon,
+                        ToggleQuickSettings);
             }
             catch (Exception exception)
             {

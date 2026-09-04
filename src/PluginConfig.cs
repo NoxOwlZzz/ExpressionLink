@@ -255,13 +255,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 ExpressionAutomationSection,
                 "Enabled",
                 true,
-                "Automatically show configured ExpressionMesh slots from current brow/eyes/mouth patterns.");
+                "Execute legacy ExpressionMesh mappings stored by older character cards. " +
+                "Create new mappings as per-character Expression Links.");
             ExpressionActivationThreshold = BindUnit(
                 config,
                 ExpressionAutomationSection,
                 "ActivationThreshold",
                 0.001f,
-                "Minimum current facial-pattern weight that activates a configured expression slot.");
+                "Minimum current facial-pattern weight that activates a legacy mapping or captured Expression Link source.");
 
             ManualHideBlendshapeWeight = BindWeight(
                 config,

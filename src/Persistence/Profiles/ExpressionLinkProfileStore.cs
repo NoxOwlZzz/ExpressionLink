@@ -42,11 +42,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 Path.DirectorySeparatorChar;
         }
 
-        internal string RootPath
-        {
-            get { return _rootPath; }
-        }
-
         internal bool TrySave(
             string requestedName,
             ExpressionLinkProfile profile,

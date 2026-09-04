@@ -18,18 +18,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private static readonly UTF8Encoding StrictUtf8 =
             new UTF8Encoding(false, true);
 
-        internal static string Serialize(ExpressionLinkProfile profile)
-        {
-            string json;
-            string error;
-            if (!TrySerialize(profile, out json, out error))
-            {
-                throw new ArgumentException(error, "profile");
-            }
-
-            return json;
-        }
-
         internal static bool TrySerialize(
             ExpressionLinkProfile profile,
             out string json,

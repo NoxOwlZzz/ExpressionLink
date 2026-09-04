@@ -292,15 +292,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
         }
 
-        internal bool EyeAdjustmentSourceAvailable
-        {
-            get
-            {
-                return _eyeAdjustmentSource != null &&
-                       _eyeAdjustmentSource.Available;
-            }
-        }
-
         internal string EyeAdjustmentSourceStatus
         {
             get

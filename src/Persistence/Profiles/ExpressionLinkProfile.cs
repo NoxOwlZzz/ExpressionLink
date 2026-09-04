@@ -6,7 +6,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     {
         internal const string CurrentFormat = "kk-expression-link-profile";
         internal const int CurrentVersion = 1;
-        internal const string CurrentPluginVersion = "0.5.0";
+        internal const string CurrentPluginVersion = "0.5.1";
         internal const string KoikatsuGameId = "KK";
 
         private readonly Guid _id;
@@ -125,6 +125,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         }
     }
 
+    /// <summary>
+    /// JSON wire model for a reusable Expression Link profile. The public field
+    /// names are part of the versioned profile format.
+    /// </summary>
     [Serializable]
     public sealed class ExpressionLinkProfileDocument
     {
@@ -138,6 +142,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         public ExpressionLinkProfileLinkDocument[] links;
     }
 
+    /// <summary>
+    /// JSON wire model for one link in a reusable profile. The public field
+    /// names are part of the versioned profile format.
+    /// </summary>
     [Serializable]
     public sealed class ExpressionLinkProfileLinkDocument
     {

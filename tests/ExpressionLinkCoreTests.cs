@@ -106,11 +106,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
 
         private static void TestConflictResolution()
         {
-            ExpressionLinkDefinition low = ExpressionLinkDefinition.CreateDefault();
-            low.Priority = 1;
-            ExpressionLinkDefinition high = ExpressionLinkDefinition.CreateDefault();
-            high.Priority = 2;
-
             Check(
                 "higher priority wins",
                 ExpressionLinkConflictResolver.CandidateWins(1, 100f, 2, 1f));
@@ -123,22 +118,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             Check(
                 "equal conflict remains stable",
                 !ExpressionLinkConflictResolver.CandidateWins(2, 20f, 2, 20f));
-
-            List<ExpressionLinkConflictCandidate> candidates =
-                new List<ExpressionLinkConflictCandidate>();
-            candidates.Add(new ExpressionLinkConflictCandidate(low, 100f));
-            candidates.Add(new ExpressionLinkConflictCandidate(high, 25f));
-            ExpressionLinkConflictCandidate winner;
-            Check(
-                "candidate collection resolves",
-                ExpressionLinkConflictResolver.TryResolve(candidates, out winner));
-            Check("collection priority winner", winner.Definition == high);
-
-            high.Enabled = false;
-            Check(
-                "disabled candidate ignored",
-                ExpressionLinkConflictResolver.TryResolve(candidates, out winner) &&
-                winner.Definition == low);
         }
 
         private static void TestCodecRoundTrip()

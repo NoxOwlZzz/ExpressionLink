@@ -901,10 +901,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     "ExpressionControl Eye Adjustment Blendshapes",
                     "IrisSizeBlendshape"));
             Check(
-                "ExpressionControl eye value changes stay live",
-                ConfigChangeClassifier.AffectsEyeAdjustmentValues(
-                    "ExpressionControl Eye Adjustments"));
-            Check(
                 "blink weight does not rebind eyes",
                 !ConfigChangeClassifier.AffectsEyeBinding(
                     "Blink",

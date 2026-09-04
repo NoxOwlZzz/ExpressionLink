@@ -55,7 +55,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             internal const float SectionHeight = 26f;
             internal const float TabHeight = 25f;
             internal const float ToolbarHeight = 26f;
-            internal const float NarrowButtonWidth = 32f;
             internal const int RoundedTextureSize = 24;
             internal const float ControlRadius = 5f;
             internal const float PanelRadius = 7f;

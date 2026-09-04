@@ -149,12 +149,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             return true;
         }
 
-        internal void ClearExpressionLinks()
-        {
-            _savedExpressionLinks.Clear();
-            MarkExpressionLinksChanged();
-        }
-
         private bool TryStoreExpressionLinks(
             IList<ExpressionLinkDefinition> candidates,
             out string message)
@@ -189,7 +183,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _visibilityIntentChanged = true;
             _expressionLinksIntentChanged = true;
             _preserveUnsupportedCardData = false;
-            if (PluginConfig.Enabled.Value)
+            if (!_runtimeShuttingDown && PluginConfig.Enabled.Value)
             {
                 RebuildExpressionTriggers();
                 SynchronizeAutomaticExpressions();

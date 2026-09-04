@@ -7,8 +7,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 {
     /// <summary>
     /// Optional, allocation-free frame-loop bridge to KK_ExpressionControl.
-    /// The external assembly is discovered at runtime, so EyeMotion keeps no
-    /// compile-time or BepInEx dependency on ExpressionControl.
+    /// The external assembly is discovered at runtime, so KK_ExpressionLink
+    /// keeps no compile-time or BepInEx dependency on ExpressionControl.
     /// </summary>
     internal sealed class ExpressionControlEyeSource
     {
@@ -39,25 +39,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ChaControl character)
         {
             return new ExpressionControlEyeSource(character);
-        }
-
-        internal bool RuntimeAvailable
-        {
-            get { return EnsureRuntimeAvailable(); }
-        }
-
-        internal bool CharacterAvailable
-        {
-            get { return _cachedFemaleData != null; }
-        }
-
-        internal bool Available
-        {
-            get
-            {
-                return _runtime != null &&
-                       _cachedFemaleData != null;
-            }
         }
 
         internal string Status
@@ -125,7 +106,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 // ExpressionControl may recreate its state while changing
                 // scenes. Drop the per-character cache and retry safely on a
-                // subsequent sample without disabling the rest of EyeMotion.
+                // subsequent sample without disabling the rest of the plugin.
                 ClearCachedCharacter();
                 return false;
             }

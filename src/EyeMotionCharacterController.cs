@@ -15,6 +15,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             new List<EyeMotionCharacterController>();
         private static readonly IList<EyeMotionCharacterController> ControllersView =
             Controllers.AsReadOnly();
+        // KKAPI controllers can outlive the plugin MonoBehaviour during teardown.
+        // Gate their callbacks before configuration and logging are disposed.
+        private static bool _runtimeShuttingDown;
 
         private BlendshapeBinding _binding;
         private ManualVisibilityBinding _manualVisibility;
@@ -52,13 +55,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private string _cardPersistenceStatus = "No card data loaded.";
         private bool _preserveUnsupportedCardData;
         private bool _visibilityIntentChanged;
-        private int _expressionTriggerRevision;
         private int _expressionRetryAttemptsRemaining;
         private int _nextExpressionRetryFrame;
 
         internal static IList<EyeMotionCharacterController> ActiveControllers
         {
             get { return ControllersView; }
+        }
+
+        internal static bool RuntimeShuttingDown
+        {
+            get { return _runtimeShuttingDown; }
         }
 
         internal BlendshapeBinding Binding
@@ -116,13 +123,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             get { return _expressionTriggers; }
         }
 
-        internal int ExpressionTriggerRevision
+        internal static void BeginRuntime()
         {
-            get { return _expressionTriggerRevision; }
+            _runtimeShuttingDown = false;
         }
 
-        internal static void RestoreAll()
+        internal static void ShutdownAndRestoreAll()
         {
+            _runtimeShuttingDown = true;
             for (int i = 0; i < Controllers.Count; i++)
             {
                 EyeMotionCharacterController controller = Controllers[i];
@@ -156,7 +164,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             RestoreAndClear("Character reload.");
 
-            if (PluginConfig.Enabled.Value)
+            if (_runtimeShuttingDown)
+            {
+                _bindingState = BindingState.Disabled;
+                _statusMessage = "Plugin shutdown.";
+            }
+            else if (PluginConfig.Enabled.Value)
             {
                 StartBinding("Character reload.");
             }
@@ -268,6 +281,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void LateUpdate()
         {
+            if (_runtimeShuttingDown)
+            {
+                if (_bindingState != BindingState.Disabled ||
+                    _binding != null)
+                {
+                    StopAndRestore("Plugin shutdown.");
+                }
+
+                return;
+            }
+
             if (_observedBindingRevision != PluginConfig.BindingRevision)
             {
                 _observedBindingRevision = PluginConfig.BindingRevision;
@@ -412,6 +436,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void StartBinding(string reason)
         {
+            if (_runtimeShuttingDown)
+            {
+                _bindingGeneration++;
+                _bindingState = BindingState.Disabled;
+                _statusMessage = "Plugin shutdown.";
+                return;
+            }
+
             _bindingGeneration++;
             int generation = _bindingGeneration;
             _bindingState = BindingState.Searching;
@@ -425,7 +457,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             int attempts = PluginConfig.BindingRetryFrames.Value;
             for (int attempt = 1; attempt <= attempts; attempt++)
             {
-                if (generation != _bindingGeneration || !PluginConfig.Enabled.Value)
+                if (_runtimeShuttingDown ||
+                    generation != _bindingGeneration ||
+                    !PluginConfig.Enabled.Value)
                 {
                     yield break;
                 }
@@ -456,7 +490,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     {
                         _manualVisibility = null;
                         Plugin.Log.LogWarning(
-                            "EyeMotion manual visibility is unavailable for " +
+                            "KK_ExpressionLink manual visibility is unavailable for " +
                             GetCharacterName() + ": " +
                             exception.GetType().Name + ": " + exception.Message);
                         RebuildExpressionTriggers();
@@ -478,7 +512,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 {
                     _bindingState = BindingState.Ambiguous;
                     Plugin.Log.LogWarning(
-                        "EyeMotion disabled for " + GetCharacterName() + ": " + result.Message +
+                        "KK_ExpressionLink disabled for " + GetCharacterName() + ": " + result.Message +
                         " Candidates: " + BuildAmbiguousPathList(result));
                     yield break;
                 }
@@ -588,25 +622,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 hiddenWeight,
                 out message);
             RememberBlendshapeMode(slotIndex, mode);
-            return success;
-        }
-
-        internal bool SetManualRendererVisibility(
-            int slotIndex,
-            ManualVisibilityMode mode,
-            out string message)
-        {
-            if (_manualVisibility == null)
-            {
-                message = "Manual visibility is not bound for this character.";
-                return false;
-            }
-
-            bool success = _manualVisibility.SetRendererMode(
-                slotIndex,
-                mode,
-                out message);
-            RememberRendererMode(slotIndex, mode);
             return success;
         }
 
@@ -847,118 +862,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 : string.Empty;
         }
 
-        internal bool SetExpressionTrigger(
-            int slotIndex,
-            string trigger,
-            out string message)
-        {
-            if (slotIndex < 0 ||
-                slotIndex >= _savedExpressionTriggers.Length)
-            {
-                message = "Invalid expression trigger slot.";
-                return false;
-            }
-
-            string normalized = trigger == null
-                ? string.Empty
-                : trigger.Trim();
-            _savedExpressionTriggers[slotIndex] = normalized;
-            _expressionTriggerRevision++;
-            _visibilityIntentChanged = true;
-            RebuildExpressionTriggers();
-            SynchronizeAutomaticExpressions();
-
-            if (_expressionTriggers == null)
-            {
-                message = "Expression detection is unavailable.";
-                return false;
-            }
-
-            message = _expressionTriggers.GetMessage(slotIndex);
-            return _expressionTriggers.GetStatus(slotIndex) ==
-                       ExpressionTriggerResolutionStatus.Ready ||
-                   _expressionTriggers.GetStatus(slotIndex) ==
-                       ExpressionTriggerResolutionStatus.Disabled;
-        }
-
-        internal bool SetExpressionTriggers(
-            string[] triggers,
-            out string message)
-        {
-            if (triggers == null ||
-                triggers.Length != _savedExpressionTriggers.Length)
-            {
-                message = "Exactly four expression triggers are required.";
-                return false;
-            }
-
-            for (int i = 0; i < _savedExpressionTriggers.Length; i++)
-            {
-                _savedExpressionTriggers[i] = triggers[i] == null
-                    ? string.Empty
-                    : triggers[i].Trim();
-            }
-
-            _expressionTriggerRevision++;
-            _visibilityIntentChanged = true;
-            RebuildExpressionTriggers();
-            SynchronizeAutomaticExpressions();
-            if (_expressionTriggers == null)
-            {
-                message = "Expression detection is unavailable.";
-                return false;
-            }
-
-            bool valid = true;
-            message = string.Empty;
-            for (int i = 0; i < _savedExpressionTriggers.Length; i++)
-            {
-                ExpressionTriggerResolutionStatus status =
-                    _expressionTriggers.GetStatus(i);
-                if (status != ExpressionTriggerResolutionStatus.Ready &&
-                    status != ExpressionTriggerResolutionStatus.Disabled)
-                {
-                    valid = false;
-                }
-
-                if (message.Length > 0)
-                {
-                    message += " | ";
-                }
-
-                message += "Expression " + (i + 1) + ": " + status;
-            }
-
-            return valid;
-        }
-
-        internal string GetExpressionTriggerStatus(int slotIndex)
-        {
-            if (_expressionTriggers == null)
-            {
-                return "Unavailable";
-            }
-
-            ExpressionTriggerResolutionStatus status =
-                _expressionTriggers.GetStatus(slotIndex);
-            string selector = status == ExpressionTriggerResolutionStatus.Ready
-                ? " -> " + _expressionTriggers.GetSelector(slotIndex)
-                : string.Empty;
-            string active = status == ExpressionTriggerResolutionStatus.Ready
-                ? (_expressionTriggers.IsActive(slotIndex)
-                    ? " | active"
-                    : " | inactive")
-                : string.Empty;
-            return status + selector + active;
-        }
-
-        internal string GetExpressionTriggerMessage(int slotIndex)
-        {
-            return _expressionTriggers == null
-                ? "Expression detection is unavailable."
-                : _expressionTriggers.GetMessage(slotIndex);
-        }
-
         internal string GetCurrentExpressionSelector(
             ExpressionTriggerPart part)
         {
@@ -986,7 +889,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             ResetSavedVisibilityModes();
             ResetSavedExpressionTriggers();
             _savedExpressionLinks.Clear();
-            _expressionTriggerRevision++;
             _expressionLinkRevision++;
             _loadedCardDataVersion = 0;
             _preserveUnsupportedCardData = false;
@@ -1160,21 +1062,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     VisibilityResolutionStatus.Ready)
             {
                 _savedBlendshapeModes[slotIndex] = mode;
-                _visibilityIntentChanged = true;
-            }
-        }
-
-        private void RememberRendererMode(
-            int slotIndex,
-            ManualVisibilityMode mode)
-        {
-            if (slotIndex >= 0 && slotIndex < _savedRendererModes.Length &&
-                _manualVisibility != null &&
-                slotIndex < _manualVisibility.RendererSlots.Length &&
-                _manualVisibility.RendererSlots[slotIndex].Resolution ==
-                    VisibilityResolutionStatus.Ready)
-            {
-                _savedRendererModes[slotIndex] = mode;
                 _visibilityIntentChanged = true;
             }
         }

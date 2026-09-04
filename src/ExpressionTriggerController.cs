@@ -113,20 +113,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
         }
 
-        /// <summary>
-        /// Cached slot activity. The same array instance is retained for the
-        /// lifetime of this controller and must be treated as read-only.
-        /// </summary>
-        internal bool[] ActiveSlots
-        {
-            get { return _activeSlots; }
-        }
-
-        internal bool HasSampled
-        {
-            get { return _hasSampled; }
-        }
-
         internal string GetConfiguredTrigger(int slotIndex)
         {
             return IsValidSlot(slotIndex)
