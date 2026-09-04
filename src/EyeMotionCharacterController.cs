@@ -637,6 +637,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return false;
             }
 
+            RestoreExpressionLinks();
             if (_manualVisibility != null)
             {
                 string restoreMessage;
@@ -816,6 +817,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                         i,
                         configured,
                         active,
+                        !IsFusedExpressionTargetManagedByLink(
+                            i),
                         out message) &&
                         !string.IsNullOrEmpty(message))
                     {

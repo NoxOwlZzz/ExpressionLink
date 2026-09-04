@@ -133,10 +133,8 @@
     <Compile Include="src\UI\QuickSettings\QuickSettingsNavigationView.cs" />
     <Compile Include="src\UI\QuickSettings\QuickSettingsFooterView.cs" />
     <Compile Include="src\UI\QuickSettings\QuickSettingsSurfaceView.cs" />
-    <Compile Include="src\UI\QuickSettings\ExpressionWorkspaceView.cs" />
     <Compile Include="src\UI\QuickSettings\MotionSettingsView.cs" />
     <Compile Include="src\UI\QuickSettings\IrisSettingsView.cs" />
-    <Compile Include="src\UI\QuickSettings\ExpressionSettingsView.cs" />
     <Compile Include="src\UI\QuickSettings\ManualVisibilityRuntimeView.cs" />
     <Compile Include="src\UI\QuickSettings\VisibilityTargetEditorView.cs" />
     <Compile Include="src\UI\QuickSettings\VisibilitySettingsView.cs" />
@@ -145,7 +143,6 @@
     <Compile Include="src\UI\QuickSettings\Configuration\PluginConfigQuickSettingsStore.cs" />
     <Compile Include="src\UI\QuickSettings\Configuration\MotionSettingsDraft.cs" />
     <Compile Include="src\UI\QuickSettings\Configuration\IrisSettingsDraft.cs" />
-    <Compile Include="src\UI\QuickSettings\Configuration\ExpressionSettingsDraft.cs" />
     <Compile Include="src\UI\QuickSettings\Configuration\VisibilitySettingsDraft.cs" />
     <Compile Include="src\UI\QuickSettings\Configuration\QuickSettingsConfigSnapshot.cs" />
     <Compile Include="src\UI\QuickSettings\Configuration\QuickSettingsConfigSession.cs" />

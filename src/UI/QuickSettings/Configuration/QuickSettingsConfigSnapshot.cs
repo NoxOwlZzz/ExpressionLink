@@ -26,19 +26,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private readonly float _irisSizeMaxWeight;
         private readonly string[] _irisBlendshapeNames;
 
-        private readonly bool _expressionAutomationEnabled;
-        private readonly float _expressionActivationThreshold;
-
         private readonly float _manualHideBlendshapeWeight;
         private readonly bool _followBaseGameHighlightVisibility;
         private readonly bool _cardPersistenceEnabled;
         private readonly string[] _visibilityBlendshapeNames;
-        private readonly string[] _visibilityRendererTargets;
 
         internal QuickSettingsConfigSnapshot(
             MotionSettingsDraft motion,
             IrisSettingsDraft iris,
-            ExpressionSettingsDraft expressions,
             VisibilitySettingsDraft visibility)
         {
             _motionEnabled = motion.Enabled;
@@ -63,27 +58,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _irisSizeMaxWeight = iris.IrisSizeMaxWeight;
             _irisBlendshapeNames = CopyIrisNames(iris);
 
-            _expressionAutomationEnabled = expressions.AutomationEnabled;
-            _expressionActivationThreshold = expressions.ActivationThreshold;
-
             _manualHideBlendshapeWeight =
                 visibility.ManualHideBlendshapeWeight;
             _followBaseGameHighlightVisibility =
                 visibility.FollowBaseGameHighlightVisibility;
             _cardPersistenceEnabled = visibility.CardPersistenceEnabled;
             _visibilityBlendshapeNames = CopyVisibilityNames(visibility);
-            _visibilityRendererTargets = CopyRendererTargets(visibility);
         }
 
         internal bool Matches(
             MotionSettingsDraft motion,
             IrisSettingsDraft iris,
-            ExpressionSettingsDraft expressions,
             VisibilitySettingsDraft visibility)
         {
             return MotionMatches(motion) &&
                 IrisMatches(iris) &&
-                ExpressionMatches(expressions) &&
                 VisibilityMatches(visibility);
         }
 
@@ -128,12 +117,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             return true;
         }
 
-        private bool ExpressionMatches(ExpressionSettingsDraft draft)
-        {
-            return _expressionAutomationEnabled == draft.AutomationEnabled &&
-                _expressionActivationThreshold == draft.ActivationThreshold;
-        }
-
         private bool VisibilityMatches(VisibilitySettingsDraft draft)
         {
             if (_manualHideBlendshapeWeight !=
@@ -142,9 +125,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     draft.FollowBaseGameHighlightVisibility ||
                 _cardPersistenceEnabled != draft.CardPersistenceEnabled ||
                 _visibilityBlendshapeNames.Length !=
-                    draft.BlendshapeNameCount ||
-                _visibilityRendererTargets.Length !=
-                    draft.RendererTargetCount)
+                    draft.BlendshapeNameCount)
             {
                 return false;
             }
@@ -154,16 +135,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 if (!Same(
                         _visibilityBlendshapeNames[i],
                         draft.GetBlendshapeName(i)))
-                {
-                    return false;
-                }
-            }
-
-            for (int i = 0; i < _visibilityRendererTargets.Length; i++)
-            {
-                if (!Same(
-                        _visibilityRendererTargets[i],
-                        draft.GetRendererTarget(i)))
                 {
                     return false;
                 }
@@ -190,18 +161,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             for (int i = 0; i < values.Length; i++)
             {
                 values[i] = draft.GetBlendshapeName(i) ?? string.Empty;
-            }
-
-            return values;
-        }
-
-        private static string[] CopyRendererTargets(
-            VisibilitySettingsDraft draft)
-        {
-            string[] values = new string[draft.RendererTargetCount];
-            for (int i = 0; i < values.Length; i++)
-            {
-                values[i] = draft.GetRendererTarget(i) ?? string.Empty;
             }
 
             return values;

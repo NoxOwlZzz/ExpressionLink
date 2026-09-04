@@ -76,9 +76,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             QuickSettingsGui.Space(6f);
             QuickSettingsGui.Heading("Getting started");
             QuickSettingsGui.Help(
-                "Save an expression link beside its editor. Apply global " +
-                "settings stores tracking, size, visibility, and separate " +
-                "ExpressionMesh compatibility options.");
+                "Expression links are saved with the selected character. " +
+                "Apply global settings stores tracking, eye size, and " +
+                "visibility options.");
             QuickSettingsGui.Heading("Troubleshooting");
             QuickSettingsGui.Help(
                 "Create a report when a shape cannot be found or does not move.");

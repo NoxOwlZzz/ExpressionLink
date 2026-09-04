@@ -22,7 +22,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _store = store;
             Motion = new MotionSettingsDraft();
             Iris = new IrisSettingsDraft();
-            Expressions = new ExpressionSettingsDraft();
             Visibility = new VisibilitySettingsDraft();
             Reload();
         }
@@ -30,8 +29,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal MotionSettingsDraft Motion { get; private set; }
 
         internal IrisSettingsDraft Iris { get; private set; }
-
-        internal ExpressionSettingsDraft Expressions { get; private set; }
 
         internal VisibilitySettingsDraft Visibility { get; private set; }
 
@@ -42,7 +39,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 return _baseline != null && !_baseline.Matches(
                     Motion,
                     Iris,
-                    Expressions,
                     Visibility);
             }
         }
@@ -60,18 +56,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         internal void Reload()
         {
-            _store.Load(Motion, Iris, Expressions, Visibility);
+            _store.Load(Motion, Iris, Visibility);
             _baseline = new QuickSettingsConfigSnapshot(
-                Motion, Iris, Expressions, Visibility);
+                Motion, Iris, Visibility);
         }
 
         internal void Apply()
         {
             Motion.NormalizeForSave();
             Iris.NormalizeForSave();
-            Expressions.NormalizeForSave();
             Visibility.NormalizeForSave();
-            _store.Save(Motion, Iris, Expressions, Visibility);
+            _store.Save(Motion, Iris, Visibility);
             Reload();
         }
     }

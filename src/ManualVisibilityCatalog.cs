@@ -3,6 +3,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     internal static class ManualVisibilityCatalog
     {
         internal const int BlendshapeCount = 10;
+        internal const int UserFacingBlendshapeCount = 7;
+        internal const int LegacyFusedBlendshapeStartIndex = 7;
+        internal const int LegacyFusedBlendshapeCount = 3;
         internal const int RendererCount = 4;
 
         internal static readonly string[] BlendshapeDisplayNames =

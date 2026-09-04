@@ -292,6 +292,41 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                  _expressionLinkRuntime.RequiresRebuild);
         }
 
+        private bool IsFusedExpressionTargetManagedByLink(
+            int expressionSlotIndex)
+        {
+            if (_binding == null ||
+                _manualVisibility == null ||
+                _expressionLinkRuntime == null)
+            {
+                return false;
+            }
+
+            if (expressionSlotIndex < 0 ||
+                expressionSlotIndex >=
+                    ManualVisibilityCatalog.LegacyFusedBlendshapeCount)
+            {
+                return false;
+            }
+
+            int fusedIndex =
+                ManualVisibilityCatalog.LegacyFusedBlendshapeStartIndex +
+                    expressionSlotIndex;
+            if (fusedIndex < 0 ||
+                fusedIndex >= _manualVisibility.BlendshapeSlots.Length)
+            {
+                return false;
+            }
+
+            BlendshapeVisibilitySlot slot =
+                _manualVisibility.BlendshapeSlots[fusedIndex];
+            return slot != null &&
+                slot.Resolution == VisibilityResolutionStatus.Ready &&
+                _expressionLinkRuntime.ManagesTarget(
+                    _binding.Renderer,
+                    slot.BlendshapeIndex);
+        }
+
         private void SynchronizeExpressionLinks()
         {
             if (!_hasEnabledExpressionLinks)

@@ -8,28 +8,24 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         public void Load(
             MotionSettingsDraft motion,
             IrisSettingsDraft iris,
-            ExpressionSettingsDraft expressions,
             VisibilitySettingsDraft visibility)
         {
-            ValidateDrafts(motion, iris, expressions, visibility);
+            ValidateDrafts(motion, iris, visibility);
             LoadMotion(motion);
             LoadIris(iris);
-            LoadExpressions(expressions);
             LoadVisibility(visibility);
         }
 
         public void Save(
             MotionSettingsDraft motion,
             IrisSettingsDraft iris,
-            ExpressionSettingsDraft expressions,
             VisibilitySettingsDraft visibility)
         {
-            ValidateDrafts(motion, iris, expressions, visibility);
+            ValidateDrafts(motion, iris, visibility);
             PluginConfig.ApplyBatch(delegate
             {
                 SaveMotion(motion);
                 SaveIris(iris);
-                SaveExpressions(expressions);
                 SaveVisibility(visibility);
             });
         }
@@ -110,22 +106,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
         }
 
-        private static void LoadExpressions(ExpressionSettingsDraft draft)
-        {
-            draft.AutomationEnabled =
-                PluginConfig.ExpressionAutomationEnabled.Value;
-            draft.ActivationThreshold =
-                PluginConfig.ExpressionActivationThreshold.Value;
-        }
-
-        private static void SaveExpressions(ExpressionSettingsDraft draft)
-        {
-            PluginConfig.ExpressionAutomationEnabled.Value =
-                draft.AutomationEnabled;
-            PluginConfig.ExpressionActivationThreshold.Value =
-                draft.ActivationThreshold;
-        }
-
         private static void LoadVisibility(VisibilitySettingsDraft draft)
         {
             draft.ManualHideBlendshapeWeight =
@@ -139,13 +119,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 draft.SetBlendshapeName(
                     i,
                     PluginConfig.GetManualVisibilityBlendshapeName(i));
-            }
-
-            for (int i = 0; i < draft.RendererTargetCount; i++)
-            {
-                draft.SetRendererTarget(
-                    i,
-                    PluginConfig.GetManualVisibilityRendererTarget(i));
             }
         }
 
@@ -162,18 +135,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 PluginConfig.ManualVisibilityBlendshapeNames[i].Value =
                     draft.GetBlendshapeName(i);
             }
-
-            for (int i = 0; i < draft.RendererTargetCount; i++)
-            {
-                PluginConfig.ManualVisibilityRendererTargets[i].Value =
-                    draft.GetRendererTarget(i);
-            }
         }
 
         private static void ValidateDrafts(
             MotionSettingsDraft motion,
             IrisSettingsDraft iris,
-            ExpressionSettingsDraft expressions,
             VisibilitySettingsDraft visibility)
         {
             if (motion == null)
@@ -184,11 +150,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             if (iris == null)
             {
                 throw new ArgumentNullException("iris");
-            }
-
-            if (expressions == null)
-            {
-                throw new ArgumentNullException("expressions");
             }
 
             if (visibility == null)

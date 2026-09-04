@@ -75,20 +75,6 @@ IrisSizeBlendshape = eye_motion.f00_iris_size
 ## KK_ExpressionControl.dll is optional. Without it these shapes are not
 ## controlled; gaze, blink, visibility, highlights, and expressions still work.
 
-[Automatic Expressions]
-Enabled = true
-ActivationThreshold = 0.001
-
-## ExpressionMesh 01-04 trigger strings are per-character card data, not
-## global configuration values. Assign them in Quick Settings by entering an
-## exact FBS blendshape name, brow:N, eyes:N, or mouth:N, or by capturing the
-## selected character's current Brow/Eyes/Mouth pattern.
-## General-purpose Expression Links are also per-character card data. Create
-## and edit them in the Links tab. They can target blendshapes on head, hair,
-## body, clothes, accessory, or other character-owned renderers. Reusable
-## profiles are not global configuration entries.
-
-
 [Manual Visibility]
 HideBlendshapeWeight = 100
 FollowBaseGameHighlightVisibility = true
@@ -101,22 +87,20 @@ IrisOuterBlendshape = eye_motion.f00_hide_irisouter
 PupilBlendshape = eye_motion.f00_hide_pupil
 ScleraBlendshape = eye_motion.f00_hide_sclera
 NormalEyesBlendshape = eye_motion.f00_hide_normaleyes
-Expression01Blendshape = eye_motion.f00_hide_expression01
-Expression02Blendshape = eye_motion.f00_hide_expression02
-Expression03Blendshape = eye_motion.f00_hide_expression03
 
-[Manual Visibility Renderers]
-ExpressionMesh01Target = ExpressionMesh_01
-ExpressionMesh02Target = ExpressionMesh_02
-ExpressionMesh03Target = ExpressionMesh_03
-ExpressionMesh04Target = ExpressionMesh_04
+## Expression-driven blendshapes are per-character card data. Create them in
+## Quick Settings > Expressions. A link can target an exact blendshape on the
+## head, hair, body, clothes, accessories, or another character-owned renderer.
+## Reusable link sets are not global configuration entries.
 
 [Persistence]
 CardPersistenceEnabled = true
 
-## Schema 3 saves the 14 manual modes, four legacy expression-trigger strings,
-## and per-character Expression Links. Schema 1 and schema 2 cards remain
-## compatible. Reusable JSON profiles are stored separately under:
+## Schema 3 saves per-character Expression Links alongside the historical 10+4
+## visibility layout and four renderer-trigger strings. Older card values are
+## read, preserved, and executed internally, but are not a new-authoring flow.
+## Schema 1 and schema 2 cards remain compatible. Reusable JSON profiles are
+## stored separately under:
 ## BepInEx/config/KK_ExpressionLink/Profiles
 ## KKS is not supported by this build.
 

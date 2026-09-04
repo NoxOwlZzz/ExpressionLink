@@ -102,8 +102,8 @@ bias the four gaze-direction shapes. A missing shape does not disable any
 other feature.
 
 KK_ExpressionControl.dll is an optional integration, not a hard plugin
-dependency. Without it, gaze, blink, visibility, highlights, expression
-automation, and card persistence continue to work normally; KK_ExpressionLink does not
+dependency. Without it, gaze, blink, visibility, highlights, Expression Links,
+and card persistence continue to work normally; KK_ExpressionLink does not
 control these two shapes and restores any values it previously owned.
 
 ## Quick Settings
@@ -118,9 +118,9 @@ The panel is organized into three clear categories:
 
 - **Eyes**: **Tracking** for camera tracking and calibration, and **Size
   controls** for the game's Iris/Size sliders.
-- **Expressions**: a guided expression-link editor for blendshapes on any
-  supported character mesh. Separate ExpressionMesh compatibility is collapsed.
-- **Visibility**: highlight synchronization, card persistence, and manual parts.
+- **Expressions**: the single guided, per-character workflow for linking a live
+  Koikatsu expression to a blendshape on any supported character mesh.
+- **Visibility**: highlight synchronization and manual eye-part visibility.
 
 Common controls stay visible. Fine tuning, names, live values, target setup,
 and troubleshooting begin collapsed and can be opened when needed.
@@ -133,11 +133,10 @@ The same panel can also be opened from:
 The Studio button now uses the same neutral square background and bevel as the
 surrounding toolbar buttons while retaining the monochrome eye glyph.
 
-Use the arrows at the top to select a character. Tracking, size, visibility,
-and separate ExpressionMesh compatibility options use **Apply global settings**;
-**Discard global changes** reloads them. Manual visibility buttons take effect
-immediately. Expression links use **Save expression link** beside the editor,
-and separate ExpressionMesh mappings have their own save button.
+Use the arrows at the top to select a character. Tracking, size, and visibility
+configuration use **Apply global settings**; **Discard global changes** reloads
+them. Manual visibility buttons take effect immediately. Expression links are
+saved to the selected character with **Save expression link**.
 
 Recommended X/Y gaze calibration:
 
@@ -190,8 +189,9 @@ Resolution is conservative:
   scope, slot, and optional component filters.
 - Missing or ambiguous targets are reported instead of selecting an arbitrary
   mesh.
-- The five eye-motion channels and legacy manual-visibility channels are
-  reserved; an Expression Link cannot take ownership of those destinations.
+- The five eye-motion channels and the seven eye-part channels exposed by
+  **Visibility** are reserved. Expression-specific shapes are configured as
+  ordinary per-character Expression Link destinations.
 
 ### Output modes
 
@@ -225,54 +225,16 @@ Reusable sets are separate from character-card data and are intended for reuse
 across compatible headmods or characters. Version 0.5.0 sets declare Koikatsu
 support only; a future KKS build will require its own validated adapter.
 
-## Separate ExpressionMesh compatibility
-
-This collapsed section is only for headmods with separate renderers named
-`ExpressionMesh_01` through `ExpressionMesh_04`. A configured facial pattern
-shows its renderer after passing the global activation point and hides it
-otherwise. It also controls the matching fused Hide destination when present
-(`hide_expression01` through `hide_expression03`).
-
-A trigger accepts either:
-
-- An exact runtime blendshape name from a Koikatsu brow, eyes, or mouth FBS
-  Close/Open pattern, for example `happy_blendshape`.
-- An explicit pattern selector: `brow:N`, `eyes:N`, or `mouth:N`, where `N` is
-  a non-negative pattern index, for example `eyes:5`.
-
-Name matching is case-insensitive but otherwise exact. If the same name maps to
-more than one facial pattern, KK_ExpressionLink reports it as ambiguous; use the
-explicit selector shown by diagnostics/status. `eye_motion.*` names are
-destinations and are deliberately rejected as triggers.
-
-For easier setup, pose the character with the desired facial expression, then
-select the desired **Separate mesh XX** with the arrows and press **Eyes**,
-**Brows**, or **Mouth** under **Capture the current expression**. The panel
-records the strongest current pattern as an explicit selector. Press **Save
-ExpressionMesh mappings** to store the edited mappings with the character.
-
-Automatic visibility has lower priority than manual intent:
-
-1. Koikatsu's Erase Highlight override remains highest for highlight slots.
-2. Manual `Visible` or `Hidden` overrides automatic expression state.
-3. Manual `Original` lets a configured expression trigger show/hide the slot.
-4. With no valid trigger, `Original` restores the captured runtime value.
-
-Disable **Enable separate ExpressionMesh switching** to return trigger-controlled
-slots to their normal manual/original behavior without deleting saved trigger
-assignments.
-
 ## Manual visibility
 
-KK_ExpressionLink exposes ten optional fused-part slots and four optional renderer
-slots. Each row has three modes:
+KK_ExpressionLink exposes seven optional eye-part blendshape slots. Each row has
+three modes:
 
-- `Original`: relinquish manual control and restore the captured runtime value,
-  unless a configured automatic expression trigger currently controls it.
-- `Visible`: force a fused Hide blendshape to 0, or enable a renderer.
-- `Hidden`: use the configured hide weight, or disable a renderer.
+- `Original`: relinquish manual control and restore the captured runtime value.
+- `Visible`: force the configured Hide blendshape to 0.
+- `Hidden`: use the configured hide weight.
 
-Default fused-part names:
+Default eye-part names:
 
 ```text
 eye_motion.f00_hide_highlight01
@@ -282,23 +244,11 @@ eye_motion.f00_hide_irisouter
 eye_motion.f00_hide_pupil
 eye_motion.f00_hide_sclera
 eye_motion.f00_hide_normaleyes
-eye_motion.f00_hide_expression01
-eye_motion.f00_hide_expression02
-eye_motion.f00_hide_expression03
 ```
 
-Default separate renderer targets:
-
-```text
-ExpressionMesh_01
-ExpressionMesh_02
-ExpressionMesh_03
-ExpressionMesh_04
-```
-
-Every visibility slot is optional. Renderer targets can be exact GameObject
-names or paths relative to `ChaControl`. Ambiguous names are rejected instead
-of selecting an arbitrary renderer.
+Every visibility slot is optional. Use **Expressions** when a facial expression
+should activate a different authored blendshape, including shapes on hair,
+clothes, accessories, or other character-owned meshes.
 
 KK_ExpressionLink captures the original value immediately before its first write. When
 returning to an uncontrolled `Original` state, reloading a character, or
@@ -318,18 +268,20 @@ highlight slot to its previous `Original`, `Visible`, or `Hidden` mode.
 
 ## Character-card persistence
 
-`CardPersistenceEnabled` is enabled by default. Schema 3 stores, per character:
+`CardPersistenceEnabled` is enabled by default. Expression Links are always
+stored per character. Schema 3 stores:
 
-- The ten fused-part manual modes.
-- The four renderer manual modes.
-- The four legacy ExpressionMesh trigger strings.
+- The seven current eye-part manual modes.
 - The validated Expression Link definitions.
+- Legacy visibility and expression fields retained for older cards.
 
 Schema 1 and schema 2 cards remain compatible. Schema 1 loads its 14 manual
 modes with empty legacy trigger fields and no links. Schema 2 also loads its
 four trigger strings and starts with no links. Saving new links upgrades that
 character payload to schema 3. The four legacy trigger slots are preserved
-and are not silently converted into Expression Links.
+and are not silently converted into Expression Links. These legacy fields keep
+their fixed 10-blendshape, 4-renderer layout for compatibility, but are not
+shown as a second expression workflow in Quick Settings.
 
 Invalid or unsupported newer payloads are preserved conservatively instead of
 being silently overwritten. Live source activity, smoothing state, and the

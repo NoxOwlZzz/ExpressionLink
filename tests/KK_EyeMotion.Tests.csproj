@@ -73,9 +73,6 @@
     <Compile Include="..\src\UI\QuickSettings\Configuration\IrisSettingsDraft.cs">
       <Link>IrisSettingsDraft.cs</Link>
     </Compile>
-    <Compile Include="..\src\UI\QuickSettings\Configuration\ExpressionSettingsDraft.cs">
-      <Link>ExpressionSettingsDraft.cs</Link>
-    </Compile>
     <Compile Include="..\src\UI\QuickSettings\Configuration\VisibilitySettingsDraft.cs">
       <Link>VisibilitySettingsDraft.cs</Link>
     </Compile>

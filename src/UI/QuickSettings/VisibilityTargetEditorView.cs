@@ -30,19 +30,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     _draft.GetBlendshapeName(i));
                 _draft.SetBlendshapeName(i, value);
             }
-
-            QuickSettingsGui.Heading("Expression mesh targets");
-            for (int i = 0; i < _draft.RendererTargetCount; i++)
-            {
-                string label = i <
-                    ManualVisibilityCatalog.RendererDisplayNames.Length
-                        ? ManualVisibilityCatalog.RendererDisplayNames[i]
-                        : "Renderer " + (i + 1).ToString("00");
-                string value = QuickSettingsGui.LabeledTextField(
-                    label,
-                    _draft.GetRendererTarget(i));
-                _draft.SetRendererTarget(i, value);
-            }
         }
     }
 }

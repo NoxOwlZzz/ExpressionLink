@@ -8,7 +8,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         public void Load(
             MotionSettingsDraft motion,
             IrisSettingsDraft iris,
-            ExpressionSettingsDraft expressions,
             VisibilitySettingsDraft visibility)
         {
             throw new InvalidOperationException(
@@ -18,7 +17,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         public void Save(
             MotionSettingsDraft motion,
             IrisSettingsDraft iris,
-            ExpressionSettingsDraft expressions,
             VisibilitySettingsDraft visibility)
         {
             throw new InvalidOperationException(
@@ -55,8 +53,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             store.LoadEnabled = true;
             store.LoadPositiveXInputLimit = 0.42f;
             store.LoadIrisName = "iris_a";
-            store.LoadExpressionThreshold = 0.35f;
-            store.LoadVisibilityTarget = "ears_a";
+            store.LoadVisibilityName = "hide_a";
 
             QuickSettingsConfigSession session =
                 new QuickSettingsConfigSession(store);
@@ -71,19 +68,18 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "iris_a",
                 session.Iris.GetBlendshapeName(0));
             Equal(
-                "expression threshold loaded",
-                0.35f,
-                session.Expressions.ActivationThreshold);
+                "visibility name loaded",
+                "hide_a",
+                session.Visibility.GetBlendshapeName(0));
             Equal(
-                "visibility target loaded",
-                "ears_a",
-                session.Visibility.GetRendererTarget(0));
+                "seven visibility names exposed",
+                7,
+                session.Visibility.BlendshapeNameCount);
 
             store.LoadEnabled = false;
             store.LoadPositiveXInputLimit = 0.73f;
             store.LoadIrisName = "iris_b";
-            store.LoadExpressionThreshold = 0.61f;
-            store.LoadVisibilityTarget = "ears_b";
+            store.LoadVisibilityName = "hide_b";
             session.Reload();
 
             Equal("explicit reload count", 2, store.LoadCalls);
@@ -97,13 +93,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "iris_b",
                 session.Iris.GetBlendshapeName(0));
             Equal(
-                "expression threshold reloaded",
-                0.61f,
-                session.Expressions.ActivationThreshold);
-            Equal(
-                "visibility target reloaded",
-                "ears_b",
-                session.Visibility.GetRendererTarget(0));
+                "visibility name reloaded",
+                "hide_b",
+                session.Visibility.GetBlendshapeName(0));
         }
 
         private static void CleanSessionRefreshesExternalSettings()
@@ -132,14 +124,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             session.Reload();
             IsFalse("iris reload clears dirty", session.HasUnsavedChanges);
 
-            session.Expressions.ActivationThreshold = 0.93f;
-            IsTrue("expression draft is tracked", session.HasUnsavedChanges);
-            session.Reload();
-            IsFalse(
-                "expression reload clears dirty",
-                session.HasUnsavedChanges);
-
-            session.Visibility.SetRendererTarget(0, "ears_local");
+            session.Visibility.SetBlendshapeName(0, "hide_local");
             IsTrue("visibility draft is tracked", session.HasUnsavedChanges);
             session.Reload();
             IsFalse(
@@ -200,10 +185,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             session.Iris.IrisYMaxWeight = -2f;
             session.Iris.IrisSizeMaxWeight = 102f;
             session.Iris.SetBlendshapeName(0, "  iris_saved  ");
-            session.Expressions.ActivationThreshold = 4f;
             session.Visibility.ManualHideBlendshapeWeight = 150f;
             session.Visibility.SetBlendshapeName(0, "  hide_saved  ");
-            session.Visibility.SetRendererTarget(0, "  ears_saved  ");
 
             session.Apply();
 
@@ -223,17 +206,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             Equal("smoothing speed min", 0.01f, store.SavedSmoothingSpeed);
             Equal("iris y min", 0f, store.SavedIrisYWeight);
             Equal("iris size max", 100f, store.SavedIrisSizeWeight);
-            Equal("expression threshold max", 1f, store.SavedThreshold);
             Equal("visibility weight max", 100f, store.SavedVisibilityWeight);
             Equal("iris name trimmed", "iris_saved", store.SavedIrisName);
             Equal(
                 "visibility name trimmed",
                 "hide_saved",
                 store.SavedVisibilityName);
-            Equal(
-                "renderer target trimmed",
-                "ears_saved",
-                store.SavedVisibilityTarget);
         }
 
         private static void IsTrue(string name, bool value)
@@ -279,8 +257,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             internal bool LoadEnabled;
             internal float LoadPositiveXInputLimit;
             internal string LoadIrisName = string.Empty;
-            internal float LoadExpressionThreshold;
-            internal string LoadVisibilityTarget = string.Empty;
+            internal string LoadVisibilityName = string.Empty;
 
             internal float SavedHorizontalCenter;
             internal float SavedPositiveXLimit;
@@ -296,30 +273,25 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             internal float SavedSmoothingSpeed;
             internal float SavedIrisYWeight;
             internal float SavedIrisSizeWeight;
-            internal float SavedThreshold;
             internal float SavedVisibilityWeight;
             internal string SavedIrisName = string.Empty;
             internal string SavedVisibilityName = string.Empty;
-            internal string SavedVisibilityTarget = string.Empty;
 
             public void Load(
                 MotionSettingsDraft motion,
                 IrisSettingsDraft iris,
-                ExpressionSettingsDraft expressions,
                 VisibilitySettingsDraft visibility)
             {
                 LoadCalls++;
                 motion.Enabled = LoadEnabled;
                 motion.PositiveXInputLimit = LoadPositiveXInputLimit;
                 iris.SetBlendshapeName(0, LoadIrisName);
-                expressions.ActivationThreshold = LoadExpressionThreshold;
-                visibility.SetRendererTarget(0, LoadVisibilityTarget);
+                visibility.SetBlendshapeName(0, LoadVisibilityName);
             }
 
             public void Save(
                 MotionSettingsDraft motion,
                 IrisSettingsDraft iris,
-                ExpressionSettingsDraft expressions,
                 VisibilitySettingsDraft visibility)
             {
                 SaveCalls++;
@@ -337,17 +309,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 SavedSmoothingSpeed = motion.SmoothingSpeed;
                 SavedIrisYWeight = iris.IrisYMaxWeight;
                 SavedIrisSizeWeight = iris.IrisSizeMaxWeight;
-                SavedThreshold = expressions.ActivationThreshold;
                 SavedVisibilityWeight = visibility.ManualHideBlendshapeWeight;
                 SavedIrisName = iris.GetBlendshapeName(0);
                 SavedVisibilityName = visibility.GetBlendshapeName(0);
-                SavedVisibilityTarget = visibility.GetRendererTarget(0);
 
                 LoadEnabled = motion.Enabled;
                 LoadPositiveXInputLimit = motion.PositiveXInputLimit;
                 LoadIrisName = SavedIrisName;
-                LoadExpressionThreshold = SavedThreshold;
-                LoadVisibilityTarget = SavedVisibilityTarget;
+                LoadVisibilityName = SavedVisibilityName;
             }
         }
     }

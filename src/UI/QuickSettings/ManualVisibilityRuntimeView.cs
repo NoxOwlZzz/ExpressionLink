@@ -38,45 +38,18 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             QuickSettingsGui.Heading("Blendshape-controlled parts");
-            for (int i = 0; i < binding.BlendshapeSlots.Length; i++)
+            int visibleSlotCount = Math.Min(
+                binding.BlendshapeSlots.Length,
+                ManualVisibilityCatalog.UserFacingBlendshapeCount);
+            for (int i = 0; i < visibleSlotCount; i++)
             {
                 BlendshapeVisibilitySlot slot = binding.BlendshapeSlots[i];
                 DrawVisibilityRow(
                     controller,
-                    false,
                     i,
                     GetBlendshapeDisplayName(i, slot.DisplayName),
                     slot.ManualMode,
                     GetResolutionText(slot.Resolution),
-                    compactLayout);
-            }
-
-            QuickSettingsGui.Space(4f);
-            QuickSettingsGui.Heading("Separate expression meshes");
-            for (int i = 0; i < binding.RendererSlots.Length; i++)
-            {
-                RendererVisibilitySlot slot = binding.RendererSlots[i];
-                string resolution = GetResolutionText(slot.Resolution);
-                if (slot.Resolution == VisibilityResolutionStatus.Ready &&
-                    !slot.IsValid())
-                {
-                    resolution = "Invalid";
-                }
-                else if (
-                    slot.Resolution == VisibilityResolutionStatus.Ready &&
-                    slot.Renderer != null &&
-                    !slot.Renderer.gameObject.activeInHierarchy)
-                {
-                    resolution = "Ready/inactive";
-                }
-
-                DrawVisibilityRow(
-                    controller,
-                    true,
-                    i,
-                    slot.DisplayName,
-                    slot.ManualMode,
-                    resolution,
                     compactLayout);
             }
 
@@ -119,7 +92,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void DrawVisibilityRow(
             EyeMotionCharacterController controller,
-            bool rendererSlot,
             int slotIndex,
             string label,
             ManualVisibilityMode mode,
@@ -133,7 +105,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 QuickSettingsGui.BeginHorizontal();
                 DrawVisibilityButtons(
                     controller,
-                    rendererSlot,
                     slotIndex,
                     mode);
                 QuickSettingsGui.EndHorizontal();
@@ -145,7 +116,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             QuickSettingsGui.VisibilityLabel(label);
             DrawVisibilityButtons(
                 controller,
-                rendererSlot,
                 slotIndex,
                 mode);
             QuickSettingsGui.VisibilityStatus(status);
@@ -154,7 +124,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void DrawVisibilityButtons(
             EyeMotionCharacterController controller,
-            bool rendererSlot,
             int slotIndex,
             ManualVisibilityMode mode)
         {
@@ -164,7 +133,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 SetVisibilityMode(
                     controller,
-                    rendererSlot,
                     slotIndex,
                     ManualVisibilityMode.Original);
             }
@@ -175,7 +143,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 SetVisibilityMode(
                     controller,
-                    rendererSlot,
                     slotIndex,
                     ManualVisibilityMode.Visible);
             }
@@ -186,7 +153,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             {
                 SetVisibilityMode(
                     controller,
-                    rendererSlot,
                     slotIndex,
                     ManualVisibilityMode.Hidden);
             }
@@ -194,19 +160,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void SetVisibilityMode(
             EyeMotionCharacterController controller,
-            bool rendererSlot,
             int slotIndex,
             ManualVisibilityMode mode)
         {
-            if (rendererSlot)
-            {
-                controller.SetManualRendererVisibility(
-                    slotIndex,
-                    mode,
-                    out _feedback);
-                return;
-            }
-
             controller.SetManualBlendshapeVisibility(
                 slotIndex,
                 mode,

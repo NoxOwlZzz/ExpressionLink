@@ -22,7 +22,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         private readonly MotionSettingsView _motionView;
         private readonly IrisSettingsView _irisView;
         private readonly VisibilitySettingsView _visibilityView;
-        private readonly ExpressionWorkspaceView _expressionWorkspace;
+        private readonly ExpressionLinkEditorView _expressionLinkEditor;
         private readonly QuickSettingsNavigationView _navigation;
         private readonly QuickSettingsFooterView _footer;
 
@@ -35,7 +35,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             LiveStatusPresenter statusPresenter,
             MotionSettingsView motionView,
             IrisSettingsView irisView,
-            ExpressionSettingsView expressionView,
             VisibilitySettingsView visibilityView,
             ExpressionLinkEditorView expressionLinkEditor,
             Action apply,
@@ -50,9 +49,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             _motionView = Require(motionView, "motionView");
             _irisView = Require(irisView, "irisView");
             _visibilityView = Require(visibilityView, "visibilityView");
-            _expressionWorkspace = new ExpressionWorkspaceView(
-                Require(expressionLinkEditor, "expressionLinkEditor"),
-                Require(expressionView, "expressionView"));
+            _expressionLinkEditor = Require(
+                expressionLinkEditor,
+                "expressionLinkEditor");
             _navigation = new QuickSettingsNavigationView();
             _footer = new QuickSettingsFooterView(
                 Require(apply, "apply"),
@@ -103,7 +102,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 bool preventLeavingCurrentView =
                     _navigation.Destination ==
                         QuickSettingsDestination.Expressions &&
-                    _expressionWorkspace.HasUnsavedChanges;
+                    _expressionLinkEditor.HasUnsavedChanges;
                 if (!preventLeavingCurrentView)
                 {
                     _navigationFeedback = string.Empty;
@@ -179,11 +178,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void SelectController(int direction)
         {
-            if (_expressionWorkspace.HasUnsavedChanges)
+            if (_expressionLinkEditor.HasUnsavedChanges)
             {
                 _navigationFeedback =
                     "Save or cancel the current expression edits first.";
-                _expressionWorkspace.RejectControllerChange();
+                _expressionLinkEditor.RejectControllerChange();
                 return;
             }
 
@@ -210,7 +209,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     _irisView.Draw(status);
                     return;
                 case QuickSettingsDestination.Expressions:
-                    _expressionWorkspace.Draw(controller);
+                    _expressionLinkEditor.Draw(controller);
                     return;
                 case QuickSettingsDestination.Visibility:
                     _visibilityView.Draw(
@@ -229,7 +228,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
         private void HandleNavigationBlocked()
         {
-            _expressionWorkspace.RejectNavigationChange();
+            _expressionLinkEditor.RejectNavigationChange();
             _navigationFeedback =
                 "Save or cancel the current expression edits first.";
         }

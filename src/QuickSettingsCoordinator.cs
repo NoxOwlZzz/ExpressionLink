@@ -35,7 +35,6 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 _statusPresenter,
                 new MotionSettingsView(_configSession.Motion),
                 new IrisSettingsView(_configSession.Iris),
-                new ExpressionSettingsView(_configSession.Expressions),
                 new VisibilitySettingsView(_configSession.Visibility),
                 new ExpressionLinkEditorView(),
                 ApplyConfiguration,

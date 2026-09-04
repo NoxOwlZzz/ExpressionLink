@@ -465,48 +465,16 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 GetPluginType(
                     pluginAssembly,
                     "VisibilityTargetEditorView") != null);
-            Type expressionSettingsType = GetPluginType(
-                pluginAssembly,
-                "ExpressionSettingsView");
             Check(
-                "ExpressionMesh compatibility view type",
-                expressionSettingsType != null);
+                "legacy ExpressionMesh settings view removed",
+                pluginAssembly.GetType(
+                    PluginNamespace + "ExpressionSettingsView",
+                    false) == null);
             Check(
-                "ExpressionMesh mappings expose unsaved state",
-                expressionSettingsType.GetProperty(
-                    "HasUnsavedChanges", instanceNonPublic) != null);
-            Check(
-                "ExpressionMesh mappings reject unsafe navigation",
-                expressionSettingsType.GetMethod(
-                    "RejectNavigationChange", instanceNonPublic) != null);
-            Check(
-                "ExpressionMesh mappings can discard unavailable edits",
-                expressionSettingsType.GetMethod(
-                    "DiscardUnavailableMappings",
-                    instanceNonPublic) != null);
-            Check(
-                "ExpressionMesh mappings own dirty state",
-                expressionSettingsType.GetField(
-                    "_triggersDirty", instanceNonPublic) != null);
-            Check(
-                "ExpressionMesh mappings preserve stale edits",
-                expressionSettingsType.GetMethod(
-                    "HasStaleTriggerBuffer",
-                    instanceNonPublic) != null);
-            Type expressionWorkspaceType = GetPluginType(
-                pluginAssembly,
-                "ExpressionWorkspaceView");
-            Check(
-                "expression workspace type",
-                expressionWorkspaceType != null);
-            Check(
-                "expression workspace composes general links",
-                expressionWorkspaceType.GetField(
-                    "_linkEditor", instanceNonPublic) != null);
-            Check(
-                "expression workspace composes ExpressionMesh compatibility",
-                expressionWorkspaceType.GetField(
-                    "_compatibilityView", instanceNonPublic) != null);
+                "legacy expression workspace removed",
+                pluginAssembly.GetType(
+                    PluginNamespace + "ExpressionWorkspaceView",
+                    false) == null);
             Type linkEditorType = GetPluginType(
                 pluginAssembly,
                 "ExpressionLinkEditorView");
@@ -589,9 +557,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                             Enum.Parse(targetScopeType, "Head")
                         })));
             Check(
-                "quick-settings owns expression workspace",
+                "quick-settings owns per-character expression-link editor",
                 quickSettingsSurfaceType.GetField(
-                    "_expressionWorkspace",
+                    "_expressionLinkEditor",
                     instanceNonPublic) != null);
             Check(
                 "expression source section type",
@@ -675,6 +643,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "ExpressionLinkProfileStore");
             Check("expression-link definition type", linkDefinitionType != null);
             Check("expression-link runtime type", linkRuntimeType != null);
+            CheckMethod(
+                linkRuntimeType,
+                "ManagesTarget",
+                "expression-link target ownership query",
+                instanceNonPublic);
             Check("expression-link target resolver type", targetResolverType != null);
             Check("multi-renderer catalog type", rendererCatalogType != null);
             Check("expression-link profile store type", profileStoreType != null);
@@ -781,6 +754,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 pluginAssembly,
                 "ManualVisibilityBinding");
             Check("manual visibility binding type", visibilityBindingType != null);
+            Type blendshapeVisibilitySlotType = GetPluginType(
+                pluginAssembly,
+                "BlendshapeVisibilitySlot");
+            CheckField(
+                blendshapeVisibilitySlotType,
+                "SuppressedByExpressionLink",
+                "legacy fused target suppression state",
+                instanceNonPublic);
             Check(
                 "manual blendshape commands",
                 CountMethods(
@@ -790,7 +771,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             CheckMethod(visibilityBindingType, "SetRendererMode", "manual renderer command", instanceNonPublic);
             CheckMethod(visibilityBindingType, "RestoreAll", "manual visibility restoration", instanceNonPublic);
             CheckMethod(visibilityBindingType, "SetAutomaticHighlightHidden", "automatic base-highlight synchronization", instanceNonPublic);
-            CheckMethod(visibilityBindingType, "SetAutomaticExpressionState", "automatic expression visibility state", instanceNonPublic);
+            Check(
+                "automatic expression visibility overloads",
+                CountMethods(
+                    visibilityBindingType,
+                    "SetAutomaticExpressionState",
+                    instanceNonPublic) == 2);
             Check(
                 "vertex metadata scanner removed",
                 pluginAssembly.GetType(
@@ -855,6 +841,24 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     catalogType.GetField(
                         "BlendshapeCount",
                         staticNonPublic).GetRawConstantValue()) == 10);
+            Check(
+                "seven user-facing manual hide slots",
+                Convert.ToInt32(
+                    catalogType.GetField(
+                        "UserFacingBlendshapeCount",
+                        staticNonPublic).GetRawConstantValue()) == 7);
+            Check(
+                "legacy fused slots start after user-facing slots",
+                Convert.ToInt32(
+                    catalogType.GetField(
+                        "LegacyFusedBlendshapeStartIndex",
+                        staticNonPublic).GetRawConstantValue()) == 7);
+            Check(
+                "three legacy fused slots remain compatible",
+                Convert.ToInt32(
+                    catalogType.GetField(
+                        "LegacyFusedBlendshapeCount",
+                        staticNonPublic).GetRawConstantValue()) == 3);
             Check(
                 "four expression renderer slots",
                 Convert.ToInt32(

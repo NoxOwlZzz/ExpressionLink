@@ -17,11 +17,17 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal bool AutomaticHidden;
         internal bool AutomaticExpressionConfigured;
         internal bool AutomaticExpressionActive;
+        internal bool SuppressedByExpressionLink;
 
         internal ManualVisibilityMode EffectiveMode
         {
             get
             {
+                if (SuppressedByExpressionLink)
+                {
+                    return ManualVisibilityMode.Original;
+                }
+
                 if (AutomaticHidden)
                 {
                     return ManualVisibilityMode.Hidden;
@@ -306,6 +312,11 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                     slot.StatusMessage +=
                         " Hidden by the base-game highlight setting.";
                 }
+                else if (slot.SuppressedByExpressionLink)
+                {
+                    slot.StatusMessage +=
+                        " Managed by an expression link.";
+                }
                 else if (slot.AutomaticExpressionConfigured &&
                     slot.ManualMode == ManualVisibilityMode.Original)
                 {
@@ -422,6 +433,21 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             bool active,
             out string message)
         {
+            return SetAutomaticExpressionState(
+                expressionSlotIndex,
+                configured,
+                active,
+                true,
+                out message);
+        }
+
+        internal bool SetAutomaticExpressionState(
+            int expressionSlotIndex,
+            bool configured,
+            bool active,
+            bool manageFusedBlendshape,
+            out string message)
+        {
             if (expressionSlotIndex < 0 ||
                 expressionSlotIndex >= ManualVisibilityCatalog.RendererCount)
             {
@@ -431,20 +457,37 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             bool success = true;
             message = string.Empty;
-            int fusedIndex = 7 + expressionSlotIndex;
-            if (fusedIndex >= 0 && fusedIndex < BlendshapeSlots.Length)
+            if (expressionSlotIndex <
+                ManualVisibilityCatalog.LegacyFusedBlendshapeCount)
             {
+                int fusedIndex =
+                    ManualVisibilityCatalog.LegacyFusedBlendshapeStartIndex +
+                    expressionSlotIndex;
                 BlendshapeVisibilitySlot blendshape =
                     BlendshapeSlots[fusedIndex];
-                blendshape.AutomaticExpressionConfigured = configured;
-                blendshape.AutomaticExpressionActive = active;
+                bool previouslyManaged =
+                    blendshape.AutomaticExpressionConfigured;
+                bool suppressFusedBlendshape =
+                    !manageFusedBlendshape;
+                bool suppressionChanged =
+                    blendshape.SuppressedByExpressionLink !=
+                    suppressFusedBlendshape;
+                blendshape.SuppressedByExpressionLink =
+                    suppressFusedBlendshape;
+                blendshape.AutomaticExpressionConfigured =
+                    manageFusedBlendshape && configured;
+                blendshape.AutomaticExpressionActive =
+                    manageFusedBlendshape && active;
                 if (blendshape.Resolution == VisibilityResolutionStatus.Ready)
                 {
-                    string slotMessage;
-                    if (!ApplyBlendshapeMode(
-                        blendshape,
-                        PluginConfig.ManualHideBlendshapeWeight.Value,
-                        out slotMessage))
+                    string slotMessage = string.Empty;
+                    if ((manageFusedBlendshape ||
+                         previouslyManaged ||
+                         suppressionChanged) &&
+                        !ApplyBlendshapeMode(
+                            blendshape,
+                            PluginConfig.ManualHideBlendshapeWeight.Value,
+                            out slotMessage))
                     {
                         success = false;
                     }
@@ -513,6 +556,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
                 slot.AutomaticHidden = false;
                 slot.AutomaticExpressionConfigured = false;
                 slot.AutomaticExpressionActive = false;
+                slot.SuppressedByExpressionLink = false;
                 if (!slot.State.OwnsValue &&
                     slot.State.Mode == ManualVisibilityMode.Original)
                 {

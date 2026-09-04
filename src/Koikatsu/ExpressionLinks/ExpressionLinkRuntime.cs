@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace NightOwlZzz.Koikatsu.EyeMotion
 {
@@ -189,6 +190,28 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             return linkIndex >= 0 && linkIndex < _links.Length
                 ? _links[linkIndex].Diagnostic
                 : null;
+        }
+
+        internal bool ManagesTarget(
+            SkinnedMeshRenderer renderer,
+            int blendshapeIndex)
+        {
+            if (renderer == null || blendshapeIndex < 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < _groups.Length; i++)
+            {
+                ExpressionLinkTargetBinding binding = _groups[i].Binding;
+                if (binding.Renderer == renderer &&
+                    binding.BlendshapeIndex == blendshapeIndex)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         internal bool Rebuild(
@@ -502,7 +525,10 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             }
 
             BlendshapeVisibilitySlot[] slots = visibility.BlendshapeSlots;
-            for (int i = 0; i < slots.Length; i++)
+            int count = Math.Min(
+                ManualVisibilityCatalog.UserFacingBlendshapeCount,
+                slots.Length);
+            for (int i = 0; i < count; i++)
             {
                 BlendshapeVisibilitySlot slot = slots[i];
                 if (slot != null &&
