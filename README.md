@@ -81,9 +81,6 @@ All five shapes must be on the same `SkinnedMeshRenderer`. The four direction
 shapes represent positive X, negative X, positive Y, and negative Y. The blink
 shape represents both eyes fully closed at weight 100.
 
-Detailed mesh-authoring and in-game verification checklists are available in
-[docs/AUTHORING.md](docs/AUTHORING.md).
-
 ## Optional KK_ExpressionControl eye-adjustment shapes
 
 The optional integration supports the two values exposed by
@@ -354,8 +351,7 @@ persistence status.
 ## Building and packaging
 
 Use Visual Studio Build Tools with a C# 7.3-capable compiler. The plugin and
-tests target .NET Framework 3.5 using the game's reference assemblies. The
-packager additionally requires the .NET Framework 4.7.2 targeting pack.
+tests target .NET Framework 3.5 using the game's reference assemblies.
 
 Place these references from the compatible Koikatsu/BepInEx installation in
 the ignored `lib` directory:
@@ -393,29 +389,24 @@ msbuild tests/KK_EyeMotion.Tests.csproj /t:Rebuild /p:Configuration=Release /p:P
 ```
 
 The checks use the local reference assemblies and Release DLL; they do not
-launch the game. Build and run the packager after the checks pass:
-
-```shell
-msbuild tools/PackageRelease/PackageRelease.csproj /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU /m /v:minimal
-.\tools\PackageRelease\bin\Release\PackageRelease.exe .
-```
-
-The Release builds treat warnings as errors. The packager uses
-`release/README.txt`, validates the assembly version and exact ZIP entry list,
-and creates:
-
-```text
-dist\KK_ExpressionLink-v0.5.1.zip
-dist\KK_ExpressionLink-v0.5.1.zip.sha256
-```
+launch the game. Release builds treat warnings as errors.
 
 For local deployment, close Koikatsu and CharaStudio and copy
 `bin/Release/KK_EyeMotion.dll` into the game's
 `BepInEx/plugins/KK_EyeMotion` folder. Follow the upgrade instructions above
 to leave only one DLL.
 
-See [docs/MAINTAINING.md](docs/MAINTAINING.md) for code ownership, persistence
-contracts, resource lifetime, and runtime release checks.
+To prepare a download, create a ZIP with this layout:
+
+```text
+BepInEx/plugins/KK_EyeMotion/KK_EyeMotion.dll
+README.txt
+```
+
+Use a brief English README with the requirements and upgrade instructions
+above, including removal of old DLL copies while retaining cards and config.
+Do not include dependency DLLs, configuration files, PDBs, source, or tests.
+Calculate SHA-256 from the finished ZIP when providing a checksum.
 
 ## Current limitations
 
