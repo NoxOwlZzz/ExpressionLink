@@ -33,29 +33,32 @@ or supported**; separation of the shared core is not a KKS compatibility claim.
 ## Clean ZIP installation
 
 1. Close Koikatsu and CharaStudio.
-2. Open `KK_ExpressionLink-v0.5.1.zip` and merge its `BepInEx` folder into
+2. If upgrading from EyeMotion or an older KK_ExpressionLink version, remove
+   all old copies of `KK_EyeMotion.dll` from `BepInEx/plugins` and its subfolders,
+   including any old EyeMotion or KK_EyeMotion installation folder. Keep your
+   character cards and configuration files.
+3. Open `KK_ExpressionLink-v0.5.1.zip` and merge its `BepInEx` folder into
    the game directory.
-3. Confirm that the final DLL path is:
+4. Confirm that only one `KK_EyeMotion.dll` remains, at:
 
    ```text
    <Koikatsu>\BepInEx\plugins\KK_EyeMotion\KK_EyeMotion.dll
    ```
 
-4. Start the game once. BepInEx creates or updates:
+5. Start the game once. BepInEx creates or updates:
 
    ```text
    BepInEx\config\com.nightowlzzz.koikatsu.eyemotion.cfg
    ```
-The outer ZIP and visible plugin name are new. The physical
-`KK_EyeMotion.dll`, internal plugin folder, BepInEx GUID, configuration file,
-namespace, card-data identity, and `eye_motion.*` names deliberately remain
-unchanged. An update therefore replaces the old plugin instead of loading a
-duplicate.
 
-The public ZIP contains only the plugin DLL and its English README.
-It deliberately excludes configuration files, PDB files, source files, and
-dependency DLLs. Installing an update therefore preserves the user's existing
-configuration and does not replace shared dependencies.
+The new DLL is still named `KK_EyeMotion.dll`. Do not keep both versions or DLL
+backups inside `BepInEx/plugins`. The internal plugin folder, BepInEx GUID,
+configuration file, namespace, card-data identity, and `eye_motion.*` names
+remain unchanged for compatibility.
+
+The ZIP contains only the plugin DLL and a brief English `README.txt` at the
+archive root, with requirements and installation instructions. Configuration
+files, PDB files, source files, and dependency DLLs are not included.
 
 ## Required movement and blink shapes
 
