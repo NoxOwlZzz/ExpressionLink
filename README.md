@@ -4,9 +4,9 @@
 Author: NightOwlZzz / Owl
 Current version: 0.5.1
 
-KK_ExpressionLink preserves the optimized custom-eye movement, blink, iris
-adjustment, visibility, and highlight features introduced as EyeMotion. It now
-also links Koikatsu facial expressions to blendshapes on any character
+KK_ExpressionLink controls custom-eye movement, blink, iris adjustment,
+visibility, and highlights. It links Koikatsu facial expressions to blendshapes
+on any character
 `SkinnedMeshRenderer`, including head, hair, body, clothes, accessories, and
 other character-owned meshes.
 
@@ -28,9 +28,9 @@ not calculate an independent look-at target, use vertex colors, replace
   optional IrisY/Size blendshapes.
 
 This build targets Koikatsu/Koikatu only. **Koikatsu Sunshine is not compatible
-or supported**; separation of the shared core is not a KKS compatibility claim.
+or supported**.
 
-## Clean ZIP installation
+## Installation
 
 1. Close Koikatsu and CharaStudio.
 2. If upgrading from EyeMotion or an older KK_ExpressionLink version, remove
@@ -51,7 +51,7 @@ or supported**; separation of the shared core is not a KKS compatibility claim.
    BepInEx\config\com.nightowlzzz.koikatsu.eyemotion.cfg
    ```
 
-The new DLL is still named `KK_EyeMotion.dll`. Do not keep both versions or DLL
+The plugin DLL is named `KK_EyeMotion.dll`. Do not keep multiple copies or DLL
 backups inside `BepInEx/plugins`. The internal plugin folder, BepInEx GUID,
 configuration file, namespace, card-data identity, and `eye_motion.*` names
 remain unchanged for compatibility.
@@ -117,11 +117,11 @@ actions remain accessible. Drag the title bar to move it: the body may leave the
 screen, but the complete header stays visible vertically and at least 120 pixels
 remain available horizontally to recover it.
 
-The panel is organized into three clear categories:
+The panel is organized into three categories:
 
 - **Eyes**: **Tracking** for camera tracking and calibration, and **Size
   controls** for the game's Iris/Size sliders.
-- **Expressions**: the single guided, per-character workflow for linking a live
+- **Expressions**: the per-character workflow for linking a live
   Koikatsu expression to a blendshape on any supported character mesh.
 - **Visibility**: highlight synchronization and manual eye-part visibility.
 
@@ -132,9 +132,6 @@ The same panel can also be opened from:
 
 - Maker: **Face > Expression Link > Open Expression Link Quick Settings**.
 - Studio: the **KK_ExpressionLink** button in the left toolbar.
-
-The Studio button uses a neutral square background and bevel consistent with
-the surrounding toolbar buttons while retaining its monochrome eye glyph.
 
 Use the arrows at the top to select a character. Tracking, size, and visibility
 configuration use **Apply global settings**; **Discard global changes** reloads
@@ -315,9 +312,6 @@ used as a tie-breaker.
 
 ## Performance behavior
 
-The current runtime retains the optimized gaze/blink pipeline and extends the
-features conservatively:
-
 - KK_ExpressionControl `IrisY` and `Size` values are cached; weights are
   recalculated only when a source or relevant configuration changes.
 - Managed eye-adjustment weights are written only when needed and verified on a
@@ -426,8 +420,7 @@ Calculate SHA-256 from the finished ZIP when providing a checksum.
 - A destination that remains absent throughout the initial resolution window
   is not polled indefinitely. Reload the character or save the link again after
   its renderer is present.
-- KoikatuVR and Koikatsu Sunshine are outside the declared compatibility
-  scope. KKS support must not be assumed from the shared-core architecture.
+- KoikatuVR and Koikatsu Sunshine are not supported.
 
 ## Credits
 
