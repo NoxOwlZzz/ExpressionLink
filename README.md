@@ -82,8 +82,7 @@ shapes represent positive X, negative X, positive Y, and negative Y. The blink
 shape represents both eyes fully closed at weight 100.
 
 Detailed mesh-authoring and in-game verification checklists are available in
-[HEADMOD_AUTHORING.md](HEADMOD_AUTHORING.md) and
-[EXPRESSION_LINK_AUTHORING.md](EXPRESSION_LINK_AUTHORING.md).
+[docs/AUTHORING.md](docs/AUTHORING.md).
 
 ## Optional KK_ExpressionControl eye-adjustment shapes
 
@@ -354,9 +353,12 @@ persistence status.
 
 ## Building and packaging
 
-Building requires Visual Studio Build Tools or another MSBuild installation
-that supports the legacy C# project format. Place these local reference
-assemblies in the ignored `lib` directory:
+Use Visual Studio Build Tools with a C# 7.3-capable compiler. The plugin and
+tests target .NET Framework 3.5 using the game's reference assemblies. The
+packager additionally requires the .NET Framework 4.7.2 targeting pack.
+
+Place these references from the compatible Koikatsu/BepInEx installation in
+the ignored `lib` directory:
 
 ```text
 mscorlib.dll
@@ -370,32 +372,50 @@ UnityEngine.dll
 UnityEngine.UI.dll
 ```
 
-Use assemblies from the compatible Koikatsu/BepInEx installation. They are
-build references only and must not be committed or included in the release.
-The scripts locate MSBuild through `MSBUILD_EXE`, `PATH`, `vswhere`, or a
-standard Visual Studio installation.
+Do not commit or distribute these reference assemblies. All runtime project
+references use `Private=False`.
 
-Build Release and run the automated checks:
+Open a Visual Studio Developer Command Prompt or Developer PowerShell, change
+to the repository root, and build the plugin:
 
-```bat
-build-release.bat
-run-tests.bat
+```shell
+msbuild KK_EyeMotion.csproj /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU /m /v:minimal
 ```
 
-After the checks pass, create the clean public archive:
+The DLL is written to `bin/Release/KK_EyeMotion.dll`. Use
+`/p:Configuration=Debug` for a Debug plugin build.
 
-```bat
-package-release.bat
+Build and run the automated checks after building Release:
+
+```shell
+msbuild tests/KK_EyeMotion.Tests.csproj /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU /m /v:minimal
+.\tests\bin\Release\KK_EyeMotion.Tests.exe
 ```
 
-The Release build treats warnings as errors. The packager validates the
-assembly version and every ZIP entry, excludes configuration, dependency, and
-PDB files, and creates:
+The checks use the local reference assemblies and Release DLL; they do not
+launch the game. Build and run the packager after the checks pass:
+
+```shell
+msbuild tools/PackageRelease/PackageRelease.csproj /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU /m /v:minimal
+.\tools\PackageRelease\bin\Release\PackageRelease.exe .
+```
+
+The Release builds treat warnings as errors. The packager uses
+`release/README.txt`, validates the assembly version and exact ZIP entry list,
+and creates:
 
 ```text
 dist\KK_ExpressionLink-v0.5.1.zip
 dist\KK_ExpressionLink-v0.5.1.zip.sha256
 ```
+
+For local deployment, close Koikatsu and CharaStudio and copy
+`bin/Release/KK_EyeMotion.dll` into the game's
+`BepInEx/plugins/KK_EyeMotion` folder. Follow the upgrade instructions above
+to leave only one DLL.
+
+See [docs/MAINTAINING.md](docs/MAINTAINING.md) for code ownership, persistence
+contracts, resource lifetime, and runtime release checks.
 
 ## Current limitations
 
