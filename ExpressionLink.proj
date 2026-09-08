@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Game Condition="'$(Game)' == ''">Both</Game>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <GameProject Include="$(MSBuildThisFileDirectory)KK_EyeMotion.csproj" Condition="'$(Game)' == 'KK' Or '$(Game)' == 'Both'">
+      <GameName>KK</GameName>
+    </GameProject>
+    <GameProject Include="$(MSBuildThisFileDirectory)KKS_EyeMotion.csproj" Condition="'$(Game)' == 'KKS' Or '$(Game)' == 'Both'">
+      <GameName>KKS</GameName>
+    </GameProject>
+  </ItemGroup>
+
+  <Target Name="Validate">
+    <Error Condition="'$(Game)' != 'KK' And '$(Game)' != 'KKS' And '$(Game)' != 'Both'" Text="Game must be KK, KKS, or Both." />
+    <Error Condition="'$(Configuration)' != 'Debug' And '$(Configuration)' != 'Release'" Text="Configuration must be Debug or Release." />
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="Validate">
+    <MSBuild Projects="@(GameProject)" Targets="Build" Properties="Configuration=$(Configuration);Platform=AnyCPU" RemoveProperties="Game" BuildInParallel="true" />
+  </Target>
+
+  <Target Name="Clean" DependsOnTargets="Validate">
+    <MSBuild Projects="@(GameProject)" Targets="Clean" Properties="Configuration=$(Configuration);Platform=AnyCPU" RemoveProperties="Game" BuildInParallel="true" />
+    <RemoveDir Directories="@(GameProject->'$(MSBuildThisFileDirectory)obj\package\%(GameName)')" />
+  </Target>
+
+  <Target Name="ValidatePackage" DependsOnTargets="Validate">
+    <Error Condition="'$(Configuration)' != 'Release'" Text="Download packages must use Configuration=Release." />
+  </Target>
+
+  <Target Name="Package" DependsOnTargets="ValidatePackage;Build">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_PackageOne" Properties="Game=%(GameProject.GameName);Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="_PackageOne" DependsOnTargets="ValidatePackage">
+    <Error Condition="'$(Game)' == 'Both'" Text="Use Package or PackageBoth to package both games." />
+    <PropertyGroup>
+      <_AssemblyPath Condition="'$(Game)' == 'KK'">$(MSBuildThisFileDirectory)bin\Release\KK_EyeMotion.dll</_AssemblyPath>
+      <_AssemblyPath Condition="'$(Game)' == 'KKS'">$(MSBuildThisFileDirectory)bin\KKS\Release\KKS_EyeMotion.dll</_AssemblyPath>
+      <_GameTitle Condition="'$(Game)' == 'KK'">Koikatsu</_GameTitle>
+      <_GameTitle Condition="'$(Game)' == 'KKS'">Koikatsu Sunshine</_GameTitle>
+      <_ApiName Condition="'$(Game)' == 'KK'">KKAPI</_ApiName>
+      <_ApiName Condition="'$(Game)' == 'KKS'">KKSAPI</_ApiName>
+      <_SaveName Condition="'$(Game)' == 'KK'">ExtensibleSaveFormat</_SaveName>
+      <_SaveName Condition="'$(Game)' == 'KKS'">KKS_ExtensibleSaveFormat</_SaveName>
+      <_OtherGame Condition="'$(Game)' == 'KK'">KKS</_OtherGame>
+      <_OtherGame Condition="'$(Game)' == 'KKS'">KK</_OtherGame>
+      <_StageRoot>$(MSBuildThisFileDirectory)obj\package\$(Game)</_StageRoot>
+      <_PluginDirectory>$(_StageRoot)\BepInEx\plugins\$(Game)_EyeMotion</_PluginDirectory>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(_AssemblyPath)')" Text="Build the $(Game) Release DLL before packaging." />
+    <GetAssemblyIdentity AssemblyFiles="$(_AssemblyPath)">
+      <Output TaskParameter="Assemblies" ItemName="_PackageIdentity" />
+    </GetAssemblyIdentity>
+    <PropertyGroup>
+      <_PackageVersion>$([System.Version]::Parse('%(_PackageIdentity.Version)').ToString(3))</_PackageVersion>
+      <_ArchivePath>$(MSBuildThisFileDirectory)dist\$(Game)_ExpressionLink_v$(_PackageVersion).zip</_ArchivePath>
+    </PropertyGroup>
+    <RemoveDir Directories="$(_StageRoot)" />
+    <MakeDir Directories="$(_PluginDirectory);$(MSBuildThisFileDirectory)dist" />
+    <Copy SourceFiles="$(_AssemblyPath)" DestinationFolder="$(_PluginDirectory)" />
+    <ItemGroup>
+      <_ReadmeLine Include="$(Game)_ExpressionLink v$(_PackageVersion) - $(_GameTitle) only." />
+      <_ReadmeLine Include="Requirements: BepInEx 5, $(_ApiName) 1.42.2 or newer, and the $(_GameTitle) version of $(_SaveName)." />
+      <_ReadmeLine Include="Optional: $(Game)_ExpressionControl provides IrisY and Size input. It is not required for other features." />
+      <_ReadmeLine Include="Installation: close the game and CharaStudio, then extract the BepInEx folder into the $(_GameTitle) game folder." />
+      <_ReadmeLine Include="Upgrade: remove old copies of $(Game)_EyeMotion.dll and any $(_OtherGame)_EyeMotion.dll from this game's BepInEx/plugins folder, including subfolders. Install only the included $(Game)_EyeMotion.dll. Keep your character cards and configuration files." />
+      <_ReadmeLine Include="Open Quick Settings with Ctrl+Shift+M. Use compatible meshes with the required blendshapes." />
+      <_ReadmeLine Include="KKS runtime validation is pending. Cross-game character card compatibility is not guaranteed." Condition="'$(Game)' == 'KKS'" />
+      <_ReadmeLine Include="Copyright (c) 2026 NightOwlZzz / Owl. No open-source license is granted. Contact the author before redistribution or source reuse." />
+    </ItemGroup>
+    <WriteLinesToFile File="$(_StageRoot)\README.txt" Lines="@(_ReadmeLine)" Overwrite="true" Encoding="UTF-8" />
+    <ZipDirectory SourceDirectory="$(_StageRoot)" DestinationFile="$(_ArchivePath)" Overwrite="true" />
+    <GetFileHash Files="$(_ArchivePath)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_PackageHash" />
+    </GetFileHash>
+    <WriteLinesToFile File="$(_ArchivePath).sha256" Lines="%(_PackageHash.FileHash)  %(_PackageHash.Filename)%(_PackageHash.Extension)" Overwrite="true" Encoding="UTF-8" />
+    <Message Text="Package: $(_ArchivePath)" Importance="high" />
+  </Target>
+
+  <Target Name="BuildKK">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="Game=KK;Configuration=$(Configuration)" />
+  </Target>
+  <Target Name="BuildKKS">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="Game=KKS;Configuration=$(Configuration)" />
+  </Target>
+  <Target Name="BuildBoth">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="Game=Both;Configuration=$(Configuration)" />
+  </Target>
+  <Target Name="PackageKK">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Package" Properties="Game=KK;Configuration=$(Configuration)" />
+  </Target>
+  <Target Name="PackageKKS">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Package" Properties="Game=KKS;Configuration=$(Configuration)" />
+  </Target>
+  <Target Name="PackageBoth">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Package" Properties="Game=Both;Configuration=$(Configuration)" />
+  </Target>
+</Project>

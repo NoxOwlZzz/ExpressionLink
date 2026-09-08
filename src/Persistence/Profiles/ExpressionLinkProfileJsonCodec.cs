@@ -379,7 +379,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             supportedGames = new string[inputSupportedGames.Length];
             HashSet<string> seen =
                 new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            bool supportsKoikatsu = false;
+            bool supportsCurrentGame = false;
             for (int i = 0; i < inputSupportedGames.Length; i++)
             {
                 string gameId =
@@ -402,19 +402,19 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
                 if (string.Equals(
                         gameId,
-                        ExpressionLinkProfile.KoikatsuGameId,
+                        GameCompatibility.GameId,
                         StringComparison.OrdinalIgnoreCase))
                 {
-                    gameId = ExpressionLinkProfile.KoikatsuGameId;
-                    supportsKoikatsu = true;
+                    gameId = GameCompatibility.GameId;
+                    supportsCurrentGame = true;
                 }
 
                 supportedGames[i] = gameId;
             }
 
-            if (!supportsKoikatsu)
+            if (!supportsCurrentGame)
             {
-                error = "This profile does not declare Koikatsu support.";
+                error = "This profile does not declare " + GameCompatibility.GameName + " support.";
                 return false;
             }
 

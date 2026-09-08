@@ -15,7 +15,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
     [BepInDependency("marco.kkapi", "1.42.2")]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
-    [BepInProcess("Koikatu.exe")]
+    [BepInProcess(GameCompatibility.MainProcess)]
     [BepInProcess("CharaStudio.exe")]
     public sealed class Plugin : BaseUnityPlugin
     {

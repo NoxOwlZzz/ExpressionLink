@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Include="DirectionalMapperTests.cs" />
+    <Compile Include="LocalApiSmokeTests.cs" />
+    <Compile Include="TestGameTarget.cs" />
+    <Compile Include="ExpressionLinkProfilePolicyTests.cs" />
+    <Compile Include="ExpressionLinkCoreTests.cs" />
+    <Compile Include="QuickSettingsWindowGeometryTests.cs" />
+    <Compile Include="QuickSettingsConfigSessionTests.cs" />
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkBinaryCodec.cs">
+      <Link>ExpressionLinkBinaryCodec.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkConflictResolver.cs">
+      <Link>ExpressionLinkConflictResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkDefinition.cs">
+      <Link>ExpressionLinkDefinition.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkEvaluator.cs">
+      <Link>ExpressionLinkEvaluator.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Core\ExpressionLinks\ExpressionLinkValidator.cs">
+      <Link>ExpressionLinkValidator.cs</Link>
+    </Compile>
+    <Compile Include="..\src\UI\QuickSettingsWindowGeometry.cs">
+      <Link>QuickSettingsWindowGeometry.cs</Link>
+    </Compile>
+    <Compile Include="..\src\UI\QuickSettings\Configuration\IQuickSettingsConfigStore.cs">
+      <Link>IQuickSettingsConfigStore.cs</Link>
+    </Compile>
+    <Compile Include="..\src\UI\QuickSettings\Configuration\QuickSettingsDraftNormalization.cs">
+      <Link>QuickSettingsDraftNormalization.cs</Link>
+    </Compile>
+    <Compile Include="..\src\UI\QuickSettings\Configuration\MotionSettingsDraft.cs">
+      <Link>MotionSettingsDraft.cs</Link>
+    </Compile>
+    <Compile Include="..\src\UI\QuickSettings\Configuration\IrisSettingsDraft.cs">
+      <Link>IrisSettingsDraft.cs</Link>
+    </Compile>
+    <Compile Include="..\src\UI\QuickSettings\Configuration\VisibilitySettingsDraft.cs">
+      <Link>VisibilitySettingsDraft.cs</Link>
+    </Compile>
+    <Compile Include="..\src\UI\QuickSettings\Configuration\QuickSettingsConfigSnapshot.cs">
+      <Link>QuickSettingsConfigSnapshot.cs</Link>
+    </Compile>
+    <Compile Include="..\src\UI\QuickSettings\Configuration\QuickSettingsConfigSession.cs">
+      <Link>QuickSettingsConfigSession.cs</Link>
+    </Compile>
+    <Compile Include="..\src\EyeCustomizationCatalog.cs">
+      <Link>EyeCustomizationCatalog.cs</Link>
+    </Compile>
+    <Compile Include="..\src\EyeState.cs">
+      <Link>EyeState.cs</Link>
+    </Compile>
+    <Compile Include="..\src\ConfigChangeClassifier.cs">
+      <Link>ConfigChangeClassifier.cs</Link>
+    </Compile>
+    <Compile Include="..\src\DirectionalMapper.cs">
+      <Link>DirectionalMapper.cs</Link>
+    </Compile>
+    <Compile Include="..\src\Enums.cs">
+      <Link>Enums.cs</Link>
+    </Compile>
+    <Compile Include="..\src\EyeCustomizationMapper.cs">
+      <Link>EyeCustomizationMapper.cs</Link>
+    </Compile>
+    <Compile Include="..\src\ExpressionTriggerSyntax.cs">
+      <Link>ExpressionTriggerSyntax.cs</Link>
+    </Compile>
+    <Compile Include="..\src\ManualVisibilityStateMachine.cs">
+      <Link>ManualVisibilityStateMachine.cs</Link>
+    </Compile>
+    <Compile Include="..\src\ManualVisibilityCatalog.cs">
+      <Link>ManualVisibilityCatalog.cs</Link>
+    </Compile>
+    <Compile Include="..\src\ManagedWeightState.cs">
+      <Link>ManagedWeightState.cs</Link>
+    </Compile>
+    <Compile Include="..\src\VisibilityCardData.cs">
+      <Link>VisibilityCardData.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KK_EyeMotion", "KK_EyeMotion.csproj", "{4D1F63B1-C215-4B58-91CA-F11E35F92A9B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KKS_EyeMotion", "KKS_EyeMotion.csproj", "{C0458D38-1184-4F5C-B0E9-0793E63936AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4D1F63B1-C215-4B58-91CA-F11E35F92A9B}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{4D1F63B1-C215-4B58-91CA-F11E35F92A9B}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{4D1F63B1-C215-4B58-91CA-F11E35F92A9B}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{4D1F63B1-C215-4B58-91CA-F11E35F92A9B}.Release|Any CPU.Build.0 = Release|AnyCPU
+		{C0458D38-1184-4F5C-B0E9-0793E63936AD}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{C0458D38-1184-4F5C-B0E9-0793E63936AD}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{C0458D38-1184-4F5C-B0E9-0793E63936AD}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{C0458D38-1184-4F5C-B0E9-0793E63936AD}.Release|Any CPU.Build.0 = Release|AnyCPU
+	EndGlobalSection
+EndGlobal

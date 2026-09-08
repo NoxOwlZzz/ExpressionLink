@@ -17,10 +17,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
         {
             _checks = 0;
             _failures = 0;
+            ResolveEventHandler resolver = null;
 
             try
             {
-                RunChecks();
+                string projectRoot = TestGameTarget.FindProjectRoot();
+                resolver = TestGameTarget.CreateReferenceResolver(projectRoot);
+                AppDomain.CurrentDomain.AssemblyResolve += resolver;
+                RunChecks(projectRoot);
             }
             catch (Exception exception)
             {
@@ -30,14 +34,20 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     exception.GetBaseException().Message);
             }
 
+            finally
+            {
+                if (resolver != null)
+                {
+                    AppDomain.CurrentDomain.AssemblyResolve -= resolver;
+                }
+            }
+
             checks = _checks;
             return _failures;
         }
 
-        private static void RunChecks()
+        private static void RunChecks(string projectRoot)
         {
-            string projectRoot = Path.GetFullPath(
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."));
             string pluginSource = File.ReadAllText(
                 Path.Combine(projectRoot, @"src\Plugin.cs"));
             string controllerSource = File.ReadAllText(
@@ -242,15 +252,20 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 sourceTree.IndexOf(
                     "\"[Hide]\"",
                     StringComparison.Ordinal) < 0);
+            string referenceDirectory = TestGameTarget.ReferenceDirectory;
             string[] loadOrder =
             {
-                @"lib\UnityEngine.dll",
-                @"lib\UnityEngine.UI.dll",
-                @"lib\Assembly-CSharp.dll",
-                @"lib\BepInEx.dll",
-                @"lib\ExtensibleSaveFormat.dll",
-                @"lib\KKAPI.dll",
-                @"bin\Release\KK_EyeMotion.dll"
+                Path.Combine(referenceDirectory,
+                    TestGameTarget.UnityRuntimeAssemblyName + ".dll"),
+                Path.Combine(referenceDirectory, "UnityEngine.UI.dll"),
+                Path.Combine(referenceDirectory, "Assembly-CSharp.dll"),
+                Path.Combine(referenceDirectory, "BepInEx.dll"),
+                Path.Combine(referenceDirectory,
+                    TestGameTarget.ExtendedSaveAssemblyName + ".dll"),
+                Path.Combine(referenceDirectory,
+                    TestGameTarget.ApiAssemblyName + ".dll"),
+                Path.Combine(TestGameTarget.ReleaseDirectory,
+                    TestGameTarget.PluginAssemblyName + ".dll")
             };
             Dictionary<string, Assembly> assemblies =
                 new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
@@ -263,8 +278,14 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 assemblies[assembly.GetName().Name] = assembly;
             }
 
-            Assembly pluginAssembly = assemblies["KK_EyeMotion"];
-            Check("assembly name", pluginAssembly.GetName().Name == "KK_EyeMotion");
+            Assembly pluginAssembly = assemblies[TestGameTarget.PluginAssemblyName];
+            Check(
+                "assembly name matches target",
+                pluginAssembly.GetName().Name == TestGameTarget.PluginAssemblyName);
+            Check(
+                "assembly CLR matches target framework",
+                pluginAssembly.ImageRuntimeVersion.StartsWith(
+                    TestGameTarget.ClrVersionPrefix, StringComparison.Ordinal));
             Check(
                 "assembly version",
                 pluginAssembly.GetName().Version.ToString() == "0.5.1.0");
@@ -290,6 +311,32 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     pluginType,
                     "BepInEx.BepInDependency",
                     "com.bepis.bepinex.extendedsave") == 1);
+
+            Check(
+                "target main-game process",
+                CountAttributesWithFirstArgument(
+                    pluginType, "BepInEx.BepInProcess", TestGameTarget.MainProcess) == 1);
+            Check(
+                "Studio process",
+                CountAttributesWithFirstArgument(
+                    pluginType, "BepInEx.BepInProcess", "CharaStudio.exe") == 1);
+            Check(
+                "other main-game process excluded",
+                CountAttributesWithFirstArgument(
+                    pluginType, "BepInEx.BepInProcess",
+                    TestGameTarget.OtherMainProcess) == 0);
+            Type compatibilityType = GetPluginType(
+                pluginAssembly, "GameCompatibility");
+            CheckConstant(
+                compatibilityType, "GameId", TestGameTarget.GameId,
+                BindingFlags.Static | BindingFlags.NonPublic);
+            CheckConstant(
+                compatibilityType, "MainProcess", TestGameTarget.MainProcess,
+                BindingFlags.Static | BindingFlags.NonPublic);
+            int profileChecks;
+            _failures += ExpressionLinkProfilePolicyTests.Run(
+                pluginAssembly, out profileChecks);
+            _checks += profileChecks;
 
             BindingFlags instanceNonPublic =
                 BindingFlags.Instance | BindingFlags.NonPublic;
@@ -957,21 +1004,38 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             List<string> referenceNames = new List<string>();
             AssemblyName[] referencedAssemblies =
                 pluginAssembly.GetReferencedAssemblies();
+            AssemblyName runtimeReference = null;
             for (int i = 0; i < referencedAssemblies.Length; i++)
             {
                 referenceNames.Add(referencedAssemblies[i].Name);
+                if (referencedAssemblies[i].Name == "mscorlib")
+                {
+                    runtimeReference = referencedAssemblies[i];
+                }
             }
 
             Check("Assembly-CSharp reference", referenceNames.Contains("Assembly-CSharp"));
-            Check("UnityEngine reference", referenceNames.Contains("UnityEngine"));
+            Check("Unity runtime reference",
+                referenceNames.Contains(TestGameTarget.UnityRuntimeAssemblyName));
             Check("UnityEngine.UI reference", referenceNames.Contains("UnityEngine.UI"));
             Check("BepInEx reference", referenceNames.Contains("BepInEx"));
-            Check("KKAPI reference", referenceNames.Contains("KKAPI"));
-            Check("Extended Save reference", referenceNames.Contains("ExtensibleSaveFormat"));
+            Check("game API reference",
+                referenceNames.Contains(TestGameTarget.ApiAssemblyName));
+            Check("other game API excluded",
+                !referenceNames.Contains(TestGameTarget.OtherApiAssemblyName));
+            Check("other plugin target excluded",
+                !referenceNames.Contains(TestGameTarget.OtherPluginAssemblyName));
+            Check("Extended Save reference",
+                referenceNames.Contains(TestGameTarget.ExtendedSaveAssemblyName));
+            Check(
+                "mscorlib matches target framework",
+                runtimeReference != null &&
+                runtimeReference.Version.Major == TestGameTarget.MscorlibMajorVersion);
             Check("no Harmony reference", !referenceNames.Contains("0Harmony"));
             Check(
                 "no hard ExpressionControl reference",
-                !referenceNames.Contains("KK_ExpressionControl"));
+                !referenceNames.Contains("KK_ExpressionControl") &&
+                !referenceNames.Contains("KKS_ExpressionControl"));
 
             Assembly gameAssembly = assemblies["Assembly-CSharp"];
             Type eyeLookType = gameAssembly.GetType("EyeLookCalc", true);
@@ -986,7 +1050,8 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     "hideEyesHighlight",
                     publicInstance) != null);
 
-            Assembly unityAssembly = assemblies["UnityEngine"];
+            Assembly unityAssembly =
+                assemblies[TestGameTarget.UnityRuntimeAssemblyName];
             Type rendererType = unityAssembly.GetType("UnityEngine.Renderer", true);
             Type skinnedRendererType = unityAssembly.GetType(
                 "UnityEngine.SkinnedMeshRenderer",
@@ -1040,13 +1105,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 Convert.ToSingle(correctDelegate.DynamicInvoke(fbsInstance)) == -1f);
 
             string[] releaseFiles = Directory.GetFiles(
-                Path.Combine(projectRoot, @"bin\Release"));
+                Path.Combine(projectRoot, TestGameTarget.ReleaseDirectory));
             bool onlyExpectedFiles = true;
             for (int i = 0; i < releaseFiles.Length; i++)
             {
                 string fileName = Path.GetFileName(releaseFiles[i]);
-                if (fileName != "KK_EyeMotion.dll" &&
-                    fileName != "KK_EyeMotion.pdb")
+                if (fileName != TestGameTarget.PluginAssemblyName + ".dll" &&
+                    fileName != TestGameTarget.PluginAssemblyName + ".pdb")
                 {
                     onlyExpectedFiles = false;
                     break;

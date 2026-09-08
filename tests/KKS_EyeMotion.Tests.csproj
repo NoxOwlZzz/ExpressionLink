@@ -3,11 +3,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{02404F20-E1C9-42B3-83C9-C58539190AA7}</ProjectGuid>
+    <ProjectGuid>{7E5D50EA-2D97-43B8-BE4E-57520D6169E5}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>NightOwlZzz.Koikatsu.EyeMotion.Tests</RootNamespace>
-    <AssemblyName>KK_EyeMotion.Tests</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <AssemblyName>KKS_EyeMotion.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <BaseIntermediateOutputPath>obj\KKS\</BaseIntermediateOutputPath>
     <TargetFrameworkProfile />
     <NoStdLib>true</NoStdLib>
     <_EnableDefaultWindowsPlatform>false</_EnableDefaultWindowsPlatform>
@@ -18,22 +19,22 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;KK</DefineConstants>
+    <OutputPath>bin\KKS\Release\</OutputPath>
+    <DefineConstants>TRACE;KKS</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib">
-      <HintPath>..\lib\mscorlib.dll</HintPath>
+      <HintPath>..\lib\KKS\mscorlib.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System">
-      <HintPath>..\lib\System.dll</HintPath>
+      <HintPath>..\lib\KKS\System.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Core">
-      <HintPath>..\lib\System.Core.dll</HintPath>
+      <HintPath>..\lib\KKS\System.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

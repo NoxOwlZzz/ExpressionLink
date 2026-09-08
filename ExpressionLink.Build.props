@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <RootNamespace>NightOwlZzz.Koikatsu.EyeMotion</RootNamespace>
+    <AssemblyName>$(Game)_EyeMotion</AssemblyName>
+    <TargetFrameworkProfile />
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>7.3</LangVersion>
+    <NoStdLib>true</NoStdLib>
+    <_EnableDefaultWindowsPlatform>false</_EnableDefaultWindowsPlatform>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DebugType>portable</DebugType>
+    <BaseIntermediateOutputPath>obj\$(Game)\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+    <OutputPath Condition="'$(Game)' == 'KK'">bin\$(Configuration)\</OutputPath>
+    <OutputPath Condition="'$(Game)' == 'KKS'">bin\KKS\$(Configuration)\</OutputPath>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE;$(Game)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <DefineConstants>$(DefineConstants);TRACE;$(Game)</DefineConstants>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib"><HintPath>$(GameReferencePath)\mscorlib.dll</HintPath><Private>False</Private></Reference>
+    <Reference Include="System"><HintPath>$(GameReferencePath)\System.dll</HintPath><Private>False</Private></Reference>
+    <Reference Include="System.Core"><HintPath>$(GameReferencePath)\System.Core.dll</HintPath><Private>False</Private></Reference>
+    <Reference Include="BepInEx"><HintPath>$(GameReferencePath)\BepInEx.dll</HintPath><Private>False</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(GameReferencePath)\Assembly-CSharp.dll</HintPath><Private>False</Private></Reference>
+  </ItemGroup>
+</Project>
