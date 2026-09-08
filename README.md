@@ -1,14 +1,13 @@
 # KK_ExpressionLink
 
-**Blendshape and Expression Controller for Koikatsu**
+**Blendshape and Expression Controller for Koikatsu and Koikatsu Sunshine**
 Author: NightOwlZzz / Owl
-Current version: 0.5.1
+Current version: 0.5.1 (KKS build: runtime validation pending)
 
 KK_ExpressionLink controls custom-eye movement, blink, iris adjustment,
 visibility, and highlights. It links Koikatsu facial expressions to blendshapes
-on any character
-`SkinnedMeshRenderer`, including head, hair, body, clothes, accessories, and
-other character-owned meshes.
+on any character `SkinnedMeshRenderer`, including head, hair, body, clothes,
+accessories, and other character-owned meshes.
 
 The plugin uses Koikatsu's existing eye and facial-expression state. It does
 not calculate an independent look-at target, use vertex colors, replace
@@ -16,33 +15,47 @@ not calculate an independent look-at target, use vertex colors, replace
 
 ## Requirements
 
-- Koikatsu / Koikatu with BepInEx 5.
-- Modding API / KKAPI 1.42.2 or a compatible newer version.
-- ExtensibleSaveFormat (`com.bepis.bepinex.extendedsave`).
+Download only the variant for your game. Both use BepInEx 5.
+
+| Game | Plugin DLL | Framework | Game-specific dependencies |
+| --- | --- | --- | --- |
+| Koikatsu / Koikatu (KK) | `KK_EyeMotion.dll` | .NET Framework 3.5 | KKAPI 1.42.2+, ExtensibleSaveFormat |
+| Koikatsu Sunshine (KKS) | `KKS_EyeMotion.dll` | .NET Framework 4.6 | KKSAPI 1.42.2+, KKS_ExtensibleSaveFormat |
+
+Use dependency versions compatible with the selected game. Both API variants
+use the `marco.kkapi` GUID, and both ExtendedSave variants use
+`com.bepis.bepinex.extendedsave`.
+
 - The eye-motion feature requires a compatible headmod containing its five
   movement/blink shapes. Expression Links can be used independently on other
   character-owned meshes.
 - Any desired IrisY/Size, Hide, expression, hair, clothing, or accessory
   blendshapes. These additional channels are optional.
-- KK_ExpressionControl is optional. It is required only to drive the two
-  optional IrisY/Size blendshapes.
+- The matching KK_ExpressionControl or KKS_ExpressionControl is optional. It is
+  required only to drive the two optional IrisY/Size blendshapes.
 
-This build targets Koikatsu/Koikatu only. **Koikatsu Sunshine is not compatible
-or supported**.
+KK targets `Koikatu.exe` (game and Maker) and `CharaStudio.exe`.
+KKS targets `KoikatsuSunshine.exe` (game and Maker) and `CharaStudio.exe`.
+**KKS has passed compilation and static API checks, but in-game validation is
+pending.** Do not treat it as fully verified compatibility.
 
 ## Installation
 
-1. Close Koikatsu and CharaStudio.
-2. If upgrading from EyeMotion or an older KK_ExpressionLink version, remove
-   all old copies of `KK_EyeMotion.dll` from `BepInEx/plugins` and its subfolders,
-   including any old EyeMotion or KK_EyeMotion installation folder. Keep your
-   character cards and configuration files.
-3. Open `KK_ExpressionLink-v0.5.1.zip` and merge its `BepInEx` folder into
-   the game directory.
-4. Confirm that only one `KK_EyeMotion.dll` remains, at:
+1. Close the game and CharaStudio.
+2. Remove old copies of the plugin DLL from `BepInEx/plugins` and its
+   subfolders. In KK this includes the original EyeMotion's `KK_EyeMotion.dll`;
+   in KKS the correct DLL is `KKS_EyeMotion.dll`. Remove any copy of the other
+   game's variant from that installation. Keep your cards and configuration.
+3. Extract the `BepInEx` folder from the matching ZIP into that game's directory:
+
+   - KK: `KK_ExpressionLink_v0.5.1.zip`
+   - KKS: `KKS_ExpressionLink_v0.5.1.zip`
+
+4. Confirm that exactly one variant is installed, at its matching path:
 
    ```text
-   <Koikatsu>\BepInEx\plugins\KK_EyeMotion\KK_EyeMotion.dll
+   KK:  BepInEx/plugins/KK_EyeMotion/KK_EyeMotion.dll
+   KKS: BepInEx/plugins/KKS_EyeMotion/KKS_EyeMotion.dll
    ```
 
 5. Start the game once. BepInEx creates or updates:
@@ -51,10 +64,11 @@ or supported**.
    BepInEx\config\com.nightowlzzz.koikatsu.eyemotion.cfg
    ```
 
-The plugin DLL is named `KK_EyeMotion.dll`. Do not keep multiple copies or DLL
-backups inside `BepInEx/plugins`. The internal plugin folder, BepInEx GUID,
-configuration file, namespace, card-data identity, and `eye_motion.*` names
-remain unchanged for compatibility.
+Do not install both variants together or keep DLL backups in `BepInEx/plugins`.
+The in-game plugin name remains `KK_ExpressionLink` in both builds. The BepInEx
+GUID, configuration filename, namespace, card-data identity, and `eye_motion.*`
+names are shared. Matching data identifiers do not guarantee that a card,
+coordinate, scene, or mesh can transfer between games.
 
 The ZIP contains only the plugin DLL and a brief English `README.txt` at the
 archive root, with requirements and installation instructions. Configuration
@@ -81,10 +95,10 @@ All five shapes must be on the same `SkinnedMeshRenderer`. The four direction
 shapes represent positive X, negative X, positive Y, and negative Y. The blink
 shape represents both eyes fully closed at weight 100.
 
-## Optional KK_ExpressionControl eye-adjustment shapes
+## Optional ExpressionControl eye-adjustment shapes
 
 The optional integration supports the two values exposed by
-KK_ExpressionControl's `IrisY` and `Size` sliders:
+the matching ExpressionControl plugin's `IrisY` and `Size` sliders:
 
 ```text
 eye_motion.f00_iris_y
@@ -104,9 +118,9 @@ with the five required gaze/blink shapes when present. They do not replace or
 bias the four gaze-direction shapes. A missing shape does not disable any
 other feature.
 
-KK_ExpressionControl.dll is an optional integration, not a hard plugin
-dependency. Without it, gaze, blink, visibility, highlights, Expression Links,
-and card persistence continue to work normally; KK_ExpressionLink does not
+KK_ExpressionControl.dll (KK) or KKS_ExpressionControl.dll (KKS) is an optional
+integration, not a hard plugin dependency. Without it, gaze, blink, visibility,
+highlights, Expression Links, and card persistence remain available; the plugin does not
 control these two shapes and restores any values it previously owned.
 
 ## Quick Settings
@@ -222,8 +236,11 @@ BepInEx\config\KK_ExpressionLink\Profiles
 
 Loading a set copies its links to the selected character with fresh IDs.
 Reusable sets are separate from character-card data and are intended for reuse
-across compatible headmods or characters. Reusable sets declare Koikatsu
-support only and must not be treated as KKS-compatible data.
+across compatible headmods or characters. A newly saved set declares only the
+current game's ID in `supportedGames`: `KK` or `KKS`. Loading requires that
+the list include the current game. Existing KK-only sets are not automatically
+accepted by KKS. The profile format remains version 1; a shared format does not
+verify matching expression IDs, renderer paths, or meshes between games.
 
 ## Manual visibility
 
@@ -344,63 +361,76 @@ persistence status.
 
 ## Building and packaging
 
-Use Visual Studio Build Tools with a C# 7.3-capable compiler. The plugin and
-tests target .NET Framework 3.5 using the game's reference assemblies.
+Use Visual Studio Build Tools with MSBuild 17 or newer and a C# 7.3-capable
+compiler. KK targets .NET Framework 3.5; KKS targets .NET Framework 4.6.
+Use reference assemblies from the corresponding game and mod installation.
 
-Place these references from the compatible Koikatsu/BepInEx installation in
-the ignored `lib` directory:
+Place the following files in the ignored reference directories:
 
-```text
-mscorlib.dll
-System.dll
-System.Core.dll
-BepInEx.dll
-KKAPI.dll
-ExtensibleSaveFormat.dll
-Assembly-CSharp.dll
-UnityEngine.dll
-UnityEngine.UI.dll
-```
+| Directory | Required references |
+| --- | --- |
+| `lib/` (KK) | `mscorlib.dll`, `System.dll`, `System.Core.dll`, `BepInEx.dll`, `KKAPI.dll`, `ExtensibleSaveFormat.dll`, `Assembly-CSharp.dll`, `UnityEngine.dll`, `UnityEngine.UI.dll` |
+| `lib/KKS/` (KKS) | `mscorlib.dll`, `System.dll`, `System.Core.dll`, `BepInEx.dll`, `KKSAPI.dll`, `KKS_ExtensibleSaveFormat.dll`, `Assembly-CSharp.dll`, `UnityEngine.dll`, `UnityEngine.UI.dll`, `UnityEngine.CoreModule.dll`, `UnityEngine.IMGUIModule.dll`, `UnityEngine.InputLegacyModule.dll`, `UnityEngine.JSONSerializeModule.dll`, `UnityEngine.TextRenderingModule.dll`, `UnityEngine.UIModule.dll` |
 
-Do not commit or distribute these reference assemblies. All runtime project
-references use `Private=False`.
+The system and Unity DLLs must come from that game's Managed directory.
+BepInEx comes from its core directory; the API and ExtendedSave come from its
+plugins directory. Do not mix KK references into the KKS directory or distribute
+any of these dependencies. Every project reference uses `Private=False`.
+KKS needs both the Unity facade (used by BepInEx) and the concrete Unity modules.
 
-Open a Visual Studio Developer Command Prompt or Developer PowerShell, change
-to the repository root, and build the plugin:
+From a Visual Studio Developer Command Prompt or Developer PowerShell:
 
 ```shell
-msbuild KK_EyeMotion.csproj /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU /m /v:minimal
+msbuild ExpressionLink.sln /t:Rebuild /p:Configuration=Release /p:Platform="Any CPU" /m /v:minimal
 ```
 
-The DLL is written to `bin/Release/KK_EyeMotion.dll`. Use
-`/p:Configuration=Debug` for a Debug plugin build.
+`KK_EyeMotion.csproj` and `KKS_EyeMotion.csproj` can also be built individually.
+The DLLs are written to `bin/Release/KK_EyeMotion.dll` and
+`bin/KKS/Release/KKS_EyeMotion.dll`. Debug uses the corresponding `Debug`
+directories. Intermediate files are isolated by game.
 
-Build and run the automated checks after building Release:
+The same `src/` files are listed once in `ExpressionLink.Shared.projitems`.
+`ExpressionLink.Build.props` owns shared compiler settings and references.
+Game projects own their framework, references and `KK`/`KKS` constant.
+`GameCompatibility` contains only the executable and profile-game identifiers;
+the runtime controllers, UI, eye sampling and card codec remain shared.
+
+Build and run both test targets after building the Release plugins:
 
 ```shell
-msbuild tests/KK_EyeMotion.Tests.csproj /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU /m /v:minimal
+msbuild tests/KK_EyeMotion.Tests.csproj /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU /v:minimal
 .\tests\bin\Release\KK_EyeMotion.Tests.exe
+msbuild tests/KKS_EyeMotion.Tests.csproj /t:Rebuild /p:Configuration=Release /p:Platform=AnyCPU /v:minimal
+.\tests\bin\KKS\Release\KKS_EyeMotion.Tests.exe
 ```
 
-The checks use the local reference assemblies and Release DLL; they do not
-launch the game. Release builds treat warnings as errors.
+The tests exercise shared managed logic and inspect the selected game's DLL and
+references. They do not launch Unity or replace the in-game checks below.
+Release builds treat warnings as errors. If Windows blocks trusted DLLs copied
+from a downloaded archive, unblock only those local reference copies before
+running the tests.
 
-For local deployment, close Koikatsu and CharaStudio and copy
-`bin/Release/KK_EyeMotion.dll` into the game's
-`BepInEx/plugins/KK_EyeMotion` folder. Follow the upgrade instructions above
-to leave only one DLL.
+`ExpressionLink.proj` provides these operations without command wrappers:
 
-To prepare a download, create a ZIP with this layout:
+| Operation | Command |
+| --- | --- |
+| Build KK | `msbuild ExpressionLink.proj /t:BuildKK` |
+| Build KKS | `msbuild ExpressionLink.proj /t:BuildKKS` |
+| Build both | `msbuild ExpressionLink.proj /t:BuildBoth` |
+| Clean both build outputs | `msbuild ExpressionLink.proj /t:Clean` |
+| Package KK | `msbuild ExpressionLink.proj /t:PackageKK` |
+| Package KKS | `msbuild ExpressionLink.proj /t:PackageKKS` |
+| Package both | `msbuild ExpressionLink.proj /t:PackageBoth` |
 
-```text
-BepInEx/plugins/KK_EyeMotion/KK_EyeMotion.dll
-README.txt
-```
+The default configuration is Release. Build/Clean accept
+`/p:Configuration=Debug`; packaging requires Release. The generic targets
+`Build`, `Clean`, and `Package` also accept `/p:Game=KK`, `KKS`, or `Both`.
 
-Use a brief English README with the requirements and upgrade instructions
-above, including removal of old DLL copies while retaining cards and config.
-Do not include dependency DLLs, configuration files, PDBs, source, or tests.
-Calculate SHA-256 from the finished ZIP when providing a checksum.
+Packages are written to `dist/<Game>_ExpressionLink_v<version>.zip` with a
+SHA-256 sidecar. Each contains only its matching plugin DLL under
+`BepInEx/plugins/<Game>_EyeMotion/` and a brief English `README.txt`.
+Packaging reads the assembly version, excludes dependencies and PDBs, and does
+not install the plugin or publish anything.
 
 ## Current limitations
 
@@ -420,12 +450,64 @@ Calculate SHA-256 from the finished ZIP when providing a checksum.
 - A destination that remains absent throughout the initial resolution window
   is not polled indefinitely. Reload the character or save the link again after
   its renderer is present.
-- KoikatuVR and Koikatsu Sunshine are not supported.
+- KoikatuVR is not supported. KKS in-game compatibility remains pending the
+  checklist below.
+
+## Compatibility validation
+
+The source compiles against both games' installed dependencies. Static API
+comparison covers the used eye/FBS fields, character hierarchy, KKAPI callbacks,
+Maker controls, Studio toolbar and ExpressionControl bridge. No Harmony patches
+or game AssetBundles are used. Static agreement does not verify Unity lifecycle,
+expression semantics, timing, or cross-game content conversion.
+
+| Function | KK | KKS | Implementation |
+| --- | --- | --- | --- |
+| Gaze, blink, highlights, manual visibility | Pending runtime test (regression) | Pending runtime test | Shared controllers and sampling |
+| IrisY / Size | Pending runtime test (regression) | Pending runtime test | Shared optional ExpressionControl bridge |
+| Multi-renderer Expression Links | Pending runtime test (regression) | Pending runtime test | Shared resolution, evaluation and ownership |
+| Card / Studio character persistence | Pending runtime test (regression) | Pending runtime test | Shared schemas 1–3 and ExtendedSave identity |
+| Reusable link sets | Pending runtime test (regression) | Pending runtime test | Shared codec with current-game compatibility gate |
+| Maker / Studio / game Quick Settings | Pending runtime test (regression) | Pending runtime test | Shared UI, game-specific process filter |
+
+### KK regression checklist
+
+- Load a compatible character in Maker and the main game: gaze calibration,
+  X/Y movement, blink, highlight hiding and optional IrisY/Size must behave as before.
+- Open Quick Settings from its shortcut, Maker control and Studio toolbar:
+  dragging, scrolling and applying settings must work without duplicate controls.
+- Create expression links on head and hair/accessory meshes: only the resolved
+  targets respond; disabling/removing a link restores only plugin-owned weights.
+- Save/reload a card and a Studio scene, then import/duplicate/remove characters:
+  per-character links persist, and removed characters release their targets.
+- Change clothes/accessories and reload the character: targets rebind or report
+  missing/ambiguous status. Save/load a KK reusable set without changing its game ID.
+
+### KKS compatibility checklist
+
+- Install only the KKS DLL and start Maker, the main game and Studio:
+  BepInEx must load one plugin instance without missing dependencies or exceptions.
+- Verify neutral/left/right/up/down gaze, blink and Erase Highlight on a compatible
+  KKS headmod. With KKS_ExpressionControl installed, IrisY/Size must use the same
+  authored shape ranges; without it, the other channels must remain usable.
+- Open, move and resize the game window with Quick Settings visible. All controls
+  and the header must remain accessible; close/reopen must not duplicate listeners.
+- Link eye/brow/mouth expressions to head and hair/accessory shapes. Change
+  clothes/accessories, reload, disable links and remove characters: bindings and
+  ownership restoration must remain correct.
+- Save/load cards and Studio scenes, import/duplicate characters, and save/load a
+  KKS reusable set. Links must remain per character; a KK-only set must be rejected.
+
+For either checklist, inspect `BepInEx/LogOutput.log` for dependency, lifecycle or
+UI errors. For incorrect weights/targets, use **Help > Create debug report** and
+compare source values, resolved paths and channel ownership. Also observe idle
+scenes with the panel closed: no repeating errors or continuous renderer scans
+should occur. Cross-game card, coordinate and scene transfer is not validated.
 
 ## Credits
 
-KK_ExpressionLink uses BepInEx, KKAPI, and ExtensibleSaveFormat. It can
-optionally integrate with KK_ExpressionControl when that plugin is installed.
+KK_ExpressionLink uses BepInEx, the matching KKAPI/KKSAPI, and ExtensibleSaveFormat.
+It can optionally integrate with the matching ExpressionControl plugin.
 Those projects are not bundled in the release archive.
 
 ## License
