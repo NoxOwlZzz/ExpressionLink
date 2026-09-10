@@ -6,7 +6,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     {
         internal const string CurrentFormat = "kk-expression-link-profile";
         internal const int CurrentVersion = 1;
-        internal const string CurrentPluginVersion = "0.5.1";
+        internal const string CurrentPluginVersion = "0.5.3";
 
         private readonly Guid _id;
         private readonly string _name;

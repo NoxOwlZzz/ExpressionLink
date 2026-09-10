@@ -2,6 +2,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Compile Include="DirectionalMapperTests.cs" />
+    <Compile Include="SliderHighlightRendererOwnershipTests.cs" />
+    <Compile Include="..\src\SliderHighlightRendererOwnership.cs" />
     <Compile Include="LocalApiSmokeTests.cs" />
     <Compile Include="TestGameTarget.cs" />
     <Compile Include="ExpressionLinkProfilePolicyTests.cs" />

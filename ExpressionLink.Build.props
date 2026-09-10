@@ -9,6 +9,7 @@
     <TargetFrameworkProfile />
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <PathMap Condition="'$(PathMap)' == ''">$(MSBuildThisFileDirectory)=/_/</PathMap>
     <LangVersion>7.3</LangVersion>
     <NoStdLib>true</NoStdLib>
     <_EnableDefaultWindowsPlatform>false</_EnableDefaultWindowsPlatform>

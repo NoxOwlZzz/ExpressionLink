@@ -14,6 +14,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         internal const string GameId = "KK";
         internal const string GameName = "Koikatsu";
         internal const string MainProcess = "Koikatu.exe";
+        internal const string SteamProcess = "Koikatsu Party.exe";
 #else
 #error A KK or KKS game target is required.
 #endif

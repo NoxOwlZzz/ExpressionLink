@@ -16,12 +16,15 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
     [BepInDependency("marco.kkapi", "1.42.2")]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
     [BepInProcess(GameCompatibility.MainProcess)]
+#if KK
+    [BepInProcess(GameCompatibility.SteamProcess)]
+#endif
     [BepInProcess("CharaStudio.exe")]
     public sealed class Plugin : BaseUnityPlugin
     {
         internal const string PluginGuid = "com.nightowlzzz.koikatsu.eyemotion";
         internal const string PluginName = "KK_ExpressionLink";
-        internal const string PluginVersion = "0.5.1";
+        internal const string PluginVersion = "0.5.3";
 
         internal static ManualLogSource Log;
 
@@ -49,7 +52,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             CharacterApi.RegisterExtraBehaviour<EyeMotionCharacterController>(PluginGuid);
             Logger.LogInfo(
-                "KK_ExpressionLink 0.5.1 loaded. Eye motion, blink, optional " +
+                PluginName + " " + PluginVersion + " loaded. Eye motion, blink, optional " +
                 "ExpressionControl iris adjustments, and multi-renderer expression links are active. " +
                 "Manual visibility and base-game highlight synchronization remain available.");
         }

@@ -288,7 +288,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     TestGameTarget.ClrVersionPrefix, StringComparison.Ordinal));
             Check(
                 "assembly version",
-                pluginAssembly.GetName().Version.ToString() == "0.5.1.0");
+                pluginAssembly.GetName().Version.ToString() == "0.5.3.0");
 
             Type pluginType = GetPluginType(pluginAssembly, "Plugin");
             CustomAttributeData pluginAttribute = FindAttribute(
@@ -304,7 +304,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 GetConstructorArgument(pluginAttribute, 1) == "KK_ExpressionLink");
             Check(
                 "plugin semantic version",
-                GetConstructorArgument(pluginAttribute, 2) == "0.5.1");
+                GetConstructorArgument(pluginAttribute, 2) == "0.5.3");
             Check(
                 "Extended Save dependency attribute",
                 CountAttributesWithFirstArgument(
@@ -325,6 +325,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 CountAttributesWithFirstArgument(
                     pluginType, "BepInEx.BepInProcess",
                     TestGameTarget.OtherMainProcess) == 0);
+            CheckProcessFilters(pluginType);
             Type compatibilityType = GetPluginType(
                 pluginAssembly, "GameCompatibility");
             CheckConstant(
@@ -1121,6 +1122,85 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             Check(
                 "release output contains only DLL/PDB",
                 onlyExpectedFiles);
+        }
+
+        private static void CheckProcessFilters(Type pluginType)
+        {
+            List<string> filters = new List<string>();
+            IList<CustomAttributeData> attributes =
+                CustomAttributeData.GetCustomAttributes(pluginType);
+            for (int i = 0; i < attributes.Count; i++)
+            {
+                if (attributes[i].Constructor.DeclaringType.FullName ==
+                    "BepInEx.BepInProcess")
+                {
+                    filters.Add(GetConstructorArgument(attributes[i], 0));
+                }
+            }
+
+            bool supportsParty = TestGameTarget.GameId == "KK";
+            Check("process allowlist has no extra entries",
+                filters.Count == (supportsParty ? 3 : 2));
+            Check("Party process attribute is restricted to KK",
+                CountAttributesWithFirstArgument(
+                    pluginType, "BepInEx.BepInProcess", "Koikatsu Party.exe") ==
+                    (supportsParty ? 1 : 0));
+
+            string mainProcess =
+                Path.GetFileNameWithoutExtension(TestGameTarget.MainProcess);
+            Check("Chainloader accepts target main process",
+                MatchesBepInExProcess(filters, mainProcess));
+            Check("Chainloader compares main process without case sensitivity",
+                MatchesBepInExProcess(filters, mainProcess.ToUpperInvariant()));
+            Check("Chainloader accepts Studio",
+                MatchesBepInExProcess(filters, "CharaStudio"));
+            Check("Chainloader compares Studio without case sensitivity",
+                MatchesBepInExProcess(filters, "charastudio"));
+            Check("Chainloader accepts Party only in KK",
+                MatchesBepInExProcess(filters, "Koikatsu Party") == supportsParty);
+            Check("Chainloader compares Party without case sensitivity",
+                MatchesBepInExProcess(filters, "KOIKATSU PARTY") == supportsParty);
+            Check("Chainloader rejects the other game",
+                !MatchesBepInExProcess(filters,
+                    Path.GetFileNameWithoutExtension(TestGameTarget.OtherMainProcess)));
+
+            string[] excludedProcesses =
+            {
+                "KoikatuVR",
+                "Koikatsu Party VR",
+                "KoikatsuSunshine_VR",
+                "KoikatsuParty",
+                "Koikatsu Party Launcher",
+                "CharaStudio-extra",
+                "Unity"
+            };
+            for (int i = 0; i < excludedProcesses.Length; i++)
+            {
+                Check("Chainloader rejects " + excludedProcesses[i],
+                    !MatchesBepInExProcess(filters, excludedProcesses[i]));
+            }
+        }
+
+        private static bool MatchesBepInExProcess(
+            IList<string> filters, string processName)
+        {
+            // BepInEx 5.4.23.5 strips literal ".exe" from each attribute, then
+            // compares it with Paths.ProcessName using InvariantCultureIgnoreCase.
+            if (filters.Count == 0)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < filters.Count; i++)
+            {
+                if (string.Equals(filters[i].Replace(".exe", ""), processName,
+                    StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static string ReadSourceTree(string sourceRoot)

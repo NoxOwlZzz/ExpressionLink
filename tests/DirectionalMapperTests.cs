@@ -35,6 +35,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 QuickSettingsConfigSessionTests.Run(
                     out configSessionChecks);
 
+            int ownershipChecks;
+            int ownershipFailures = SliderHighlightRendererOwnershipTests.Run(
+                out ownershipChecks);
+            Console.WriteLine(
+                "SliderHighlight ownership checks: " + ownershipChecks +
+                ", failures: " + ownershipFailures);
+
             int smokeChecks;
             int smokeFailures = LocalApiSmokeTests.Run(out smokeChecks);
 
@@ -55,7 +62,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 ", failures: " + smokeFailures);
             return _failures == 0 && expressionLinkFailures == 0 &&
                 windowGeometryFailures == 0 && configSessionFailures == 0 &&
-                smokeFailures == 0
+                smokeFailures == 0 && ownershipFailures == 0
                     ? 0
                     : 1;
         }

@@ -155,7 +155,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
             BlinkBlendshape = config.Bind(NamesSection, "BlinkBlendshape", DefaultBlinkBlendshape,
                 "Blendshape used for joint eye closure.");
 
-            InvertX = config.Bind(HorizontalSection, "InvertX", false,
+            InvertX = config.Bind(HorizontalSection, "InvertX", true,
                 "Invert the final common horizontal convention.");
             SourceEyeMode = config.Bind(HorizontalSection, "SourceEyeMode",
                 global::NightOwlZzz.Koikatsu.EyeMotion.SourceEyeMode.Average,

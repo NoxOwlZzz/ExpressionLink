@@ -18,6 +18,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\ExpressionTriggerController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\ExpressionTriggerSyntax.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\HeadmodTargetResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\SliderHighlightCompatibility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\SliderHighlightRendererOwnership.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\ManualVisibilityBinding.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\ManualVisibilityCatalog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\ManualVisibilityStateMachine.cs" />

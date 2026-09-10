@@ -1,8 +1,8 @@
 # KK_ExpressionLink
 
-**Blendshape and Expression Controller for Koikatsu and Koikatsu Sunshine**
+**Blendshape and Expression Controller for Koikatsu, Koikatsu Party, and Koikatsu Sunshine**
 Author: NightOwlZzz / Owl
-Current version: 0.5.1 (KKS build: runtime validation pending)
+Current version: 0.5.3 (Koikatsu Party in-game validation pending)
 
 KK_ExpressionLink controls custom-eye movement, blink, iris adjustment,
 visibility, and highlights. It links Koikatsu facial expressions to blendshapes
@@ -19,7 +19,7 @@ Download only the variant for your game. Both use BepInEx 5.
 
 | Game | Plugin DLL | Framework | Game-specific dependencies |
 | --- | --- | --- | --- |
-| Koikatsu / Koikatu (KK) | `KK_EyeMotion.dll` | .NET Framework 3.5 | KKAPI 1.42.2+, ExtensibleSaveFormat |
+| Koikatsu / Koikatu / Koikatsu Party (KK) | `KK_EyeMotion.dll` | .NET Framework 3.5 | KKAPI 1.42.2+, ExtensibleSaveFormat |
 | Koikatsu Sunshine (KKS) | `KKS_EyeMotion.dll` | .NET Framework 4.6 | KKSAPI 1.42.2+, KKS_ExtensibleSaveFormat |
 
 Use dependency versions compatible with the selected game. Both API variants
@@ -34,10 +34,12 @@ use the `marco.kkapi` GUID, and both ExtendedSave variants use
 - The matching KK_ExpressionControl or KKS_ExpressionControl is optional. It is
   required only to drive the two optional IrisY/Size blendshapes.
 
-KK targets `Koikatu.exe` (game and Maker) and `CharaStudio.exe`.
+KK targets `Koikatu.exe` and `Koikatsu Party.exe` (game and Maker), plus
+`CharaStudio.exe`. Both editions use the KK DLL and the `KK` profile-game ID.
 KKS targets `KoikatsuSunshine.exe` (game and Maker) and `CharaStudio.exe`.
-**KKS has passed compilation and static API checks, but in-game validation is
-pending.** Do not treat it as fully verified compatibility.
+**Party process-filter checks pass; runtime validation on Steam is pending.**
+KK and KKS Maker/Studio eye movement has been confirmed locally. Detailed feature
+coverage is listed under Compatibility validation.
 
 ## Installation
 
@@ -48,8 +50,8 @@ pending.** Do not treat it as fully verified compatibility.
    game's variant from that installation. Keep your cards and configuration.
 3. Extract the `BepInEx` folder from the matching ZIP into that game's directory:
 
-   - KK: `KK_ExpressionLink_v0.5.1.zip`
-   - KKS: `KKS_ExpressionLink_v0.5.1.zip`
+   - KK / Party: `KK_ExpressionLink_v0.5.3.zip`
+   - KKS: `KKS_ExpressionLink_v0.5.3.zip`
 
 4. Confirm that exactly one variant is installed, at its matching path:
 
@@ -327,6 +329,12 @@ participate in the required compatibility check. If multiple candidates remain,
 binding is reported as ambiguous until an exact path is configured. Vertex colors are not
 used as a tie-breaker.
 
+SliderHighlight 2.2 selection overlays are excluded from automatic eye-target
+selection by checking their ownership, not their names. Explicit renderer names
+and paths remain available. SliderHighlight is optional; if its ownership layout
+is unavailable, no renderers are excluded and an exact target can be selected.
+This check runs during binding only and does not affect expression-link targets.
+
 ## Performance behavior
 
 - KK_ExpressionControl `IrisY` and `Size` values are cached; weights are
@@ -404,8 +412,8 @@ msbuild tests/KKS_EyeMotion.Tests.csproj /t:Rebuild /p:Configuration=Release /p:
 .\tests\bin\KKS\Release\KKS_EyeMotion.Tests.exe
 ```
 
-The tests exercise shared managed logic and inspect the selected game's DLL and
-references. They do not launch Unity or replace the in-game checks below.
+The tests exercise shared managed logic and inspect the selected game's DLL,
+references, and process filters. They do not replace the in-game checks below.
 Release builds treat warnings as errors. If Windows blocks trusted DLLs copied
 from a downloaded archive, unblock only those local reference copies before
 running the tests.
@@ -450,20 +458,25 @@ not install the plugin or publish anything.
 - A destination that remains absent throughout the initial resolution window
   is not polled indefinitely. Reload the character or save the link again after
   its renderer is present.
-- KoikatuVR is not supported. KKS in-game compatibility remains pending the
-  checklist below.
+- VR executables are not supported. Koikatsu Party process admission is covered
+  by automated tests; runtime validation on a Steam installation remains pending.
 
 ## Compatibility validation
 
-The source compiles against both games' installed dependencies. Static API
-comparison covers the used eye/FBS fields, character hierarchy, KKAPI callbacks,
+The source compiles against KK and KKS dependencies. Static API comparison
+covers the used eye/FBS fields, character hierarchy, KKAPI callbacks,
 Maker controls, Studio toolbar and ExpressionControl bridge. No Harmony patches
 or game AssetBundles are used. Static agreement does not verify Unity lifecycle,
 expression semantics, timing, or cross-game content conversion.
 
+Eye movement in Maker and Studio has been confirmed by the maintainer in local
+KK and KKS installations. This does not replace the detailed feature checks
+below or establish compatibility with every converted character card.
+
 | Function | KK | KKS | Implementation |
 | --- | --- | --- | --- |
-| Gaze, blink, highlights, manual visibility | Pending runtime test (regression) | Pending runtime test | Shared controllers and sampling |
+| Gaze in Maker / Studio | Reported working locally | Reported working locally | Shared controllers and sampling |
+| Blink, highlights, manual visibility | Detailed regression pending | Detailed regression pending | Shared controllers and sampling |
 | IrisY / Size | Pending runtime test (regression) | Pending runtime test | Shared optional ExpressionControl bridge |
 | Multi-renderer Expression Links | Pending runtime test (regression) | Pending runtime test | Shared resolution, evaluation and ownership |
 | Card / Studio character persistence | Pending runtime test (regression) | Pending runtime test | Shared schemas 1–3 and ExtendedSave identity |
@@ -482,6 +495,14 @@ expression semantics, timing, or cross-game content conversion.
   per-character links persist, and removed characters release their targets.
 - Change clothes/accessories and reload the character: targets rebind or report
   missing/ambiguous status. Save/load a KK reusable set without changing its game ID.
+
+### Koikatsu Party loading checklist
+
+- Install only the KK DLL in the Party installation and start `Koikatsu Party.exe`.
+  BepInEx must report `Loading [KK_ExpressionLink 0.5.3]`, followed by the plugin's
+  initialization message, without a process-filter rejection or loading exception.
+- Enter Maker and repeat the KK regression checklist. Process-filter tests do
+  not establish runtime compatibility with Party's game assemblies.
 
 ### KKS compatibility checklist
 

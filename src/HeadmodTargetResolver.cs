@@ -264,6 +264,13 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
 
             candidate.MeshName = mesh.name;
             candidate.MeshInstanceId = mesh.GetInstanceID();
+            if (SliderHighlightCompatibility.ShouldExclude(
+                renderer, candidate.ExactPathMatch, candidate.ExactNameMatch))
+            {
+                candidate.Decision = "Rejected: SliderHighlight-owned selection overlay.";
+                return candidate;
+            }
+
             string categoryRejection = GetAutomaticCategoryRejection(owner, renderer);
             if (categoryRejection.Length > 0)
             {
