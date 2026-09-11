@@ -289,15 +289,3 @@ global scene payload.
 Reusable JSON sets use format version 1 and declare `supportedGames`.
 Loading requires the current game ID (`KK` or `KKS`) and creates fresh link IDs.
 Public serialized fields and enum values are data contracts.
-
-</details>
-
-## Credits and license
-
-Author: **NightOwlZzz / Owl**. Uses BepInEx, KKAPI/KKSAPI, and
-ExtensibleSaveFormat, with optional ExpressionControl integration.
-
-Copyright (c) 2026 NightOwlZzz / Owl.
-
-No open-source license is currently included in this repository. Contact the
-author before redistributing the plugin or reusing or modifying its source code.
