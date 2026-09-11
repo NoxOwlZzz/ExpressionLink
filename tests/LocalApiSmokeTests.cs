@@ -79,7 +79,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             string sourceTree = ReadSourceTree(
                 Path.Combine(projectRoot, @"src"));
             Check(
-                "quick-settings GUI.Window source removed",
+                "quick-settings does not use GUI.Window",
                 quickSettingsSource.IndexOf(
                     "GUI.Window",
                     StringComparison.Ordinal) < 0);
@@ -342,7 +342,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
             BindingFlags instanceNonPublic =
                 BindingFlags.Instance | BindingFlags.NonPublic;
             Check(
-                "plugin polling focus callback removed",
+                "plugin has no polling focus callback",
                 pluginType.GetMethod(
                     "OnApplicationFocus", instanceNonPublic) == null);
             FieldInfo studioToolbarButtonField = pluginType.GetField(
@@ -382,7 +382,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "quick-settings draw method",
                 quickSettingsType.GetMethod("Draw", instanceNonPublic) != null);
             Check(
-                "quick-settings polling focus handler removed",
+                "quick-settings has no polling focus handler",
                 quickSettingsType.GetMethod(
                     "HandleApplicationFocus", instanceNonPublic) == null);
             Type quickSettingsSurfaceType = GetPluginType(
@@ -412,12 +412,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     "_footer",
                     instanceNonPublic) != null);
             Check(
-                "duplicated IMGUI window title removed",
+                "quick-settings surface has no window-title content",
                 quickSettingsSurfaceType.GetField(
                     "_windowContent",
                     instanceNonPublic) == null);
             Check(
-                "quick-settings old window delegate removed",
+                "quick-settings has no IMGUI window delegate",
                 quickSettingsSurfaceType.GetField(
                     "_drawWindowFunction",
                     instanceNonPublic) == null);
@@ -509,22 +509,22 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 movableWindowType.GetMethod(
                     "OnPointerUp", instancePublic) != null);
             Check(
-                "legacy window host removed",
+                "quick-settings has no alternate window host",
                 pluginAssembly.GetType(
                     PluginNamespace + "QuickSettingsWindowHost",
                     false) == null);
             Check(
-                "legacy drag overlay removed",
+                "quick-settings has no alternate drag overlay",
                 pluginAssembly.GetType(
                     PluginNamespace + "QuickSettingsDragOverlay",
                     false) == null);
             Check(
-                "legacy drag surface removed",
+                "quick-settings has no alternate drag surface",
                 pluginAssembly.GetType(
                     PluginNamespace + "QuickSettingsHeaderDragSurface",
                     false) == null);
             Check(
-                "monolithic window canvas removed",
+                "quick-settings has no combined window canvas",
                 pluginAssembly.GetType(
                     PluginNamespace + "QuickSettingsWindowCanvas",
                     false) == null);
@@ -544,12 +544,12 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     pluginAssembly,
                     "VisibilityTargetEditorView") != null);
             Check(
-                "legacy ExpressionMesh settings view removed",
+                "expressions have no separate ExpressionMesh settings view",
                 pluginAssembly.GetType(
                     PluginNamespace + "ExpressionSettingsView",
                     false) == null);
             Check(
-                "legacy expression workspace removed",
+                "expressions have no alternate workspace",
                 pluginAssembly.GetType(
                     PluginNamespace + "ExpressionWorkspaceView",
                     false) == null);
@@ -852,7 +852,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                 "batched config apply helper",
                 configType.GetMethod("ApplyBatch", staticNonPublic) != null);
             Check(
-                "vertex config removed",
+                "configuration has no vertex metadata field",
                 configType.GetField("VertexMetadataMode", staticNonPublic) == null);
 
             CheckConstant(
@@ -909,7 +909,7 @@ namespace NightOwlZzz.Koikatsu.EyeMotion.Tests
                     "SetAutomaticExpressionState",
                     instanceNonPublic) == 2);
             Check(
-                "vertex metadata scanner removed",
+                "plugin has no vertex metadata scanner",
                 pluginAssembly.GetType(
                     PluginNamespace + "VertexMetadataScanner",
                     false) == null);

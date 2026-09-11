@@ -64,15 +64,15 @@
     <MakeDir Directories="$(_PluginDirectory);$(MSBuildThisFileDirectory)dist" />
     <Copy SourceFiles="$(_AssemblyPath)" DestinationFolder="$(_PluginDirectory)" />
     <ItemGroup>
-      <_ReadmeLine Include="$(Game)_ExpressionLink v$(_PackageVersion) - $(_GameTitle) only." />
+      <_ReadmeLine Include="ExpressionLink v$(_PackageVersion) - $(_GameTitle) only." />
       <_ReadmeLine Include="Requirements: BepInEx 5, $(_ApiName) 1.42.2 or newer, and the $(_GameTitle) version of $(_SaveName)." />
       <_ReadmeLine Include="Optional: $(Game)_ExpressionControl provides IrisY and Size input. It is not required for other features." />
       <_ReadmeLine Include="Installation: close the game and CharaStudio, then extract the BepInEx folder into the $(_GameTitle) game folder." />
       <_ReadmeLine Include="Upgrade: remove old copies of $(Game)_EyeMotion.dll and any $(_OtherGame)_EyeMotion.dll from this game's BepInEx/plugins folder, including subfolders. Install only the included $(Game)_EyeMotion.dll. Keep your character cards and configuration files." />
       <_ReadmeLine Include="Open Quick Settings with Ctrl+Shift+M. Use compatible meshes with the required blendshapes." />
-      <_ReadmeLine Include="KK accepts Koikatu.exe, Koikatsu Party.exe, and CharaStudio.exe. Party in-game validation is pending. VR is not supported." Condition="'$(Game)' == 'KK'" />
+      <_ReadmeLine Include="KK accepts Koikatu.exe, Koikatsu Party.exe, and CharaStudio.exe. VR is not supported." Condition="'$(Game)' == 'KK'" />
       <_ReadmeLine Include="KKS accepts KoikatsuSunshine.exe and CharaStudio.exe. Do not use the KKS DLL in Koikatsu Party." Condition="'$(Game)' == 'KKS'" />
-      <_ReadmeLine Include="KKS Maker and Studio eye movement has been confirmed locally. Cross-game character card compatibility is not guaranteed." Condition="'$(Game)' == 'KKS'" />
+      <_ReadmeLine Include="Cross-game character card compatibility is not guaranteed." Condition="'$(Game)' == 'KKS'" />
       <_ReadmeLine Include="Copyright (c) 2026 NightOwlZzz / Owl. No open-source license is granted. Contact the author before redistribution or source reuse." />
     </ItemGroup>
     <WriteLinesToFile File="$(_StageRoot)\README.txt" Lines="@(_ReadmeLine)" Overwrite="true" Encoding="UTF-8" />

@@ -209,9 +209,9 @@ namespace NightOwlZzz.Koikatsu.EyeMotion
         }
 
         /// <summary>
-        /// Returns the pattern with the greatest current FBS weight for a part.
-        /// After Sample this is a zero-cost cached lookup. Before the first
-        /// sample it reads and scans the live dictionary once.
+        /// Returns the strongest current FBS pattern for a part.
+        /// Reuses the dictionary captured by Sample when available and scans it
+        /// to select the greatest weight.
         /// </summary>
         internal ExpressionTriggerSelector GetCurrentSelector(
             ExpressionTriggerPart part)
